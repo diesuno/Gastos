@@ -7,7 +7,7 @@
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a237e">
-    <link rel="apple-touch-icon" href="icono-192.png">
+    <link class="apple-touch-icon" href="icono-192.png">
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -17,12 +17,29 @@
         });
       }
     </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333;}
         .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative;}
         h1, h2, h3 { color: #1a237e; text-align: center; }
         
+        /* PANTALLA DE LOGIN */
+        #auth-section { max-width: 400px; margin: 60px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;}
+        .auth-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 15px;}
+        .auth-group label { font-weight: bold; margin-bottom: 5px; color: #555;}
+        .auth-btn-container { display: flex; flex-direction: column; gap: 10px; margin-top: 20px;}
+        .btn-secundario { background-color: #757575; } .btn-secundario:hover { background-color: #616161; }
+        .btn-logout { background-color: #cfd8dc; color: #37474f; position: absolute; top: 20px; right: 20px; padding: 6px 12px; font-size: 0.85em;}
+        .btn-logout:hover { background-color: #b0bec5; }
+
+        /* INTERFAZ PRINCIPAL */
+        #main-app { display: none; } /* Oculta la app hasta que el usuario se loguee */
+
         .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
         .tab-button { background-color: #e8eaf6; color: #1a237e; padding: 12px 25px; border: none; border-radius: 5px 5px 0 0; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.3s; }
         .tab-button.active { background-color: #1a237e; color: white; }
@@ -65,42 +82,40 @@
 
         /* --- ADAPTACIÓN PARA MÓVILES (iPhone / Android) --- */
         @media (max-width: 768px) {
-            .dashboard-grid { 
-                grid-template-columns: 1fr; /* Apila las tarjetas de saldo en 1 sola columna */
-            }
-            .card.ahorro, .card.oro {
-                grid-column: span 1 !important; /* Evita que las tarjetas anchas rompan la pantalla */
-            }
-            .nav-tabs {
-                flex-direction: column; /* Apila los botones del menú uno arriba del otro */
-                border-bottom: none;
-            }
-            .tab-button {
-                border-radius: 8px; 
-                margin-bottom: 8px;
-                width: 100%; 
-                padding: 15px; /* Más espacio para que sea fácil de tocar */
-            }
-            .form-grid {
-                grid-template-columns: 1fr; /* Apila los campos de los formularios */
-            }
-            .historico-selector {
-                flex-direction: column;
-                gap: 10px;
-            }
-            input, select, button {
-                min-height: 44px; /* Estándar de usabilidad de Apple y Google para pantallas táctiles */
-                font-size: 16px; /* Evita que el iPhone haga zoom automático al tocar un input */
-            }
-            .chart-container {
-                height: 300px; /* Ajusta el gráfico para que entre mejor en la pantalla */
-            }
+            #auth-section { margin: 20px auto; padding: 20px; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .card.ahorro, .card.oro { grid-column: span 1 !important; }
+            .nav-tabs { flex-direction: column; border-bottom: none; }
+            .tab-button { border-radius: 8px; margin-bottom: 8px; width: 100%; padding: 15px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .historico-selector { flex-direction: column; gap: 10px; }
+            input, select, button { min-height: 44px; font-size: 16px; }
+            .chart-container { height: 300px; }
+            .btn-logout { position: static; width: 100%; margin-bottom: 15px; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="auth-section">
+    <h2>🔐 Ingreso Seguro</h2>
+    <p style="color:#666; font-size:0.9em; margin-bottom:20px;">Plataforma de Inteligencia Financiera</p>
+    <div class="auth-group">
+        <label>Correo Electrónico</label>
+        <input type="email" id="authEmail" placeholder="ejemplo@mail.com">
+    </div>
+    <div class="auth-group">
+        <label>Contraseña</label>
+        <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres">
+    </div>
+    <div class="auth-btn-container">
+        <button onclick="loginUsuario()">Iniciar Sesión</button>
+        <button class="btn-secundario" onclick="registrarUsuario()">Registrarme Nuevo</button>
+    </div>
+</div>
+
+<div class="container" id="main-app">
+    <button class="btn-borrar btn-logout" onclick="logoutUsuario()">🚪 Cerrar Sesión</button>
     <h1>💰 Plataforma de Inteligencia Financiera</h1>
 
     <div class="nav-tabs">
@@ -189,20 +204,16 @@
                         <option value="Fondo Común">Fondo Común de Inversión</option>
                     </select>
                 </div>
-                
                 <div class="form-group" id="grupoInteres"><label>Tasa Int. Anual (%)</label><input type="number" id="invInteres" placeholder="Ej: 45"></div>
-                
                 <div class="form-group" id="grupoNominal" style="display:none;">
                     <label style="display:flex; align-items:center;">Precio Nominal <button class="btn-api" id="btnBuscarApi" onclick="buscarPrecioAPI()">🔍 API</button></label>
                     <input type="number" id="invPrecioNominal" placeholder="Revisá la coma">
                 </div>
-
                 <div class="form-group"><label>Fecha</label><input type="date" id="invFecha"></div>
-                
                 <button style="background-color: #ffb300; color: #333;" onclick="ejecutarInversion()">Colocar Fondos</button>
             </div>
             <p id="apiInfoText" style="display:none; font-size: 0.85em; color: #666; margin-top: 10px;">
-                <em>* Usá el botón "🔍 API" para traer el precio automático. Si ves que la API se equivocó en la coma (ej: 169838 en lugar de 16983.8), **podés corregirlo a mano** en la casilla antes de colocar los fondos.</em>
+                <em>* Usá el botón "🔍 API" para traer el precio automático. Si ves que la API se equivocó en la coma, podés corregirlo a mano.</em>
             </p>
         </div>
 
@@ -237,17 +248,110 @@
 </div>
 
 <script>
-    let todosLosMovimientos = localStorage.getItem('misMovimientos2026') ? JSON.parse(localStorage.getItem('misMovimientos2026')) : [];
-    let patrimonio = localStorage.getItem('miPatrimonio') ? JSON.parse(localStorage.getItem('miPatrimonio')) : { pesos: 0, dolares: 0 };
-    let inversiones = localStorage.getItem('misInversiones') ? JSON.parse(localStorage.getItem('misInversiones')) : [];
+    // ==========================================
+    // ⚙️ CONFIGURACIÓN DE FIREBASE (PEGÁ TU OBJETO ABAJO)
+    // ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyD6b5jRsGPzKmwB-M-cDbyn1qQCAdN5ecE",
+  authDomain: "gastos-a56f7.firebaseapp.com",
+  projectId: "gastos-a56f7",
+  storageBucket: "gastos-a56f7.firebasestorage.app",
+  messagingSenderId: "537729737132",
+  appId: "1:537729737132:web:2423ab40ff20fef30b9a09"
+};
+    // ==========================================
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Variables globales de la app (se llenarán desde Firestore)
+    let todosLosMovimientos = [];
+    let patrimonio = { pesos: 0, dolares: 0 };
+    let inversiones = [];
     
     const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
     const fechaActual = new Date();
     document.getElementById('inputFecha').valueAsDate = fechaActual;
     document.getElementById('invFecha').valueAsDate = fechaActual;
-
     let miGrafico = null;
 
+    // --- ESCUCHADOR DE ESTADO DE SESIÓN ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            // Usuario logueado: ocultar login, mostrar app y descargar datos
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            cargarDatosDesdeNube(user.uid);
+        } else {
+            // Usuario deslogueado: mostrar login y ocultar app
+            document.getElementById('auth-section').style.display = 'block';
+            document.getElementById('main-app').style.display = 'none';
+        }
+    });
+
+    // --- FUNCIONES DE AUTENTICACIÓN ---
+    function registrarUsuario() {
+        const email = document.getElementById('authEmail').value;
+        const password = document.getElementById('authPassword').value;
+        if(!email || !password) { alert("Completá los campos"); return; }
+        
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                alert("¡Cuenta creada con éxito! Bienvenido a la plataforma.");
+            })
+            .catch((error) => alert("Error al registrar: " + error.message));
+    }
+
+    function loginUsuario() {
+        const email = document.getElementById('authEmail').value;
+        const password = document.getElementById('authPassword').value;
+        if(!email || !password) { alert("Completá los campos"); return; }
+
+        auth.signInWithEmailAndPassword(email, password)
+            .catch((error) => alert("Error al ingresar: " + error.message));
+    }
+
+    function logoutUsuario() {
+        if(confirm("¿Querés cerrar sesión?")) {
+            auth.signOut();
+        }
+    }
+
+    // --- CONTROLLER DE NUBE (FIRESTORE) ---
+    function cargarDatosDesdeNube(uid) {
+        db.collection("usuarios").doc(uid).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                todosLosMovimientos = data.todosLosMovimientos || [];
+                patrimonio = data.patrimonio || { pesos: 0, dolares: 0 };
+                inversiones = data.inversiones || [];
+            } else {
+                // Si el usuario es totalmente nuevo, inicializamos vacío
+                todosLosMovimientos = [];
+                patrimonio = { pesos: 0, dolares: 0 };
+                inversiones = [];
+            }
+            inicializarSelectorHistorico();
+            actualizarApp();
+        }).catch(error => console.error("Error al bajar datos:", error));
+    }
+
+    function guardarDatosEnNube() {
+        const user = auth.currentUser;
+        if (user) {
+            db.collection("usuarios").doc(user.uid).set({
+                todosLosMovimientos: todosLosMovimientos,
+                patrimonio: patrimonio,
+                inversiones: inversiones
+            }).then(() => {
+                console.log("Sincronización en la nube exitosa.");
+            }).catch(error => console.error("Error al subir datos:", error));
+        }
+    }
+
+    // --- LÓGICA DE LA APLICACIÓN ---
     function cambiarPestaña(tabId, boton) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
         document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
@@ -280,7 +384,6 @@
         }
     }
 
-    // --- MÓDULO API CONTROLABLE POR EL USUARIO ---
     async function obtenerDatosMercado() {
         let precioCedearARS = 16983.81; 
         let dolarMEP = 1250; 
@@ -305,24 +408,18 @@
         let btn = document.getElementById('btnBuscarApi');
         btn.innerText = "⏳...";
         let moneda = document.getElementById('invMoneda').value;
-        
         let datos = await obtenerDatosMercado();
-        
         let precioRealARS = datos.precioARS;
-        if(precioRealARS > 100000) {
-            precioRealARS = precioRealARS / 10; 
-        }
-
+        if(precioRealARS > 100000) { precioRealARS = precioRealARS / 10; }
         let precioFinalDisplay = moneda === "ARS" ? precioRealARS : (precioRealARS / datos.mep);
         
         document.getElementById('invPrecioNominal').value = precioFinalDisplay.toFixed(2);
         btn.innerText = "🔍 API";
     }
 
-    // --- FIN MÓDULO API ---
-
     function inicializarSelectorHistorico() {
         let selector = document.getElementById('filtroMesAnio');
+        if(selector.innerHTML !== '') return; // Evita reinicializar si ya está creado
         selector.innerHTML = '';
         let anioActual = fechaActual.getFullYear();
         let anios = [anioActual - 1, anioActual, anioActual + 1];
@@ -388,14 +485,12 @@
             let simbolo = inv.moneda === "ARS" ? "$" : "US$";
             let f = new Date(inv.fecha + 'T00:00:00');
             let fFormated = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            
             let columnaClaveHTML = "";
             let precioCompraTexto = "-";
 
             if(inv.instrumento === "S&P 500") {
                 let nominalesSeguros = inv.nominales || 0;
                 let precioBaseSeguro = inv.precioCompraBase || 0;
-                
                 columnaClaveHTML = `<strong style="color:#0d47a1;">${nominalesSeguros.toLocaleString('es-AR', { maximumFractionDigits: 4 })} Nominales</strong>`;
                 precioCompraTexto = `${simbolo}${precioBaseSeguro.toLocaleString('es-AR')}`;
             } else {
@@ -423,10 +518,10 @@
         let fecha = document.getElementById('inputFecha').value;
         if(monto && concepto && fecha) {
             todosLosMovimientos.push({ monto: parseFloat(monto), tipo: tipo, concepto: concepto, fecha: fecha });
-            localStorage.setItem('misMovimientos2026', JSON.stringify(todosLosMovimientos));
             document.getElementById('inputMonto').value = "";
             document.getElementById('inputConcepto').value = "";
             actualizarApp();
+            guardarDatosEnNube();
         }
     }
 
@@ -453,11 +548,10 @@
         let fechaFalsaEnvio = `${anioSel}-${(mesSel + 1).toString().padStart(2,'0')}-28`;
         todosLosMovimientos.push({ monto: montoPesos, tipo: "Enviado a Ahorros", concepto: conceptoDetalle, fecha: fechaFalsaEnvio });
 
-        localStorage.setItem('misMovimientos2026', JSON.stringify(todosLosMovimientos));
-        localStorage.setItem('miPatrimonio', JSON.stringify(patrimonio));
         document.getElementById('ahorroMontoPesos').value = "";
         if(document.getElementById('ahorroCotizacion')) document.getElementById('ahorroCotizacion').value = "";
         actualizarApp();
+        guardarDatosEnNube();
     }
 
     function ejecutarInversion() {
@@ -467,7 +561,6 @@
         let fecha = document.getElementById('invFecha').value;
         
         if(!monto || !fecha) { alert("Completá monto y fecha"); return; }
-
         if(moneda === "ARS" && patrimonio.pesos < monto) { alert("❌ Efectivo insuficiente en ARS."); return; }
         if(moneda === "USD" && patrimonio.dolares < monto) { alert("❌ Efectivo insuficiente en USD."); return; }
 
@@ -491,33 +584,24 @@
         else patrimonio.dolares -= monto;
 
         inversiones.push({ 
-            monto: monto, 
-            moneda: moneda, 
-            instrumento: instrumento, 
-            fecha: fecha,
-            nominales: nominalesCalc,
-            interes: interes,
-            precioCompraBase: precioCompraBase
+            monto: monto, moneda: moneda, instrumento: instrumento, fecha: fecha,
+            nominales: nominalesCalc, interes: interes, precioCompraBase: precioCompraBase
         });
-        
-        localStorage.setItem('miPatrimonio', JSON.stringify(patrimonio));
-        localStorage.setItem('misInversiones', JSON.stringify(inversiones));
         
         document.getElementById('invMonto').value = "";
         document.getElementById('invInteres').value = "";
         document.getElementById('invPrecioNominal').value = "";
         actualizarApp();
+        guardarDatosEnNube();
     }
 
     function retirarInversion(index) {
         let inv = inversiones[index];
         let simbolo = inv.moneda === "ARS" ? "$" : "US$";
-        
         let nominalesSeguros = inv.nominales || 0;
         let detalle = inv.instrumento === "S&P 500" ? `Tus Nominales: ${nominalesSeguros.toLocaleString('es-AR', { maximumFractionDigits: 4 })}` : `Tasa Esperada: ${inv.interes}%`;
         
         let nuevoImporteInput = prompt(`Liquidando: [${inv.instrumento}]\nCapital inicial: ${simbolo}${inv.monto}\n${detalle}\n\nIngresá el importe FINAL que vas a sumar a tu efectivo (capital + ganancias):`, inv.monto);
-        
         if (nuevoImporteInput === null) return; 
         let nuevoImporte = parseFloat(nuevoImporteInput);
         if (isNaN(nuevoImporte) || nuevoImporte < 0) { alert("Importe inválido."); return; }
@@ -526,30 +610,28 @@
         else patrimonio.dolares += nuevoImporte;
 
         inversiones.splice(index, 1);
-        localStorage.setItem('miPatrimonio', JSON.stringify(patrimonio));
-        localStorage.setItem('misInversiones', JSON.stringify(inversiones));
         actualizarApp();
+        guardarDatosEnNube();
     }
 
     function borrarMovimiento(index) {
         if(confirm("¿Borrar movimiento?")) {
             todosLosMovimientos.splice(index, 1);
-            localStorage.setItem('misMovimientos2026', JSON.stringify(todosLosMovimientos));
             actualizarApp();
+            guardarDatosEnNube();
         }
     }
     
     function resetearApp() {
-        if(confirm("⚠️ ¡PELIGRO! Vas a borrar TODO tu historial de gastos, ingresos e inversiones. Esta acción NO se puede deshacer.\n\n¿Estás absolutamente seguro de querer vaciar la caja fuerte?")) {
+        if(confirm("⚠️ ¡PELIGRO! Vas a borrar TODO tu historial de gastos, ingresos e inversiones en la NUBE. Esta acción NO se puede deshacer.")) {
             let palabra = prompt("Escribí la palabra BORRAR en mayúsculas para confirmar:");
             if(palabra === "BORRAR") {
-                localStorage.removeItem('misMovimientos2026');
-                localStorage.removeItem('miPatrimonio');
-                localStorage.removeItem('misInversiones');
-                alert("Datos eliminados correctamente. El sistema se reiniciará.");
-                location.reload();
-            } else {
-                alert("Operación cancelada. Tus datos están a salvo.");
+                todosLosMovimientos = [];
+                patrimonio = { pesos: 0, dolares: 0 };
+                inversiones = [];
+                actualizarApp();
+                guardarDatosEnNube();
+                alert("Datos eliminados correctamente.");
             }
         }
     }
@@ -584,9 +666,6 @@
             options: { responsive: true, maintainAspectRatio: false }
         });
     }
-
-    inicializarSelectorHistorico();
-    actualizarApp();
 </script>
 
 </body>
