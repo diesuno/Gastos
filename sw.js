@@ -1,11 +1,11 @@
-const CACHE_NAME = 'finanzas-v1';
+const CACHE_NAME = 'finanzas-v2'; // Pasamos a la versión 2
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json'
 ];
 
-// Instala el Service Worker y guarda en caché los archivos básicos
+// Instala la nueva versión
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -15,12 +15,27 @@ self.addEventListener('install', event => {
   );
 });
 
-// Intercepta las peticiones de red para usar la caché si no hay internet
+// ESTA ES LA MAGIA: Borra la memoria vieja apenas detecta esta versión
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Borrando caché antigua:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// Estrategia "Network First": Siempre intenta traer lo más nuevo de internet primero
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        return response || fetch(event.request);
-      })
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    })
   );
 });
