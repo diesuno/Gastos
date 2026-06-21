@@ -277,12 +277,13 @@ const firebaseConfig = {
     document.getElementById('invFecha').valueAsDate = fechaActual;
     let miGrafico = null;
 
-    // --- ESCUCHADOR DE ESTADO DE SESIÓN ---
+  // --- ESCUCHADOR DE ESTADO DE SESIÓN ---
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Usuario logueado: ocultar login, mostrar app y descargar datos
+            // Usuario logueado: ocultar login, mostrar app, cargar fechas y bajar datos
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
+            inicializarSelectorHistorico(); // <-- Forzamos que las fechas carguen SÍ o SÍ
             cargarDatosDesdeNube(user.uid);
         } else {
             // Usuario deslogueado: mostrar login y ocultar app
@@ -417,10 +418,9 @@ const firebaseConfig = {
         btn.innerText = "🔍 API";
     }
 
-    function inicializarSelectorHistorico() {
+  function inicializarSelectorHistorico() {
         let selector = document.getElementById('filtroMesAnio');
-        if(selector.innerHTML !== '') return; // Evita reinicializar si ya está creado
-        selector.innerHTML = '';
+        selector.innerHTML = ''; // Vaciamos y reconstruimos siempre
         let anioActual = fechaActual.getFullYear();
         let anios = [anioActual - 1, anioActual, anioActual + 1];
         anios.forEach(anio => {
