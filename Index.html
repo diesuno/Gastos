@@ -1,0 +1,13 @@
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a237e">
+<link rel="apple-touch-icon" href="icono-192.png">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado con éxito.', reg))
+        .catch(err => console.error('Error al registrar el Service Worker.', err));
+    });
+  }
+</script>
