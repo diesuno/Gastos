@@ -418,9 +418,10 @@
             .catch(err => alert("Error de seguridad: Volvé a iniciar sesión antes de cambiar la clave."));
     }
 
-    // --- ENLACE DE DATOS (NUBE) ---
+  // --- CONTROLLER DE NUBE EN TIEMPO REAL ---
     function cargarDatosDesdeNube(uid) {
-        db.collection("usuarios").doc(uid).get().then(doc => {
+        // Usamos onSnapshot en lugar de .get() para que escuche cambios en vivo desde cualquier dispositivo
+        db.collection("usuarios").doc(uid).onSnapshot(doc => {
             if (doc.exists) {
                 const data = doc.data();
                 todosLosMovimientos = data.todosLosMovimientos || [];
@@ -429,19 +430,22 @@
                 listaAmigos = data.listaAmigos || [];
                 perfilUsuario = data.perfilUsuario || { nombre: "Usuario" };
             } else {
+                // Inicialización para usuarios nuevos
                 todosLosMovimientos = [];
                 patrimonio = { pesos: 0, dolares: 0 };
                 inversiones = [];
                 listaAmigos = [];
                 perfilUsuario = { nombre: "Usuario" };
             }
+            // Actualiza la interfaz visual automáticamente con los datos frescos de la nube
             document.getElementById('userNameDisplay').innerText = perfilUsuario.nombre;
             actualizarSelectAmigosDisplay();
             actualizarApp();
-        }).catch(err => console.error(err));
+        }, error => {
+            console.error("Error en la sincronización en vivo: ", error);
+        });
     }
-
-    function guardarDatosEnNube() {
+   function guardarDatosEnNube() {
         const user = auth.currentUser;
         if (user) {
             db.collection("usuarios").doc(user.uid).set({
@@ -450,7 +454,9 @@
                 inversiones: inversiones,
                 listaAmigos: listaAmigos,
                 perfilUsuario: perfilUsuario
-            });
+            }, { merge: true }).then(() => {
+                console.log("¡Nube sincronizada!");
+            }).catch(err => console.error("Error al subir:", err));
         }
     }
 
