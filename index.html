@@ -236,6 +236,20 @@
     <div id="tab-ahorros" class="tab-content">
         <h2>🏦 Mi Billetera Patrimonial</h2>
         <div class="dashboard-grid">
+            <div class="form-section" style="background: #e8f5e9; border-color: #4caf50;">
+            <h3 style="margin-top:0; color:#2e7d32;">💵 Cargar Saldo Existente (Ajuste Manual)</h3>
+            <p style="font-size: 0.85em; color: #555; margin-top: -5px; margin-bottom: 15px;">Usá esta opción para sumar plata que ya tenías ahorrada sin que cuente como un ingreso del mes actual.</p>
+            <div class="form-grid">
+                <div class="form-group"><label>Monto a Sumar</label><input type="number" id="ajusteMonto" placeholder="Ej: 150000"></div>
+                <div class="form-group"><label>Moneda</label>
+                    <select id="ajusteMoneda">
+                        <option value="ARS">Pesos (ARS)</option>
+                        <option value="USD">Dólares (USD)</option>
+                    </select>
+                </div>
+                <button class="btn-verde" onclick="ingresarSaldoExistente()">Inyectar Saldo</button>
+            </div>
+        </div>
             <div class="card ahorro"><h3>Efectivo Pesos</h3><p>$<span id="walletPesos">0</span> ARS</p></div>
             <div class="card oro" style="grid-column: span 2;"><h3>Efectivo Dólares</h3><p>US$ <span id="walletDolares">0</span> USD</p></div>
         </div>
@@ -711,7 +725,31 @@
         document.getElementById('ahorroMontoPesos').value = "";
         actualizarApp(); guardarDatosEnNube();
     }
+// --- INYECCIÓN DE CAPITAL EXISTENTE ---
+    function ingresarSaldoExistente() {
+        let monto = parseFloat(document.getElementById('ajusteMonto').value);
+        let moneda = document.getElementById('ajusteMoneda').value;
 
+        if(!monto || monto <= 0) { 
+            alert("⚠️ Por favor, ingresá un monto válido mayor a cero."); 
+            return; 
+        }
+
+        // Sumamos al patrimonio correspondiente
+        if(moneda === "ARS") {
+            patrimonio.pesos += monto;
+        } else {
+            patrimonio.dolares += monto;
+        }
+
+        // Limpiamos el input, actualizamos pantalla y subimos a la nube
+        document.getElementById('ajusteMonto').value = "";
+        actualizarApp();
+        guardarDatosEnNube();
+        
+        let simbolo = moneda === "ARS" ? "$" : "US$";
+        alert(`✅ Éxito. Se sumaron ${simbolo}${monto.toLocaleString('es-AR')} a tu caja fuerte.`);
+    }
     function ejecutarInversion() {
         let monto = parseFloat(document.getElementById('invMonto').value);
         let moneda = document.getElementById('invMoneda').value;
