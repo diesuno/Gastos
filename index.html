@@ -193,14 +193,14 @@
                         <option value="6">6 Cuotas fijas</option>
                         <option value="12">12 Cuotas fijas</option>
                     </select>
-            <div class="form-group" id="boxGastoCompartido" style="display:none;"><label>¿Cómo se dividió el pago?</label>
+          <div class="form-group" id="boxGastoCompartido" style="display:none;"><label>División del pago</label>
                     <select id="inputDividir" onchange="toggleSelectAmigo()">
-                        <option value="NO">No, gasto 100% propio</option>
-                        <option value="PAGUE_50_TOTAL">Pagué el 50% de mi parte (Se debita 50%, 0 deudas)</option>
-                        <option value="PAGUE_50_INTEGRO">Pagué el 100% pero mitad es de otro (Se debita 100%, te debe 50%)</option>
-                        <option value="PAGO_OTRO_50">Pagó el otro el 100% pero mitad es mía (Se debita 0%, le debés 50%)</option>
-                        <option value="PAGUE_100_DEUDA">Pagué el 100% de algo ajeno (Se debita 100%, te debe el 100%)</option>
-                        <option value="PAGO_OTRO_100_DEUDA">Pagó el otro 100% algo mío (Se debita 0%, le debés el 100%)</option>
+                        <option value="NO">100% Propio (Normal)</option>
+                        <option value="PAGUE_50_TOTAL">Pagué solo mi mitad</option>
+                        <option value="PAGUE_50_INTEGRO">Pagué todo (Me deben 50%)</option>
+                        <option value="PAGO_OTRO_50">Pagó el otro (Debo 50%)</option>
+                        <option value="PAGUE_100_DEUDA">Pagué ajeno (Me deben 100%)</option>
+                        <option value="PAGO_OTRO_100_DEUDA">Pagaron por mí (Debo 100%)</option>
                     </select>
                 </div>
                 <div class="form-group" id="boxSeleccionAmigo" style="display:none;"><label>¿Con quién?</label>
