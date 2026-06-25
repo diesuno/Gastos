@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v2.0.0'; // Pasamos a la versión 2
+const CACHE_NAME = 'finanzas-v2'; // Pasamos a la versión 2
 const urlsToCache = [
   './',
   './index.html',
