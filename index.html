@@ -193,11 +193,14 @@
                         <option value="6">6 Cuotas fijas</option>
                         <option value="12">12 Cuotas fijas</option>
                     </select>
-                </div>
-                <div class="form-group" id="boxGastoCompartido" style="display:none;"><label>¿Dividir Gasto?</label>
+            <div class="form-group" id="boxGastoCompartido" style="display:none;"><label>¿Cómo se dividió el pago?</label>
                     <select id="inputDividir" onchange="toggleSelectAmigo()">
                         <option value="NO">No, gasto 100% propio</option>
-                        <option value="SI">Sí, dividido 50/50</option>
+                        <option value="PAGUE_50_TOTAL">Pagué el 50% de mi parte (Se debita 50%, 0 deudas)</option>
+                        <option value="PAGUE_50_INTEGRO">Pagué el 100% pero mitad es de otro (Se debita 100%, te debe 50%)</option>
+                        <option value="PAGO_OTRO_50">Pagó el otro el 100% pero mitad es mía (Se debita 0%, le debés 50%)</option>
+                        <option value="PAGUE_100_DEUDA">Pagué el 100% de algo ajeno (Se debita 100%, te debe el 100%)</option>
+                        <option value="PAGO_OTRO_100_DEUDA">Pagó el otro 100% algo mío (Se debita 0%, le debés el 100%)</option>
                     </select>
                 </div>
                 <div class="form-group" id="boxSeleccionAmigo" style="display:none;"><label>¿Con quién?</label>
@@ -529,14 +532,14 @@
         let dividir = document.getElementById('inputDividir').value;
         let amigo = document.getElementById('inputAmigoAsignado').value;
 
-        if(dividir === "SI" && !amigo) { alert("Crea primero una persona en la pestaña de Cuentas por Cobrar."); return; }
+        if(dividir !== "NO" && !amigo) { alert("Crea primero una persona en la pestaña de Cuentas por Cobrar."); return; }
 
         let montoPorCuota = montoTotal / cuotas;
 
-        // Bucle temporal para proyectar cuotas en meses futuros
+        // Bucle para proyectar las cuotas fijas mes a mes
         for (let i = 0; i < cuotas; i++) {
             let fechaCuota = new Date(fechaBaseStr + 'T00:00:00');
-            fechaCuota.setMonth(fechaCuota.getMonth() + i); // Adelanta un mes por cada cuota
+            fechaCuota.setMonth(fechaCuota.getMonth() + i);
             
             let añoC = fechaCuota.getFullYear();
             let mesC = (fechaCuota.getMonth() + 1).toString().padStart(2, '0');
@@ -547,25 +550,71 @@
             
             if(tipo === "Ingreso") {
                 todosLosMovimientos.push({ monto: montoPorCuota, tipo: "Ingreso", concepto: conceptoFinal, fecha: fechaFinalFormateada });
+                patrimonio.pesos += montoPorCuota; // Suma directa a tu cartera
             } else {
                 // Es un Gasto (Fijo o Variable)
-                let montoImpactoPropio = (dividir === "SI") ? (montoPorCuota / 2) : montoPorCuota;
-                
-                todosLosMovimientos.push({ 
-                    monto: montoImpactoPropio, 
-                    tipo: tipo, 
-                    concepto: conceptoFinal, 
-                    fecha: fechaFinalFormateada 
-                });
+                let montoImpactoPropio = montoPorCuota; // Por defecto es el total
+                let registrarDeuda = false;
+                let montoDeuda = 0;
+                let tipoDeuda = ""; // "A_FAVOR" o "EN_CONTRA"
 
-                // Si es compartido, creamos la cuenta por cobrar asociada al registro
-                if(dividir === "SI") {
+                // --- LÓGICA DE DIVISIONES DE PAGO ---
+                if (dividir === "PAGUE_50_TOTAL") {
+                    montoImpactoPropio = montoPorCuota / 2;
+                    patrimonio.pesos -= montoImpactoPropio; // Se pagó solo la mitad en el acto
+                } 
+                else if (dividir === "PAGUE_50_INTEGRO") {
+                    montoImpactoPropio = montoPorCuota / 2;
+                    patrimonio.pesos -= montoPorCuota; // DEL BOLSILLO SALIÓ EL 100%
+                    registrarDeuda = true;
+                    montoDeuda = montoPorCuota / 2;
+                    tipoDeuda = "A_FAVOR";
+                } 
+                else if (dividir === "PAGO_OTRO_50") {
+                    montoImpactoPropio = montoPorCuota / 2;
+                    // Del bolsillo salió $0 hoy, pagó el otro completo. No resta patrimonio líquido.
+                    registrarDeuda = true;
+                    montoDeuda = montoPorCuota / 2;
+                    tipoDeuda = "EN_CONTRA";
+                } 
+                else if (dividir === "PAGUE_100_DEUDA") {
+                    montoImpactoPropio = 0; // El gasto no es tuyo, es de tu amigo
+                    patrimonio.pesos -= montoPorCuota; // Pero lo pagaste con tu plata (100% egreso)
+                    registrarDeuda = true;
+                    montoDeuda = montoPorCuota;
+                    tipoDeuda = "A_FAVOR";
+                } 
+                else if (dividir === "PAGO_OTRO_100_DEUDA") {
+                    montoImpactoPropio = montoPorCuota; // El gasto sí es tuyo
+                    // Pero de tu billetera hoy salió $0 porque lo pagó tu amigo por vos.
+                    registrarDeuda = true;
+                    montoDeuda = montoPorCuota;
+                    tipoDeuda = "EN_CONTRA";
+                } 
+                else {
+                    // Gasto 100% propio clásico
+                    patrimonio.pesos -= montoPorCuota;
+                }
+
+                // Registramos tu porción del gasto en el flujo mensual
+                if(montoImpactoPropio > 0) {
+                    todosLosMovimientos.push({ 
+                        monto: montoImpactoPropio, 
+                        tipo: tipo, 
+                        concepto: conceptoFinal, 
+                        fecha: fechaFinalFormateada 
+                    });
+                }
+
+                // Registramos en Cuentas por Cobrar / Pagar si corresponde
+                if(registrarDeuda) {
                     todosLosMovimientos.push({
-                        monto: (montoPorCuota / 2),
+                        monto: montoDeuda,
                         tipo: "Cuenta Cobrar",
-                        concepto: `Préstamo por: ${conceptoFinal}`,
+                        concepto: tipoDeuda === "A_FAVOR" ? `Te debe por: ${conceptoFinal}` : `Le debés por: ${conceptoFinal}`,
                         fecha: fechaFinalFormateada,
                         deudor: amigo,
+                        sentido: tipoDeuda, // A_FAVOR o EN_CONTRA
                         estado: "Pendiente"
                     });
                 }
@@ -577,7 +626,6 @@
         actualizarApp();
         guardarDatosEnNube();
     }
-
     // --- ACTUALIZACIÓN DE TABLEROS ---
     function inicializarSelectorHistorico() {
         let selector = document.getElementById('filtroMesAnio');
@@ -660,7 +708,7 @@
         actualizarPestañaCuentasCobrar(anioSel, mesSel);
     }
 
-    function actualizarPestañaCuentasCobrar(anioSel, mesSel) {
+   function actualizarPestañaCuentasCobrar(anioSel, mesSel) {
         let totalizadorPersonas = {};
         listaAmigos.forEach(am => totalizadorPersonas[am] = 0);
 
@@ -672,32 +720,82 @@
 
             let f = new Date(mov.fecha + 'T00:00:00');
             
-            // Si coincide mes y año, y sigue pendiente, acumula en el panel superior
+            // Si coincide mes y año, y sigue pendiente, acumula saldos
             if(f.getFullYear() === anioSel && f.getMonth() === mesSel && mov.estado === "Pendiente") {
                 if(totalizadorPersonas[mov.deudor] !== undefined) {
-                    totalizadorPersonas[mov.deudor] += mov.monto;
+                    if(mov.sentido === "A_FAVOR") {
+                        totalizadorPersonas[mov.deudor] += mov.monto; // Te deben
+                    } else {
+                        totalizadorPersonas[mov.deudor] -= mov.monto; // Le debés (saldo negativo)
+                    }
                 }
             }
 
             let fFormated = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            let btnAccionDeuda = (mov.estado === "Pendiente") ? `<button class="btn-verde" style="padding:3px 7px; font-size:0.8em;" onclick="liquidarDeudaIndividual(${index})">Marcar Cobrado</button>` : `<span style="color:green; font-weight:bold;">✓ Cobrado</span>`;
+            
+            let btnAccionDeuda = "";
+            if(mov.estado === "Pendiente") {
+                let textoBtn = mov.sentido === "A_FAVOR" ? "Marcar Cobrado" : "Marcar Pagado";
+                let claseBtn = mov.sentido === "A_FAVOR" ? "btn-verde" : "btn-naranja";
+                btnAccionDeuda = `<button class="`+claseBtn+`" style="padding:3px 7px; font-size:0.8em;" onclick="liquidarDeudaIndividual(${index})">`+textoBtn+`</button>`;
+            } else {
+                btnAccionDeuda = mov.sentido === "A_FAVOR" ? `<span style="color:green; font-weight:bold;">✓ Cobrado</span>` : `<span style="color:#757575; font-weight:bold;">✓ Saldado</span>`;
+            }
 
-            tablaDeudas.innerHTML += `<tr><td>${fFormated}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>$${mov.monto.toLocaleString('es-AR')}</td><td>${btnAccionDeuda}</td></tr>`;
+            let simboloMonto = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR')}` : `-$${mov.monto.toLocaleString('es-AR')} (Debés)`;
+
+            tablaDeudas.innerHTML += `<tr><td>${fFormated}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${simboloMonto}</td><td>${btnAccionDeuda}</td></tr>`;
         });
 
-        // Dibujar tarjetas rápidas del mes
+        // Dibujar tarjetas rápidas de saldos netos por persona en el mes
         let gridDeudas = document.getElementById('gridResumenDeudas');
         gridDeudas.innerHTML = '';
         for(let persona in totalizadorPersonas) {
-            let deudaMes = totalizadorPersonas[persona];
-            gridDeudas.innerHTML += `<div class="card ahorro" style="border-left-color: #8e24aa; background:#f3e5f5;"><h3>${persona}</h3><p style="color:#4a148c;">$${deudaMes.toLocaleString('es-AR')}</p><span class="porcentaje">Pendiente en este mes</span></div>`;
+            let saldoNeto = totalizadorPersonas[persona];
+            let colorCard = saldoNeto >= 0 ? "#e8f5e9" : "#ffebee";
+            let colorBorde = saldoNeto >= 0 ? "#4caf50" : "#f44336";
+            let textoTitulo = saldoNeto >= 0 ? "Te debe neto:" : "Le debés neto:";
+            
+            gridDeudas.innerHTML += `<div class="card ahorro" style="border-left-color: ${colorBorde}; background:${colorCard};"><h3>${persona}</h3><p style="color:#333;">$${Math.abs(saldoNeto).toLocaleString('es-AR')}</p><span class="porcentaje">${textoTitulo} en este período</span></div>`;
         }
     }
 
     function liquidarDeudaIndividual(indexOrig) {
-        if(confirm("¿Confirmas que te devolvieron este dinero? Ingresará a tu efectivo disponible.")) {
-            todosLosMovimientos[indexOrig].estado = "Cobrado";
-            patrimonio.pesos += todosLosMovimientos[indexOrig].monto; // Suma liquidez
+        let movDeuda = todosLosMovimientos[indexOrig];
+        let mensajeConfirmacion = movDeuda.sentido === "A_FAVOR" ? 
+            "¿Confirmas que te devolvieron este dinero? Ingresará a tu Flujo Mensual (Efectivo Pesos)." : 
+            "¿Confirmas que pagaste esta deuda? Se debitará de tu Flujo Mensual (Efectivo Pesos).";
+
+        if(confirm(mensajeConfirmacion)) {
+            movDeuda.estado = "Cobrado"; // Cambia el estado a saldado
+
+            // MODIFICACIÓN CRUCIAL: El dinero impacta directo en tu caja corriente, no en inversiones
+            if(movDeuda.sentido === "A_FAVOR") {
+                patrimonio.pesos += movDeuda.monto; // Te entró plata liquida
+                
+                // Registramos un ingreso en el flujo del mes actual para que visualmente veas de dónde vino
+                let hoy = new Date();
+                let hoyFormateada = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0');
+                todosLosMovimientos.push({
+                    monto: movDeuda.monto,
+                    tipo: "Ingreso",
+                    concepto: `Recupero préstamo: ${movDeuda.deudor}`,
+                    fecha: hoyFormateada
+                });
+            } else {
+                patrimonio.pesos -= movDeuda.monto; // Salió plata liquida para pagar
+                
+                // Registramos el gasto en tu flujo del mes actual
+                let hoy = new Date();
+                let hoyFormateada = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0');
+                todosLosMovimientos.push({
+                    monto: movDeuda.monto,
+                    tipo: "Gasto Variable",
+                    concepto: `Pago deuda pendiente a: ${movDeuda.deudor}`,
+                    fecha: hoyFormateada
+                });
+            }
+
             actualizarApp();
             guardarDatosEnNube();
         }
