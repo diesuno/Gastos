@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
-    
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma Financiera</title>
+    <title>Plataforma Financiera 2026</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a237e">
-  <link rel="apple-touch-icon" href="icono-192.png">
+    <link class="apple-touch-icon" href="icono-192.png">
     <link rel="icon" type="image/png" href="icono-192.png">
     <script>
       if ('serviceWorker' in navigator) {
@@ -121,7 +119,7 @@
     </div>
     <div class="auth-btn-container">
         <button onclick="loginUsuario()">Iniciar Sesión</button>
-        <button class="btn-secundario" onclick="registrarUsuario()">Registrarme</button>
+        <button class="btn-secundario" onclick="registrarUsuario()">Registrarme Nuevo</button>
     </div>
 </div>
 
@@ -193,7 +191,9 @@
                         <option value="6">6 Cuotas fijas</option>
                         <option value="12">12 Cuotas fijas</option>
                     </select>
-                </div> <div class="form-group" id="boxGastoCompartido" style="display:none;"><label>División del pago</label>
+                </div>
+
+                <div class="form-group" id="boxGastoCompartido" style="display:none;"><label>División del pago</label>
                     <select id="inputDividir" onchange="toggleSelectAmigo()">
                         <option value="NO">100% Propio (Normal)</option>
                         <option value="PAGUE_50_TOTAL">Pagué solo mi mitad</option>
@@ -240,7 +240,11 @@
     <div id="tab-ahorros" class="tab-content">
         <h2>🏦 Mi Billetera Patrimonial</h2>
         <div class="dashboard-grid">
-            <div class="form-section" style="background: #e8f5e9; border-color: #4caf50;">
+            <div class="card ahorro"><h3>Efectivo Pesos</h3><p>$<span id="walletPesos">0</span> ARS</p></div>
+            <div class="card oro" style="grid-column: span 2;"><h3>Efectivo Dólares</h3><p>US$ <span id="walletDolares">0</span> USD</p></div>
+        </div>
+
+        <div class="form-section" style="background: #e8f5e9; border-color: #4caf50;">
             <h3 style="margin-top:0; color:#2e7d32;">💵 Cargar Saldo Existente (Ajuste Manual)</h3>
             <p style="font-size: 0.85em; color: #555; margin-top: -5px; margin-bottom: 15px;">Usá esta opción para sumar plata que ya tenías ahorrada sin que cuente como un ingreso del mes actual.</p>
             <div class="form-grid">
@@ -254,10 +258,6 @@
                 <button class="btn-verde" onclick="ingresarSaldoExistente()">Inyectar Saldo</button>
             </div>
         </div>
-            <div class="card ahorro"><h3>Efectivo Pesos</h3><p>$<span id="walletPesos">0</span> ARS</p></div>
-            <div class="card oro" style="grid-column: span 2;"><h3>Efectivo Dólares</h3><p>US$ <span id="walletDolares">0</span> USD</p></div>
-        </div>
-
         <div class="form-section" style="background: #fff8e1; border-color: #ffb300;">
             <h3 style="margin-top:0; color:#b78103;">📈 Colocar Dinero en Inversión</h3>
             <div class="form-grid">
@@ -347,16 +347,16 @@
 
 <script>
     // ==========================================
-    // ⚙️ CONFIGURACIÓN DE FIREBASE
+    // ⚙️ CONFIGURACIÓN DE FIREBASE (¡PEGÁ TUS LLAVES ACÁ!)
     // ==========================================
     const firebaseConfig = {
-  apiKey: "AIzaSyD6b5jRsGPzKmwB-M-cDbyn1qQCAdN5ecE",
-  authDomain: "gastos-a56f7.firebaseapp.com",
-  projectId: "gastos-a56f7",
-  storageBucket: "gastos-a56f7.firebasestorage.app",
-  messagingSenderId: "537729737132",
-  appId: "1:537729737132:web:2423ab40ff20fef30b9a09"
-};
+        apiKey: "TU_API_KEY",
+        authDomain: "TU_PROJECT_ID.firebaseapp.com",
+        projectId: "TU_PROJECT_ID",
+        storageBucket: "TU_PROJECT_ID.appspot.com",
+        messagingSenderId: "TU_SENDER_ID",
+        appId: "TU_APP_ID"
+    };
     // ==========================================
 
     firebase.initializeApp(firebaseConfig);
@@ -366,7 +366,7 @@
     let todosLosMovimientos = [];
     let patrimonio = { pesos: 0, dolares: 0 };
     let inversiones = [];
-    let listaAmigos = []; // Nombres de personas registradas
+    let listaAmigos = [];
     let perfilUsuario = { nombre: "Usuario" };
     
     const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -439,9 +439,8 @@
             .catch(err => alert("Error de seguridad: Volvé a iniciar sesión antes de cambiar la clave."));
     }
 
-  // --- CONTROLLER DE NUBE EN TIEMPO REAL ---
+    // --- ENLACE DE DATOS (NUBE EN TIEMPO REAL) ---
     function cargarDatosDesdeNube(uid) {
-        // Usamos onSnapshot en lugar de .get() para que escuche cambios en vivo desde cualquier dispositivo
         db.collection("usuarios").doc(uid).onSnapshot(doc => {
             if (doc.exists) {
                 const data = doc.data();
@@ -451,22 +450,19 @@
                 listaAmigos = data.listaAmigos || [];
                 perfilUsuario = data.perfilUsuario || { nombre: "Usuario" };
             } else {
-                // Inicialización para usuarios nuevos
                 todosLosMovimientos = [];
                 patrimonio = { pesos: 0, dolares: 0 };
                 inversiones = [];
                 listaAmigos = [];
                 perfilUsuario = { nombre: "Usuario" };
             }
-            // Actualiza la interfaz visual automáticamente con los datos frescos de la nube
             document.getElementById('userNameDisplay').innerText = perfilUsuario.nombre;
             actualizarSelectAmigosDisplay();
             actualizarApp();
-        }, error => {
-            console.error("Error en la sincronización en vivo: ", error);
-        });
+        }, error => console.error(error));
     }
-   function guardarDatosEnNube() {
+
+    function guardarDatosEnNube() {
         const user = auth.currentUser;
         if (user) {
             db.collection("usuarios").doc(user.uid).set({
@@ -475,9 +471,7 @@
                 inversiones: inversiones,
                 listaAmigos: listaAmigos,
                 perfilUsuario: perfilUsuario
-            }, { merge: true }).then(() => {
-                console.log("¡Nube sincronizada!");
-            }).catch(err => console.error("Error al subir:", err));
+            }, { merge: true });
         }
     }
 
@@ -495,7 +489,11 @@
 
     function toggleSelectAmigo() {
         let div = document.getElementById('inputDividir').value;
-        document.getElementById('boxSeleccionAmigo').style.display = (div === "SI") ? "block" : "none";
+        if (div !== "NO") {
+            document.getElementById('boxSeleccionAmigo').style.display = "block";
+        } else {
+            document.getElementById('boxSeleccionAmigo').style.display = "none";
+        }
     }
 
     function crearPersonaDeuda() {
@@ -520,6 +518,30 @@
         });
     }
 
+    // --- INYECCIÓN DE CAPITAL EXISTENTE ---
+    function ingresarSaldoExistente() {
+        let monto = parseFloat(document.getElementById('ajusteMonto').value);
+        let moneda = document.getElementById('ajusteMoneda').value;
+
+        if(!monto || monto <= 0) { 
+            alert("⚠️ Por favor, ingresá un monto válido mayor a cero."); 
+            return; 
+        }
+
+        if(moneda === "ARS") {
+            patrimonio.pesos += monto;
+        } else {
+            patrimonio.dolares += monto;
+        }
+
+        document.getElementById('ajusteMonto').value = "";
+        actualizarApp();
+        guardarDatosEnNube();
+        
+        let simbolo = moneda === "ARS" ? "$" : "US$";
+        alert(`✅ Éxito. Se sumaron ${simbolo}${monto.toLocaleString('es-AR')} a tu caja fuerte.`);
+    }
+
     // --- CORE DE CARGA (CUOTAS + DEUDA COMPARTIDA) ---
     function agregarMovimiento() {
         let montoTotal = parseFloat(document.getElementById('inputMonto').value);
@@ -537,7 +559,6 @@
 
         let montoPorCuota = montoTotal / cuotas;
 
-        // Bucle para proyectar las cuotas fijas mes a mes
         for (let i = 0; i < cuotas; i++) {
             let fechaCuota = new Date(fechaBaseStr + 'T00:00:00');
             fechaCuota.setMonth(fechaCuota.getMonth() + i);
@@ -551,53 +572,47 @@
             
             if(tipo === "Ingreso") {
                 todosLosMovimientos.push({ monto: montoPorCuota, tipo: "Ingreso", concepto: conceptoFinal, fecha: fechaFinalFormateada });
-                patrimonio.pesos += montoPorCuota; // Suma directa a tu cartera
+                patrimonio.pesos += montoPorCuota; 
             } else {
-                // Es un Gasto (Fijo o Variable)
-                let montoImpactoPropio = montoPorCuota; // Por defecto es el total
+                let montoImpactoPropio = montoPorCuota;
                 let registrarDeuda = false;
                 let montoDeuda = 0;
-                let tipoDeuda = ""; // "A_FAVOR" o "EN_CONTRA"
+                let tipoDeuda = ""; 
 
-                // --- LÓGICA DE DIVISIONES DE PAGO ---
                 if (dividir === "PAGUE_50_TOTAL") {
                     montoImpactoPropio = montoPorCuota / 2;
-                    patrimonio.pesos -= montoImpactoPropio; // Se pagó solo la mitad en el acto
+                    patrimonio.pesos -= montoImpactoPropio; 
                 } 
                 else if (dividir === "PAGUE_50_INTEGRO") {
                     montoImpactoPropio = montoPorCuota / 2;
-                    patrimonio.pesos -= montoPorCuota; // DEL BOLSILLO SALIÓ EL 100%
+                    patrimonio.pesos -= montoPorCuota; 
                     registrarDeuda = true;
                     montoDeuda = montoPorCuota / 2;
                     tipoDeuda = "A_FAVOR";
                 } 
                 else if (dividir === "PAGO_OTRO_50") {
                     montoImpactoPropio = montoPorCuota / 2;
-                    // Del bolsillo salió $0 hoy, pagó el otro completo. No resta patrimonio líquido.
                     registrarDeuda = true;
                     montoDeuda = montoPorCuota / 2;
                     tipoDeuda = "EN_CONTRA";
                 } 
                 else if (dividir === "PAGUE_100_DEUDA") {
-                    montoImpactoPropio = 0; // El gasto no es tuyo, es de tu amigo
-                    patrimonio.pesos -= montoPorCuota; // Pero lo pagaste con tu plata (100% egreso)
+                    montoImpactoPropio = 0; 
+                    patrimonio.pesos -= montoPorCuota; 
                     registrarDeuda = true;
                     montoDeuda = montoPorCuota;
                     tipoDeuda = "A_FAVOR";
                 } 
                 else if (dividir === "PAGO_OTRO_100_DEUDA") {
-                    montoImpactoPropio = montoPorCuota; // El gasto sí es tuyo
-                    // Pero de tu billetera hoy salió $0 porque lo pagó tu amigo por vos.
+                    montoImpactoPropio = montoPorCuota; 
                     registrarDeuda = true;
                     montoDeuda = montoPorCuota;
                     tipoDeuda = "EN_CONTRA";
                 } 
                 else {
-                    // Gasto 100% propio clásico
                     patrimonio.pesos -= montoPorCuota;
                 }
 
-                // Registramos tu porción del gasto en el flujo mensual
                 if(montoImpactoPropio > 0) {
                     todosLosMovimientos.push({ 
                         monto: montoImpactoPropio, 
@@ -607,7 +622,6 @@
                     });
                 }
 
-                // Registramos en Cuentas por Cobrar / Pagar si corresponde
                 if(registrarDeuda) {
                     todosLosMovimientos.push({
                         monto: montoDeuda,
@@ -615,7 +629,7 @@
                         concepto: tipoDeuda === "A_FAVOR" ? `Te debe por: ${conceptoFinal}` : `Le debés por: ${conceptoFinal}`,
                         fecha: fechaFinalFormateada,
                         deudor: amigo,
-                        sentido: tipoDeuda, // A_FAVOR o EN_CONTRA
+                        sentido: tipoDeuda,
                         estado: "Pendiente"
                     });
                 }
@@ -627,6 +641,7 @@
         actualizarApp();
         guardarDatosEnNube();
     }
+
     // --- ACTUALIZACIÓN DE TABLEROS ---
     function inicializarSelectorHistorico() {
         let selector = document.getElementById('filtroMesAnio');
@@ -651,7 +666,6 @@
         
         let ingresos = 0, fijos = 0, variables = 0;
         
-        // Filtramos movimientos excluyendo las cuentas por cobrar del flujo neto
         let filtrados = todosLosMovimientos.filter(mov => {
             let f = new Date(mov.fecha + 'T00:00:00');
             return f.getFullYear() === anioSel && f.getMonth() === mesSel;
@@ -678,11 +692,10 @@
         document.getElementById('pctTotalGasto').innerText = calcPct(totalGastos) + "%";
         document.getElementById('pctAhorro').innerText = calcPct(ahorro) + "%";
 
-        // Render Tabla Movimientos del Flujo Diario
         let tabla = document.getElementById('tablaMovimientos');
         tabla.innerHTML = '';
         [...filtrados].reverse().forEach(mov => {
-            if(mov.tipo === "Cuenta Cobrar") return; // Van en su propia pestaña
+            if(mov.tipo === "Cuenta Cobrar") return; 
             let indexOrig = todosLosMovimientos.findIndex(t => t === mov);
             let f = new Date(mov.fecha + 'T00:00:00');
             let fFormated = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
@@ -692,7 +705,6 @@
         document.getElementById('walletPesos').innerText = patrimonio.pesos.toLocaleString('es-AR');
         document.getElementById('walletDolares').innerText = patrimonio.dolares.toLocaleString('es-AR');
 
-        // Render Inversiones
         let tablaInv = document.getElementById('tablaInversiones');
         tablaInv.innerHTML = '';
         inversiones.forEach((inv, index) => {
@@ -705,11 +717,10 @@
             tablaInv.innerHTML += `<tr><td>${fFormated}</td><td><strong>${inv.instrumento}</strong></td><td>${simbolo} ${inv.monto.toLocaleString('es-AR')}</td><td>${columnaClaveHTML}</td><td>${precioCompraTexto}</td><td><button class="btn-naranja" onclick="retirarInversion(${index})">Liquidar</button></td></tr>`;
         });
 
-        // RE-RENDER MÓDULO DE DEUDAS (CUENTAS POR COBRAR)
         actualizarPestañaCuentasCobrar(anioSel, mesSel);
     }
 
-   function actualizarPestañaCuentasCobrar(anioSel, mesSel) {
+    function actualizarPestañaCuentasCobrar(anioSel, mesSel) {
         let totalizadorPersonas = {};
         listaAmigos.forEach(am => totalizadorPersonas[am] = 0);
 
@@ -721,13 +732,12 @@
 
             let f = new Date(mov.fecha + 'T00:00:00');
             
-            // Si coincide mes y año, y sigue pendiente, acumula saldos
             if(f.getFullYear() === anioSel && f.getMonth() === mesSel && mov.estado === "Pendiente") {
                 if(totalizadorPersonas[mov.deudor] !== undefined) {
                     if(mov.sentido === "A_FAVOR") {
-                        totalizadorPersonas[mov.deudor] += mov.monto; // Te deben
+                        totalizadorPersonas[mov.deudor] += mov.monto;
                     } else {
-                        totalizadorPersonas[mov.deudor] -= mov.monto; // Le debés (saldo negativo)
+                        totalizadorPersonas[mov.deudor] -= mov.monto;
                     }
                 }
             }
@@ -748,7 +758,6 @@
             tablaDeudas.innerHTML += `<tr><td>${fFormated}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${simboloMonto}</td><td>${btnAccionDeuda}</td></tr>`;
         });
 
-        // Dibujar tarjetas rápidas de saldos netos por persona en el mes
         let gridDeudas = document.getElementById('gridResumenDeudas');
         gridDeudas.innerHTML = '';
         for(let persona in totalizadorPersonas) {
@@ -768,13 +777,11 @@
             "¿Confirmas que pagaste esta deuda? Se debitará de tu Flujo Mensual (Efectivo Pesos).";
 
         if(confirm(mensajeConfirmacion)) {
-            movDeuda.estado = "Cobrado"; // Cambia el estado a saldado
+            movDeuda.estado = "Cobrado"; 
 
-            // MODIFICACIÓN CRUCIAL: El dinero impacta directo en tu caja corriente, no en inversiones
             if(movDeuda.sentido === "A_FAVOR") {
-                patrimonio.pesos += movDeuda.monto; // Te entró plata liquida
+                patrimonio.pesos += movDeuda.monto; 
                 
-                // Registramos un ingreso en el flujo del mes actual para que visualmente veas de dónde vino
                 let hoy = new Date();
                 let hoyFormateada = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0');
                 todosLosMovimientos.push({
@@ -784,9 +791,8 @@
                     fecha: hoyFormateada
                 });
             } else {
-                patrimonio.pesos -= movDeuda.monto; // Salió plata liquida para pagar
+                patrimonio.pesos -= movDeuda.monto; 
                 
-                // Registramos el gasto en tu flujo del mes actual
                 let hoy = new Date();
                 let hoyFormateada = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0');
                 todosLosMovimientos.push({
@@ -824,31 +830,7 @@
         document.getElementById('ahorroMontoPesos').value = "";
         actualizarApp(); guardarDatosEnNube();
     }
-// --- INYECCIÓN DE CAPITAL EXISTENTE ---
-    function ingresarSaldoExistente() {
-        let monto = parseFloat(document.getElementById('ajusteMonto').value);
-        let moneda = document.getElementById('ajusteMoneda').value;
 
-        if(!monto || monto <= 0) { 
-            alert("⚠️ Por favor, ingresá un monto válido mayor a cero."); 
-            return; 
-        }
-
-        // Sumamos al patrimonio correspondiente
-        if(moneda === "ARS") {
-            patrimonio.pesos += monto;
-        } else {
-            patrimonio.dolares += monto;
-        }
-
-        // Limpiamos el input, actualizamos pantalla y subimos a la nube
-        document.getElementById('ajusteMonto').value = "";
-        actualizarApp();
-        guardarDatosEnNube();
-        
-        let simbolo = moneda === "ARS" ? "$" : "US$";
-        alert(`✅ Éxito. Se sumaron ${simbolo}${monto.toLocaleString('es-AR')} a tu caja fuerte.`);
-    }
     function ejecutarInversion() {
         let monto = parseFloat(document.getElementById('invMonto').value);
         let moneda = document.getElementById('invMoneda').value;
@@ -883,6 +865,8 @@
 
     function borrarMovimiento(index) {
         if(confirm("¿Borrar movimiento definitivo?")) {
+            let mov = todosLosMovimientos[index];
+            if(mov.tipo === "Ingreso") { patrimonio.pesos -= mov.monto; }
             todosLosMovimientos.splice(index, 1);
             actualizarApp(); guardarDatosEnNube();
         }
