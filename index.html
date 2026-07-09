@@ -13,15 +13,15 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker registrado con éxito.', reg))
-            .catch(err => console.error('Error al registrar el Service Worker.', err));
+            .then(reg => console.log('Service Worker registrado.'))
+            .catch(err => console.error('Error Service Worker.', err));
         });
       }
     </script>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
@@ -29,24 +29,20 @@
         .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative;}
         h1, h2, h3 { color: #1a237e; text-align: center; }
         
-        /* PANTALLA DE LOGIN */
         #auth-section { max-width: 400px; margin: 60px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;}
         .auth-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 15px;}
         .auth-group label { font-weight: bold; margin-bottom: 5px; color: #555;}
         .auth-btn-container { display: flex; flex-direction: column; gap: 10px; margin-top: 20px;}
-        .btn-secundario { background-color: #757575; } .btn-secundario:hover { background-color: #616161; }
+        .btn-secundario { background-color: #757575; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;} 
+        .btn-secundario:hover { background-color: #616161; }
         
-        /* MENÚ SUPERIOR DE ACCIONES */
         .top-actions-panel { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 15px;}
         .btn-panel { padding: 6px 12px; font-size: 0.85em; border-radius: 4px; border: none; font-weight: bold; cursor: pointer;}
-        .btn-perfil-top { background-color: #e0f2f1; color: #004d40; } .btn-perfil-top:hover { background-color: #b2dfdb; }
-        .btn-logout-top { background-color: #ffe0b2; color: #e65100; } .btn-logout-top:hover { background-color: #ffcc80; }
+        .btn-perfil-top { background-color: #e0f2f1; color: #004d40; } 
+        .btn-logout-top { background-color: #ffe0b2; color: #e65100; } 
 
-        /* SECCIÓN PERFIL DE USUARIO */
-        #profile-section { display: none; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 25px; }
-
-        /* INTERFAZ PRINCIPAL */
-        #main-app { display: none; }
+        #profile-section, #main-app { display: none; }
+        #profile-section { background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 25px; }
 
         .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; flex-wrap: wrap;}
         .tab-button { background-color: #e8eaf6; color: #1a237e; padding: 12px 20px; border: none; border-radius: 5px 5px 0 0; cursor: pointer; font-size: 1em; font-weight: bold; transition: 0.3s; }
@@ -54,7 +50,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .historico-selector { background: #1a237e; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 15px;}
+        .historico-selector { background: #1a237e; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; display: flex; justify-content: center; gap: 15px;}
         .historico-selector select { padding: 6px 12px; font-size: 1em; border-radius: 4px; border: none; font-weight: bold;}
         
         .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
@@ -72,23 +68,18 @@
         label { font-size: 0.9em; font-weight: bold; margin-bottom: 5px; color: #555;}
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; }
         button { background-color: #3f51b5; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #303f9f; }
-        .btn-verde { background-color: #4caf50; } .btn-verde:hover { background-color: #388e3c; }
-        .btn-naranja { background-color: #ff9800; color: white;} .btn-naranja:hover { background-color: #e65100; }
-        .btn-api { background-color: #0277bd; color: white; padding: 5px; font-size: 0.8em; margin-left: 5px; border-radius: 3px; border: none; cursor: pointer;}
-
+        
+        .btn-verde { background-color: #4caf50; } 
+        .btn-naranja { background-color: #ff9800; } 
+        .btn-borrar { background-color: #ff5252; color: white; padding: 4px 8px; font-size: 0.8em; border-radius: 3px; border: none; cursor:pointer;}
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; overflow-x: auto; display: block;}
         th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; white-space: nowrap;}
         th { background-color: #f5f5f5; width: 100%;}
-        .btn-borrar { background-color: #ff5252; color: white; padding: 4px 8px; font-size: 0.8em; border-radius: 3px; cursor: pointer; border: none;}
         
         .chart-container { position: relative; margin: auto; height: 400px; width: 100%; }
-        .link-fuente { font-size: 0.85em; color: #0277bd; text-decoration: none; font-weight: normal; margin-left: 5px;}
-        .link-fuente:hover { text-decoration: underline; color: #01579b; }
-        
         .footer-peligro { margin-top: 50px; text-align: center; border-top: 2px dashed #ffcdd2; padding-top: 20px;}
 
-        /* --- ADAPTACIÓN PARA MÓVILES --- */
         @media (max-width: 768px) {
             #auth-section { margin: 20px auto; padding: 20px; }
             .dashboard-grid { grid-template-columns: 1fr; }
@@ -99,8 +90,6 @@
             .historico-selector { flex-direction: column; gap: 10px; }
             input, select, button { min-height: 44px; font-size: 16px; }
             .chart-container { height: 300px; }
-            .top-actions-panel { justify-content: space-between; width: 100%; }
-            .btn-panel { flex: 1; text-align: center; }
         }
     </style>
 </head>
@@ -109,14 +98,8 @@
 <div id="auth-section">
     <h2>🔐 Ingreso Seguro</h2>
     <p style="color:#666; font-size:0.9em; margin-bottom:20px;">Plataforma de Inteligencia Financiera</p>
-    <div class="auth-group">
-        <label>Correo Electrónico</label>
-        <input type="email" id="authEmail" placeholder="ejemplo@mail.com">
-    </div>
-    <div class="auth-group">
-        <label>Contraseña</label>
-        <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres">
-    </div>
+    <div class="auth-group"><label>Correo Electrónico</label><input type="email" id="authEmail"></div>
+    <div class="auth-group"><label>Contraseña</label><input type="password" id="authPassword"></div>
     <div class="auth-btn-container">
         <button onclick="loginUsuario()">Iniciar Sesión</button>
         <button class="btn-secundario" onclick="registrarUsuario()">Registrarme Nuevo</button>
@@ -124,7 +107,6 @@
 </div>
 
 <div class="container" id="main-app">
-    
     <div class="top-actions-panel">
         <button class="btn-panel btn-perfil-top" onclick="togglePerfilPanel()">👤 Mi Perfil (<span id="userNameDisplay">Usuario</span>)</button>
         <button class="btn-panel btn-logout-top" onclick="logoutUsuario()">🚪 Salir</button>
@@ -133,18 +115,12 @@
     <div id="profile-section">
         <h3 style="margin-top: 0; color: #004d40;">👤 Configuración de Perfil</h3>
         <div class="form-grid">
-            <div class="form-group">
-                <label>Mi Nombre</label>
-                <input type="text" id="profileNameInput" placeholder="Tu nombre">
-            </div>
+            <div class="form-group"><label>Mi Nombre</label><input type="text" id="profileNameInput"></div>
             <button class="btn-verde" onclick="guardarNombrePerfil()">Actualizar Nombre</button>
-            <div class="form-group">
-                <label>Nueva Contraseña</label>
-                <input type="password" id="profilePasswordInput" placeholder="Mínimo 6 caracteres">
-            </div>
+            <div class="form-group"><label>Nueva Contraseña</label><input type="password" id="profilePasswordInput"></div>
             <button style="background-color: #00796b;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
         </div>
-        <p style="text-align: center; margin-top: 15px;"><button class="btn-secundario" style="padding:5px 15px;" onclick="togglePerfilPanel()">Cerrar Perfil</button></p>
+        <p style="text-align: center; margin-top: 15px;"><button class="btn-secundario" onclick="togglePerfilPanel()">Cerrar Perfil</button></p>
     </div>
 
     <h1>💰 Plataforma de Inteligencia Financiera</h1>
@@ -167,7 +143,7 @@
             <div class="card gasto"><h3>Gastos Fijos</h3><p>$<span id="lblFijos">0</span></p><span class="porcentaje" id="pctFijos">0%</span></div>
             <div class="card gasto"><h3>Gastos Variables</h3><p>$<span id="lblVariables">0</span></p><span class="porcentaje" id="pctVariables">0%</span></div>
             <div class="card gasto"><h3>TOTAL GASTO</h3><p>$<span id="lblTotalGasto">0</span></p><span class="porcentaje" id="pctTotalGasto">0%</span></div>
-            <div class="card ahorro" style="grid-column: span 2;"><h3>Ahorro Disponible</h3><p>$<span id="lblAhorro">0</span></p><span class="porcentaje" id="pctAhorro">0%</span></div>
+            <div class="card ahorro" style="grid-column: span 2;"><h3>Disponible</h3><p>$<span id="lblAhorro">0</span></p><span class="porcentaje" id="pctAhorro">0%</span></div>
         </div>
 
         <div class="form-section">
@@ -191,7 +167,7 @@
                         <option value="6">6 Cuotas fijas</option>
                         <option value="12">12 Cuotas fijas</option>
                     </select>
-                </div>
+                </div> 
 
                 <div class="form-group" id="boxGastoCompartido" style="display:none;"><label>División del pago</label>
                     <select id="inputDividir" onchange="toggleSelectAmigo()">
@@ -223,8 +199,7 @@
                     </select>
                 </div>
                 <div class="form-group" id="grupoCotizacion" style="display:none;">
-                    <label>Cotización <a href="https://dolarhoy.com/" target="_blank" class="link-fuente">(Ver Dólar Hoy)</a></label>
-                    <input type="number" id="ahorroCotizacion">
+                    <label>Cotización Manual</label><input type="number" id="ahorroCotizacion">
                 </div>
                 <button class="btn-verde" onclick="ejecutarEnvioAhorro()">Procesar Envío</button>
             </div>
@@ -245,41 +220,37 @@
         </div>
 
         <div class="form-section" style="background: #e8f5e9; border-color: #4caf50;">
-            <h3 style="margin-top:0; color:#2e7d32;">💵 Cargar Saldo Existente (Ajuste Manual)</h3>
-            <p style="font-size: 0.85em; color: #555; margin-top: -5px; margin-bottom: 15px;">Usá esta opción para sumar plata que ya tenías ahorrada sin que cuente como un ingreso del mes actual.</p>
+            <h3 style="margin-top:0; color:#2e7d32;">💵 Inyección de Capital (Ajuste Manual)</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Monto a Sumar</label><input type="number" id="ajusteMonto" placeholder="Ej: 150000"></div>
+                <div class="form-group"><label>Monto a Sumar</label><input type="number" id="ajusteMonto"></div>
                 <div class="form-group"><label>Moneda</label>
-                    <select id="ajusteMoneda">
-                        <option value="ARS">Pesos (ARS)</option>
-                        <option value="USD">Dólares (USD)</option>
-                    </select>
+                    <select id="ajusteMoneda"><option value="ARS">Pesos (ARS)</option><option value="USD">Dólares (USD)</option></select>
                 </div>
                 <button class="btn-verde" onclick="ingresarSaldoExistente()">Inyectar Saldo</button>
             </div>
         </div>
+
         <div class="form-section" style="background: #fff8e1; border-color: #ffb300;">
             <h3 style="margin-top:0; color:#b78103;">📈 Colocar Dinero en Inversión</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Capital a Invertir</label><input type="number" id="invMonto" placeholder="Capital"></div>
+                <div class="form-group"><label>Capital Inicial</label><input type="number" id="invMonto"></div>
                 <div class="form-group"><label>Moneda</label>
-                    <select id="invMoneda">
-                        <option value="ARS">Pesos (ARS)</option>
-                        <option value="USD">Dólares (USD)</option>
-                    </select>
+                    <select id="invMoneda"><option value="ARS">Pesos (ARS)</option><option value="USD">Dólares (USD)</option></select>
                 </div>
                 <div class="form-group"><label>Instrumento</label>
                     <select id="invInstrumento" onchange="toggleCamposInversion()">
                         <option value="Plazo Fijo">Plazo Fijo Bancario</option>
+                        <option value="Mercado Pago">FCI Mercado Pago</option>
                         <option value="S&P 500">S&P 500 (Cedears)</option>
-                        <option value="Fondo Común">Fondo Común de Inversión</option>
                     </select>
                 </div>
-                <div class="form-group" id="grupoInteres"><label>Tasa Int. Anual (%)</label><input type="number" id="invInteres" placeholder="Ej: 45"></div>
-                <div class="form-group" id="grupoNominal" style="display:none;">
-                    <label style="display:flex; align-items:center;">Precio Nominal <button class="btn-api" id="btnBuscarApi" onclick="buscarPrecioAPI()">🔍 API</button></label>
-                    <input type="number" id="invPrecioNominal" placeholder="Revisá la coma">
+                <div class="form-group" id="grupoInteres"><label>Tasa Int. Anual (%)</label><input type="number" id="invInteres" placeholder="TNA"></div>
+                
+                <div class="form-group" id="grupoCotizacionMercado" style="display:none; justify-content:center; padding-top: 5px;">
+                    <span style="font-size:0.85em; color:#555;">Referencia de Mercado API:</span>
+                    <span id="lblPrecioMercado" style="font-size:1.1em; font-weight:bold; color:#0d47a1;">Cargando...</span>
                 </div>
+
                 <div class="form-group"><label>Fecha</label><input type="date" id="invFecha"></div>
                 <button style="background-color: #ffb300; color: #333;" onclick="ejecutarInversion()">Colocar Fondos</button>
             </div>
@@ -289,11 +260,11 @@
         <table>
             <thead>
                 <tr>
-                    <th>Fecha</th>
+                    <th>Fecha Alta</th>
                     <th>Instrumento</th>
-                    <th>Capital Inicial</th>
-                    <th style="color:#0d47a1;">Nominales / Tasa</th>
-                    <th>Precio Compra</th>
+                    <th>Capital Invertido</th>
+                    <th style="color:#0d47a1;">Valor Actualizado</th>
+                    <th>Detalle</th>
                     <th>Acción</th>
                 </tr>
             </thead>
@@ -307,23 +278,22 @@
         <div class="form-section" style="background: #f3e5f5; border-color: #8e24aa;">
             <h3 style="margin-top:0; color:#4a148c;">👤 Crear Nueva Persona</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Nombre de la Persona</label><input type="text" id="nuevoAmigoNombre" placeholder="Ej: Juan Pérez"></div>
+                <div class="form-group"><label>Nombre de la Persona</label><input type="text" id="nuevoAmigoNombre" placeholder="Ej: Juan"></div>
                 <button style="background-color: #8e24aa;" onclick="crearPersonaDeuda()">Registrar Persona</button>
             </div>
         </div>
 
-        <h2>Resumen del Mes Seleccionado</h2>
-        <div class="dashboard-grid" id="gridResumenDeudas">
-            </div>
+        <h2>Resumen de Saldos (Clic en botón para Ajustar/Saldar Todo)</h2>
+        <div class="dashboard-grid" id="gridResumenDeudas"></div>
 
-        <h2>Detalle Histórico de Cuentas Pendientes</h2>
+        <h2>Detalle Histórico (Podés borrar registros incorrectos con la X)</h2>
         <table>
             <thead>
                 <tr>
                     <th>Fecha</th>
                     <th>Persona</th>
                     <th>Concepto Original</th>
-                    <th>Monto que te Debe</th>
+                    <th>Monto</th>
                     <th>Estado</th>
                 </tr>
             </thead>
@@ -332,14 +302,12 @@
     </div>
 
     <div id="tab-graficos" class="tab-content">
-        <h2>📈 Evolución de tus Inversiones y Ahorros</h2>
-        <div class="chart-container">
-            <canvas id="patrimonioChart"></canvas>
-        </div>
+        <h2>📈 Evolución Histórica</h2>
+        <div class="chart-container"><canvas id="patrimonioChart"></canvas></div>
     </div>
 
     <div class="footer-peligro">
-        <button style="background-color: #d32f2f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9em;" onclick="resetearApp()">
+        <button style="background-color: #d32f2f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="resetearApp()">
             ⚠️ Blanquear Todos mis Datos (Reset)
         </button>
     </div>
@@ -347,16 +315,16 @@
 
 <script>
     // ==========================================
-    // ⚙️ CONFIGURACIÓN DE FIREBASE (¡PEGÁ TUS LLAVES ACÁ!)
+    // ⚙️ CONFIGURACIÓN DE FIREBASE
     // ==========================================
-   const firebaseConfig = {
-  apiKey: "AIzaSyD6b5jRsGPzKmwB-M-cDbyn1qQCAdN5ecE",
-  authDomain: "gastos-a56f7.firebaseapp.com",
-  projectId: "gastos-a56f7",
-  storageBucket: "gastos-a56f7.firebasestorage.app",
-  messagingSenderId: "537729737132",
-  appId: "1:537729737132:web:2423ab40ff20fef30b9a09"
-};
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY",
+        authDomain: "TU_PROJECT_ID.firebaseapp.com",
+        projectId: "TU_PROJECT_ID",
+        storageBucket: "TU_PROJECT_ID.appspot.com",
+        messagingSenderId: "TU_SENDER_ID",
+        appId: "TU_APP_ID"
+    };
     // ==========================================
 
     firebase.initializeApp(firebaseConfig);
@@ -369,6 +337,9 @@
     let listaAmigos = [];
     let perfilUsuario = { nombre: "Usuario" };
     
+    // API GLOBALES
+    let mercado = { spy: 17000, mep: 1200, mpTna: 40 };
+
     const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
     const fechaActual = new Date();
     document.getElementById('inputFecha').valueAsDate = fechaActual;
@@ -380,6 +351,7 @@
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             inicializarSelectorHistorico();
+            inicializarMercado(); // Carga de APIs silenciosa
             cargarDatosDesdeNube(user.uid);
         } else {
             document.getElementById('auth-section').style.display = 'block';
@@ -387,59 +359,65 @@
         }
     });
 
-    // --- ENTRADA Y AUTENTICACIÓN ---
+    // --- MÓDULO APIS EN TIEMPO REAL ---
+    async function inicializarMercado() {
+        try {
+            let resFci = await fetch("https://api.argentinadatos.com/v1/finanzas/rendimientos/fci");
+            let dataFci = await resFci.json();
+            let mp = dataFci.find(f => f.fondo.toLowerCase().includes("mercado"));
+            if(mp && mp.tna) mercado.mpTna = (mp.tna * 100).toFixed(1);
+        } catch(e) {}
+        try {
+            let resYahoo = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/SPY.BA"));
+            let dataYahoo = await resYahoo.json();
+            if(dataYahoo.chart.result) {
+                let p = dataYahoo.chart.result[0].meta.regularMarketPrice;
+                if(p > 100000) p = p / 10; // Auto-corrección de coma
+                mercado.spy = p;
+            }
+        } catch(e) {}
+        try {
+            let resDolar = await fetch("https://dolarapi.com/v1/dolares/mep");
+            let dataDolar = await resDolar.json();
+            if(dataDolar.venta) mercado.mep = dataDolar.venta;
+        } catch(e) {}
+        
+        toggleCamposInversion(); 
+        actualizarApp(); 
+    }
+
+    // --- LOGIN ---
     function registrarUsuario() {
         const email = document.getElementById('authEmail').value;
-        const password = document.getElementById('authPassword').value;
-        if(!email || !password) { alert("Completá los campos"); return; }
-        auth.createUserWithEmailAndPassword(email, password)
-            .then(() => alert("¡Cuenta creada! Bienvenido."))
-            .catch((error) => alert("Error: " + error.message));
+        const pass = document.getElementById('authPassword').value;
+        if(!email || !pass) return;
+        auth.createUserWithEmailAndPassword(email, pass).then(()=>alert("Creado!")).catch(e=>alert(e.message));
     }
-
     function loginUsuario() {
         const email = document.getElementById('authEmail').value;
-        const password = document.getElementById('authPassword').value;
-        if(!email || !password) { alert("Completá los campos"); return; }
-        auth.signInWithEmailAndPassword(email, password)
-            .catch((error) => alert("Error: " + error.message));
+        const pass = document.getElementById('authPassword').value;
+        if(!email || !pass) return;
+        auth.signInWithEmailAndPassword(email, pass).catch(e=>alert(e.message));
     }
-
-    function logoutUsuario() {
-        if(confirm("¿Seguro que querés salir de la plataforma?")) auth.signOut();
-    }
-
-    // --- MÓDULO PANEL DE PERFIL ---
+    function logoutUsuario() { if(confirm("¿Salir?")) auth.signOut(); }
+    
+    // --- PERFIL ---
     function togglePerfilPanel() {
-        let panel = document.getElementById('profile-section');
-        panel.style.display = (panel.style.display === "block") ? "none" : "block";
-        if(panel.style.display === "block") {
-            document.getElementById('profileNameInput').value = perfilUsuario.nombre || "";
-        }
+        let p = document.getElementById('profile-section');
+        p.style.display = p.style.display === "block" ? "none" : "block";
+        if(p.style.display === "block") document.getElementById('profileNameInput').value = perfilUsuario.nombre;
     }
-
     function guardarNombrePerfil() {
-        let nuevoNombre = document.getElementById('profileNameInput').value;
-        if(!nuevoNombre) return;
-        perfilUsuario.nombre = nuevoNombre;
-        document.getElementById('userNameDisplay').innerText = nuevoNombre;
-        guardarDatosEnNube();
-        alert("Nombre de perfil actualizado correctamente.");
+        let n = document.getElementById('profileNameInput').value;
+        if(n) { perfilUsuario.nombre = n; document.getElementById('userNameDisplay').innerText = n; guardarDatosEnNube(); }
     }
-
     function cambiarPasswordPerfil() {
-        let nuevaClave = document.getElementById('profilePasswordInput').value;
-        if(!nuevaClave || nuevaClave.length < 6) { alert("La clave debe tener al menos 6 caracteres."); return; }
-        auth.currentUser.updatePassword(nuevaClave)
-            .then(() => {
-                alert("🔒 Contraseña modificada con éxito.");
-                document.getElementById('profilePasswordInput').value = "";
-                togglePerfilPanel();
-            })
-            .catch(err => alert("Error de seguridad: Volvé a iniciar sesión antes de cambiar la clave."));
+        let n = document.getElementById('profilePasswordInput').value;
+        if(n.length < 6) return alert("Mínimo 6 chars");
+        auth.currentUser.updatePassword(n).then(() => { alert("Clave cambiada"); togglePerfilPanel(); }).catch(()=>alert("Volvé a iniciar sesión"));
     }
 
-    // --- ENLACE DE DATOS (NUBE EN TIEMPO REAL) ---
+    // --- NUBE ---
     function cargarDatosDesdeNube(uid) {
         db.collection("usuarios").doc(uid).onSnapshot(doc => {
             if (doc.exists) {
@@ -449,507 +427,288 @@
                 inversiones = data.inversiones || [];
                 listaAmigos = data.listaAmigos || [];
                 perfilUsuario = data.perfilUsuario || { nombre: "Usuario" };
-            } else {
-                todosLosMovimientos = [];
-                patrimonio = { pesos: 0, dolares: 0 };
-                inversiones = [];
-                listaAmigos = [];
-                perfilUsuario = { nombre: "Usuario" };
             }
             document.getElementById('userNameDisplay').innerText = perfilUsuario.nombre;
-            actualizarSelectAmigosDisplay();
-            actualizarApp();
-        }, error => console.error(error));
-    }
-
-    function guardarDatosEnNube() {
-        const user = auth.currentUser;
-        if (user) {
-            db.collection("usuarios").doc(user.uid).set({
-                todosLosMovimientos: todosLosMovimientos,
-                patrimonio: patrimonio,
-                inversiones: inversiones,
-                listaAmigos: listaAmigos,
-                perfilUsuario: perfilUsuario
-            }, { merge: true });
-        }
-    }
-
-    // --- FORMULARIO DINÁMICO ---
-    function evaluarCamposDinamicosGasto() {
-        let tipo = document.getElementById('inputTipo').value;
-        let visual = (tipo === "Ingreso") ? "none" : "block";
-        document.getElementById('boxPlanCuotas').style.display = visual;
-        document.getElementById('boxGastoCompartido').style.display = visual;
-        if(tipo === "Ingreso") {
-            document.getElementById('boxSeleccionAmigo').style.display = "none";
-            document.getElementById('inputDividir').value = "NO";
-        }
-    }
-
-    function toggleSelectAmigo() {
-        let div = document.getElementById('inputDividir').value;
-        if (div !== "NO") {
-            document.getElementById('boxSeleccionAmigo').style.display = "block";
-        } else {
-            document.getElementById('boxSeleccionAmigo').style.display = "none";
-        }
-    }
-
-    function crearPersonaDeuda() {
-        let nombre = document.getElementById('nuevoAmigoNombre').value.trim();
-        if(!nombre) return;
-        if(listaAmigos.includes(nombre)) { alert("Esta persona ya está en tu lista."); return; }
-        listaAmigos.push(nombre);
-        document.getElementById('nuevoAmigoNombre').value = "";
-        actualizarSelectAmigosDisplay();
-        guardarDatosEnNube();
-        actualizarApp();
-        alert(`Personaje ${nombre} incorporado con éxito.`);
-    }
-
-    function actualizarSelectAmigosDisplay() {
-        let select = document.getElementById('inputAmigoAsignado');
-        select.innerHTML = '';
-        listaAmigos.forEach(am => {
-            let opt = document.createElement('option');
-            opt.value = am; opt.text = am;
-            select.appendChild(opt);
+            actualizarSelectAmigosDisplay(); actualizarApp();
         });
     }
-
-    // --- INYECCIÓN DE CAPITAL EXISTENTE ---
-    function ingresarSaldoExistente() {
-        let monto = parseFloat(document.getElementById('ajusteMonto').value);
-        let moneda = document.getElementById('ajusteMoneda').value;
-
-        if(!monto || monto <= 0) { 
-            alert("⚠️ Por favor, ingresá un monto válido mayor a cero."); 
-            return; 
-        }
-
-        if(moneda === "ARS") {
-            patrimonio.pesos += monto;
-        } else {
-            patrimonio.dolares += monto;
-        }
-
-        document.getElementById('ajusteMonto').value = "";
-        actualizarApp();
-        guardarDatosEnNube();
-        
-        let simbolo = moneda === "ARS" ? "$" : "US$";
-        alert(`✅ Éxito. Se sumaron ${simbolo}${monto.toLocaleString('es-AR')} a tu caja fuerte.`);
+    function guardarDatosEnNube() {
+        if(auth.currentUser) db.collection("usuarios").doc(auth.currentUser.uid).set({
+            todosLosMovimientos: todosLosMovimientos, patrimonio: patrimonio,
+            inversiones: inversiones, listaAmigos: listaAmigos, perfilUsuario: perfilUsuario
+        }, { merge: true });
     }
 
-    // --- CORE DE CARGA (CUOTAS + DEUDA COMPARTIDA) ---
+    // --- FORMULARIO GASTOS DINÁMICO ---
+    function evaluarCamposDinamicosGasto() {
+        let t = document.getElementById('inputTipo').value;
+        let v = (t === "Ingreso") ? "none" : "block";
+        document.getElementById('boxPlanCuotas').style.display = v;
+        document.getElementById('boxGastoCompartido').style.display = v;
+        if(t === "Ingreso") { document.getElementById('boxSeleccionAmigo').style.display = "none"; document.getElementById('inputDividir').value = "NO"; }
+    }
+    function toggleSelectAmigo() {
+        let d = document.getElementById('inputDividir').value;
+        document.getElementById('boxSeleccionAmigo').style.display = (d !== "NO") ? "block" : "none";
+    }
+    function crearPersonaDeuda() {
+        let n = document.getElementById('nuevoAmigoNombre').value.trim();
+        if(!n || listaAmigos.includes(n)) return;
+        listaAmigos.push(n); document.getElementById('nuevoAmigoNombre').value = "";
+        actualizarSelectAmigosDisplay(); guardarDatosEnNube(); actualizarApp();
+    }
+    function actualizarSelectAmigosDisplay() {
+        let s = document.getElementById('inputAmigoAsignado'); s.innerHTML = '';
+        listaAmigos.forEach(am => { let o = document.createElement('option'); o.value = am; o.text = am; s.appendChild(o); });
+    }
+    function ingresarSaldoExistente() {
+        let m = parseFloat(document.getElementById('ajusteMonto').value);
+        let mon = document.getElementById('ajusteMoneda').value;
+        if(!m || m <= 0) return;
+        if(mon === "ARS") patrimonio.pesos += m; else patrimonio.dolares += m;
+        document.getElementById('ajusteMonto').value = ""; actualizarApp(); guardarDatosEnNube();
+    }
+
+    // --- NÚCLEO CONTABLE (NUEVAS REGLAS CASH FLOW) ---
     function agregarMovimiento() {
         let montoTotal = parseFloat(document.getElementById('inputMonto').value);
         let tipo = document.getElementById('inputTipo').value;
         let concepto = document.getElementById('inputConcepto').value.trim();
         let fechaBaseStr = document.getElementById('inputFecha').value;
-        
-        if(!montoTotal || !concepto || !fechaBaseStr) { alert("Por favor completa los campos principales."); return; }
+        if(!montoTotal || !concepto || !fechaBaseStr) return alert("Completá los campos");
 
         let cuotas = parseInt(document.getElementById('inputCuotas').value) || 1;
         let dividir = document.getElementById('inputDividir').value;
         let amigo = document.getElementById('inputAmigoAsignado').value;
-
-        if(dividir !== "NO" && !amigo) { alert("Crea primero una persona en la pestaña de Cuentas por Cobrar."); return; }
+        if(dividir !== "NO" && !amigo) return alert("Elegí una persona");
 
         let montoPorCuota = montoTotal / cuotas;
 
         for (let i = 0; i < cuotas; i++) {
-            let fechaCuota = new Date(fechaBaseStr + 'T00:00:00');
-            fechaCuota.setMonth(fechaCuota.getMonth() + i);
-            
-            let añoC = fechaCuota.getFullYear();
-            let mesC = (fechaCuota.getMonth() + 1).toString().padStart(2, '0');
-            let diaC = fechaCuota.getDate().toString().padStart(2, '0');
-            let fechaFinalFormateada = `${añoC}-${mesC}-${diaC}`;
-
-            let conceptoFinal = (cuotas > 1) ? `${concepto} (${i+1}/${cuotas})` : concepto;
+            let f = new Date(fechaBaseStr + 'T00:00:00'); f.setMonth(f.getMonth() + i);
+            let fechaF = `${f.getFullYear()}-${(f.getMonth()+1).toString().padStart(2,'0')}-${f.getDate().toString().padStart(2,'0')}`;
+            let conceptoF = (cuotas > 1) ? `${concepto} (${i+1}/${cuotas})` : concepto;
             
             if(tipo === "Ingreso") {
-                todosLosMovimientos.push({ monto: montoPorCuota, tipo: "Ingreso", concepto: conceptoFinal, fecha: fechaFinalFormateada });
+                todosLosMovimientos.push({ monto: montoPorCuota, tipo: "Ingreso", concepto: conceptoF, fecha: fechaF });
                 patrimonio.pesos += montoPorCuota; 
             } else {
-                let montoImpactoPropio = montoPorCuota;
-                let registrarDeuda = false;
-                let montoDeuda = 0;
-                let tipoDeuda = ""; 
-
+                let registrarDeuda = false; let mDeuda = 0; let tDeuda = ""; 
+                
+                // REGLAS FINANCIERAS
                 if (dividir === "PAGUE_50_TOTAL") {
-                    montoImpactoPropio = montoPorCuota / 2;
-                    patrimonio.pesos -= montoImpactoPropio; 
-                } 
-                else if (dividir === "PAGUE_50_INTEGRO") {
-                    montoImpactoPropio = montoPorCuota / 2;
+                    todosLosMovimientos.push({ monto: montoPorCuota/2, tipo: tipo, concepto: conceptoF, fecha: fechaF });
+                    patrimonio.pesos -= montoPorCuota/2; 
+                } else if (dividir === "PAGUE_50_INTEGRO") {
+                    todosLosMovimientos.push({ monto: montoPorCuota/2, tipo: tipo, concepto: conceptoF, fecha: fechaF });
+                    todosLosMovimientos.push({ monto: montoPorCuota/2, tipo: "Gasto Variable", concepto: `Adelanto a ${amigo}: ${conceptoF}`, fecha: fechaF });
                     patrimonio.pesos -= montoPorCuota; 
-                    registrarDeuda = true;
-                    montoDeuda = montoPorCuota / 2;
-                    tipoDeuda = "A_FAVOR";
-                } 
-                else if (dividir === "PAGO_OTRO_50") {
-                    montoImpactoPropio = montoPorCuota / 2;
-                    registrarDeuda = true;
-                    montoDeuda = montoPorCuota / 2;
-                    tipoDeuda = "EN_CONTRA";
-                } 
-                else if (dividir === "PAGUE_100_DEUDA") {
-                    montoImpactoPropio = 0; 
+                    registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "A_FAVOR";
+                } else if (dividir === "PAGO_OTRO_50") {
+                    // Cero impacto cash flow actual
+                    registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "EN_CONTRA";
+                } else if (dividir === "PAGUE_100_DEUDA") {
+                    todosLosMovimientos.push({ monto: montoPorCuota, tipo: "Gasto Variable", concepto: `Adelanto a ${amigo}: ${conceptoF}`, fecha: fechaF });
                     patrimonio.pesos -= montoPorCuota; 
-                    registrarDeuda = true;
-                    montoDeuda = montoPorCuota;
-                    tipoDeuda = "A_FAVOR";
-                } 
-                else if (dividir === "PAGO_OTRO_100_DEUDA") {
-                    montoImpactoPropio = montoPorCuota; 
-                    registrarDeuda = true;
-                    montoDeuda = montoPorCuota;
-                    tipoDeuda = "EN_CONTRA";
-                } 
-                else {
+                    registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "A_FAVOR";
+                } else if (dividir === "PAGO_OTRO_100_DEUDA") {
+                    // Cero impacto cash flow actual
+                    registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "EN_CONTRA";
+                } else {
+                    todosLosMovimientos.push({ monto: montoPorCuota, tipo: tipo, concepto: conceptoF, fecha: fechaF });
                     patrimonio.pesos -= montoPorCuota;
                 }
 
-                if(montoImpactoPropio > 0) {
-                    todosLosMovimientos.push({ 
-                        monto: montoImpactoPropio, 
-                        tipo: tipo, 
-                        concepto: conceptoFinal, 
-                        fecha: fechaFinalFormateada 
-                    });
-                }
-
                 if(registrarDeuda) {
-                    todosLosMovimientos.push({
-                        monto: montoDeuda,
-                        tipo: "Cuenta Cobrar",
-                        concepto: tipoDeuda === "A_FAVOR" ? `Te debe por: ${conceptoFinal}` : `Le debés por: ${conceptoFinal}`,
-                        fecha: fechaFinalFormateada,
-                        deudor: amigo,
-                        sentido: tipoDeuda,
-                        estado: "Pendiente"
-                    });
+                    todosLosMovimientos.push({ monto: mDeuda, tipo: "Cuenta Cobrar", concepto: tDeuda === "A_FAVOR" ? `Te debe por: ${conceptoF}` : `Le debés por: ${conceptoF}`, fecha: fechaF, deudor: amigo, sentido: tDeuda, estado: "Pendiente" });
                 }
             }
         }
-
-        document.getElementById('inputMonto').value = "";
-        document.getElementById('inputConcepto').value = "";
-        actualizarApp();
-        guardarDatosEnNube();
+        document.getElementById('inputMonto').value = ""; document.getElementById('inputConcepto').value = "";
+        actualizarApp(); guardarDatosEnNube();
     }
 
-    // --- ACTUALIZACIÓN DE TABLEROS ---
+    // --- TABLEROS ---
     function inicializarSelectorHistorico() {
-        let selector = document.getElementById('filtroMesAnio');
-        if(selector.innerHTML !== '') return;
-        let anioActual = fechaActual.getFullYear();
-        let anios = [anioActual - 1, anioActual, anioActual + 1];
-        anios.forEach(anio => {
-            nombresMeses.forEach((nombreMes, indexMes) => {
-                let opcion = document.createElement('option');
-                opcion.value = `${anio}-${indexMes}`;
-                opcion.text = `${nombreMes} ${anio}`;
-                if(anio === anioActual && indexMes === fechaActual.getMonth()) opcion.selected = true;
-                selector.appendChild(opcion);
-            });
-        });
+        let sel = document.getElementById('filtroMesAnio'); if(sel.innerHTML !== '') return;
+        let anio = fechaActual.getFullYear();
+        [anio-1, anio, anio+1].forEach(a => { nombresMeses.forEach((m, i) => {
+            let o = document.createElement('option'); o.value = `${a}-${i}`; o.text = `${m} ${a}`;
+            if(a === anio && i === fechaActual.getMonth()) o.selected = true; sel.appendChild(o);
+        });});
     }
 
     function actualizarApp() {
-        let selector = document.getElementById('filtroMesAnio');
-        if(!selector.value) return;
-        let [anioSel, mesSel] = selector.value.split('-').map(Number);
+        let sel = document.getElementById('filtroMesAnio'); if(!sel.value) return;
+        let [aSel, mSel] = sel.value.split('-').map(Number);
         
-        let ingresos = 0, fijos = 0, variables = 0;
-        
+        let ing = 0, fij = 0, varb = 0;
         let filtrados = todosLosMovimientos.filter(mov => {
-            let f = new Date(mov.fecha + 'T00:00:00');
-            return f.getFullYear() === anioSel && f.getMonth() === mesSel;
+            let f = new Date(mov.fecha + 'T00:00:00'); return f.getFullYear() === aSel && f.getMonth() === mSel;
         });
 
         filtrados.forEach(mov => {
-            if (mov.tipo === "Ingreso") ingresos += mov.monto;
-            if (mov.tipo === "Gasto Fijo" || mov.tipo === "Enviado a Ahorros") fijos += mov.monto;
-            if (mov.tipo === "Gasto Variable") variables += mov.monto;
+            if (mov.tipo === "Ingreso") ing += mov.monto;
+            if (mov.tipo === "Gasto Fijo" || mov.tipo === "Enviado a Ahorros") fij += mov.monto;
+            if (mov.tipo === "Gasto Variable") varb += mov.monto;
         });
 
-        let totalGastos = fijos + variables;
-        let ahorro = ingresos - totalGastos;
+        document.getElementById('lblIngresos').innerText = ing.toLocaleString('es-AR');
+        document.getElementById('lblFijos').innerText = fij.toLocaleString('es-AR');
+        document.getElementById('lblVariables').innerText = varb.toLocaleString('es-AR');
+        document.getElementById('lblTotalGasto').innerText = (fij+varb).toLocaleString('es-AR');
+        document.getElementById('lblAhorro').innerText = (ing-fij-varb).toLocaleString('es-AR'); // DISPONIBLE NETO
 
-        document.getElementById('lblIngresos').innerText = ingresos.toLocaleString('es-AR');
-        document.getElementById('lblFijos').innerText = fijos.toLocaleString('es-AR');
-        document.getElementById('lblVariables').innerText = variables.toLocaleString('es-AR');
-        document.getElementById('lblTotalGasto').innerText = totalGastos.toLocaleString('es-AR');
-        document.getElementById('lblAhorro').innerText = ahorro.toLocaleString('es-AR');
-
-        let calcPct = (v) => ingresos > 0 ? ((v / ingresos) * 100).toFixed(1) : 0;
-        document.getElementById('pctFijos').innerText = calcPct(fijos) + "%";
-        document.getElementById('pctVariables').innerText = calcPct(variables) + "%";
-        document.getElementById('pctTotalGasto').innerText = calcPct(totalGastos) + "%";
-        document.getElementById('pctAhorro').innerText = calcPct(ahorro) + "%";
-
-        let tabla = document.getElementById('tablaMovimientos');
-        tabla.innerHTML = '';
+        let tabla = document.getElementById('tablaMovimientos'); tabla.innerHTML = '';
         [...filtrados].reverse().forEach(mov => {
             if(mov.tipo === "Cuenta Cobrar") return; 
-            let indexOrig = todosLosMovimientos.findIndex(t => t === mov);
-            let f = new Date(mov.fecha + 'T00:00:00');
-            let fFormated = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            tabla.innerHTML += `<tr><td>${fFormated}</td><td>${mov.concepto}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR')}</td><td><button class="btn-borrar" onclick="borrarMovimiento(${indexOrig})">X</button></td></tr>`;
+            let idx = todosLosMovimientos.findIndex(t => t === mov);
+            let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
+            tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.concepto}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR')}</td><td><button class="btn-borrar" onclick="borrarMovimiento(${idx})">X</button></td></tr>`;
         });
 
         document.getElementById('walletPesos').innerText = patrimonio.pesos.toLocaleString('es-AR');
         document.getElementById('walletDolares').innerText = patrimonio.dolares.toLocaleString('es-AR');
 
-        let tablaInv = document.getElementById('tablaInversiones');
-        tablaInv.innerHTML = '';
+        // INVERSIONES ACTIVAS DINÁMICAS
+        let tablaInv = document.getElementById('tablaInversiones'); tablaInv.innerHTML = '';
         inversiones.forEach((inv, index) => {
-            let simbolo = inv.moneda === "ARS" ? "$" : "US$";
-            let f = new Date(inv.fecha + 'T00:00:00');
-            let fFormated = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            let columnaClaveHTML = (inv.instrumento === "S&P 500") ? `<strong>${(inv.nominales||0).toFixed(4)} Nom.</strong>` : `<span>${inv.interes}% TNA</span>`;
-            let precioCompraTexto = (inv.instrumento === "S&P 500") ? `${simbolo}${(inv.precioCompraBase||0).toLocaleString('es-AR')}` : "-";
+            let sim = inv.moneda === "ARS" ? "$" : "US$";
+            let f = new Date(inv.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
+            
+            let dias = Math.max(0, Math.floor((new Date() - f) / (1000 * 60 * 60 * 24)));
+            let valorAct = inv.monto; let colDetalle = "";
 
-            tablaInv.innerHTML += `<tr><td>${fFormated}</td><td><strong>${inv.instrumento}</strong></td><td>${simbolo} ${inv.monto.toLocaleString('es-AR')}</td><td>${columnaClaveHTML}</td><td>${precioCompraTexto}</td><td><button class="btn-naranja" onclick="retirarInversion(${index})">Liquidar</button></td></tr>`;
+            if(inv.instrumento === "S&P 500") {
+                let precioCot = inv.moneda === "ARS" ? mercado.spy : (mercado.spy / mercado.mep);
+                valorAct = (inv.nominales || 0) * precioCot;
+                colDetalle = `<strong>${(inv.nominales||0).toFixed(4)} Nom.</strong>`;
+            } else {
+                let tna = inv.interes || (inv.instrumento === "Mercado Pago" ? mercado.mpTna : 0);
+                let rend = inv.monto * (tna / 100) * (dias / 365);
+                valorAct = inv.monto + rend;
+                colDetalle = `<span>${tna}% TNA (${dias} días)</span>`;
+            }
+
+            let colorValor = valorAct >= inv.monto ? "#2e7d32" : "#c62828";
+            tablaInv.innerHTML += `<tr><td>${ff}</td><td><strong>${inv.instrumento}</strong></td><td>${sim}${inv.monto.toLocaleString('es-AR')}</td><td style="color:${colorValor}; font-weight:bold;">${sim}${valorAct.toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td>${colDetalle}</td><td><button class="btn-naranja" onclick="retirarInversion(${index}, ${valorAct})">Liquidar</button></td></tr>`;
         });
 
-        actualizarPestañaCuentasCobrar(anioSel, mesSel);
+        actualizarPestañaCuentasCobrar();
     }
 
-    function actualizarPestañaCuentasCobrar(anioSel, mesSel) {
-        let totalizadorPersonas = {};
-        listaAmigos.forEach(am => totalizadorPersonas[am] = 0);
-
-        let tablaDeudas = document.getElementById('tablaDeudasDetalle');
-        tablaDeudas.innerHTML = '';
+    // --- DEUDAS: LIQUIDACIÓN Y AJUSTES ---
+    function actualizarPestañaCuentasCobrar() {
+        let totPers = {}; listaAmigos.forEach(am => totPers[am] = 0);
+        let tablaDeudas = document.getElementById('tablaDeudasDetalle'); tablaDeudas.innerHTML = '';
 
         todosLosMovimientos.forEach((mov, index) => {
             if(mov.tipo !== "Cuenta Cobrar") return;
-
-            let f = new Date(mov.fecha + 'T00:00:00');
-            
-            if(f.getFullYear() === anioSel && f.getMonth() === mesSel && mov.estado === "Pendiente") {
-                if(totalizadorPersonas[mov.deudor] !== undefined) {
-                    if(mov.sentido === "A_FAVOR") {
-                        totalizadorPersonas[mov.deudor] += mov.monto;
-                    } else {
-                        totalizadorPersonas[mov.deudor] -= mov.monto;
-                    }
-                }
-            }
-
-            let fFormated = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            
-            let btnAccionDeuda = "";
             if(mov.estado === "Pendiente") {
-                let textoBtn = mov.sentido === "A_FAVOR" ? "Marcar Cobrado" : "Marcar Pagado";
-                let claseBtn = mov.sentido === "A_FAVOR" ? "btn-verde" : "btn-naranja";
-                btnAccionDeuda = `<button class="`+claseBtn+`" style="padding:3px 7px; font-size:0.8em;" onclick="liquidarDeudaIndividual(${index})">`+textoBtn+`</button>`;
-            } else {
-                btnAccionDeuda = mov.sentido === "A_FAVOR" ? `<span style="color:green; font-weight:bold;">✓ Cobrado</span>` : `<span style="color:#757575; font-weight:bold;">✓ Saldado</span>`;
+                if(totPers[mov.deudor] !== undefined) totPers[mov.deudor] += (mov.sentido === "A_FAVOR") ? mov.monto : -mov.monto;
             }
-
-            let simboloMonto = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR')}` : `-$${mov.monto.toLocaleString('es-AR')} (Debés)`;
-
-            tablaDeudas.innerHTML += `<tr><td>${fFormated}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${simboloMonto}</td><td>${btnAccionDeuda}</td></tr>`;
+            let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
+            
+            let btnA = mov.estado === "Pendiente" ? (mov.sentido === "A_FAVOR" ? `<button class="btn-verde" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual(${index})">Cobrar</button>` : `<button class="btn-naranja" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual(${index})">Pagar</button>`) : (mov.sentido === "A_FAVOR" ? `<span style="color:green;">✓</span>` : `<span style="color:grey;">✓</span>`);
+            // Boton individual de borrado
+            btnA += ` <button class="btn-borrar" style="padding:3px; font-size:0.8em; margin-left:5px;" onclick="borrarMovimiento(${index})">X</button>`;
+            
+            let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR')}` : `-$${mov.monto.toLocaleString('es-AR')} (Debo)`;
+            tablaDeudas.innerHTML += `<tr><td>${ff}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${sim}</td><td>${btnA}</td></tr>`;
         });
 
-        let gridDeudas = document.getElementById('gridResumenDeudas');
-        gridDeudas.innerHTML = '';
-        for(let persona in totalizadorPersonas) {
-            let saldoNeto = totalizadorPersonas[persona];
-            let colorCard = saldoNeto >= 0 ? "#e8f5e9" : "#ffebee";
-            let colorBorde = saldoNeto >= 0 ? "#4caf50" : "#f44336";
-            let textoTitulo = saldoNeto >= 0 ? "Te debe neto:" : "Le debés neto:";
-            
-            gridDeudas.innerHTML += `<div class="card ahorro" style="border-left-color: ${colorBorde}; background:${colorCard};"><h3>${persona}</h3><p style="color:#333;">$${Math.abs(saldoNeto).toLocaleString('es-AR')}</p><span class="porcentaje">${textoTitulo} en este período</span></div>`;
+        let gridDeudas = document.getElementById('gridResumenDeudas'); gridDeudas.innerHTML = '';
+        for(let p in totPers) {
+            let saldo = totPers[p]; let colorC = saldo >= 0 ? "#e8f5e9" : "#ffebee"; let colorB = saldo >= 0 ? "#4caf50" : "#f44336";
+            let txt = saldo >= 0 ? "Te debe neto:" : "Le debés neto:";
+            gridDeudas.innerHTML += `<div class="card" style="border-left-color: ${colorB}; background:${colorC};"><h3>${p}</h3><p>$${Math.abs(saldo).toLocaleString('es-AR')}</p><span class="porcentaje">${txt}</span><button style="margin-top:10px; font-size:0.8em; background:#3f51b5; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="liquidarDeudaGlobal('${p}', ${saldo})">Saldar / Ajustar</button></div>`;
         }
     }
 
-    function liquidarDeudaIndividual(indexOrig) {
-        let movDeuda = todosLosMovimientos[indexOrig];
-        let mensajeConfirmacion = movDeuda.sentido === "A_FAVOR" ? 
-            "¿Confirmas que te devolvieron este dinero? Ingresará a tu Flujo Mensual (Efectivo Pesos)." : 
-            "¿Confirmas que pagaste esta deuda? Se debitará de tu Flujo Mensual (Efectivo Pesos).";
-
-        if(confirm(mensajeConfirmacion)) {
-            movDeuda.estado = "Cobrado"; 
-
-            if(movDeuda.sentido === "A_FAVOR") {
-                patrimonio.pesos += movDeuda.monto; 
-                
-                let hoy = new Date();
-                let hoyFormateada = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0');
-                todosLosMovimientos.push({
-                    monto: movDeuda.monto,
-                    tipo: "Ingreso",
-                    concepto: `Recupero préstamo: ${movDeuda.deudor}`,
-                    fecha: hoyFormateada
-                });
+    function liquidarDeudaIndividual(idx) {
+        let mov = todosLosMovimientos[idx];
+        if(confirm(mov.sentido === "A_FAVOR" ? "¿Confirmas que cobraste esto? (Suma a Disponible)" : "¿Confirmas que pagaste esto? (Resta de Disponible)")) {
+            mov.estado = "Saldado";
+            let hoy = new Date().toISOString().split('T')[0];
+            if(mov.sentido === "A_FAVOR") {
+                patrimonio.pesos += mov.monto; todosLosMovimientos.push({ monto: mov.monto, tipo: "Ingreso", concepto: `Cobro deuda: ${mov.deudor}`, fecha: hoy });
             } else {
-                patrimonio.pesos -= movDeuda.monto; 
-                
-                let hoy = new Date();
-                let hoyFormateada = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0');
-                todosLosMovimientos.push({
-                    monto: movDeuda.monto,
-                    tipo: "Gasto Variable",
-                    concepto: `Pago deuda pendiente a: ${movDeuda.deudor}`,
-                    fecha: hoyFormateada
-                });
+                patrimonio.pesos -= mov.monto; todosLosMovimientos.push({ monto: mov.monto, tipo: "Gasto Variable", concepto: `Pago deuda: ${mov.deudor}`, fecha: hoy });
             }
-
-            actualizarApp();
-            guardarDatosEnNube();
+            actualizarApp(); guardarDatosEnNube();
         }
     }
 
-    // --- ENVIOS Y BORRADOS ---
-    function ejecutarEnvioAhorro() {
-        let montoPesos = parseFloat(document.getElementById('ahorroMontoPesos').value);
-        let monedaDestino = document.getElementById('ahorroDestinoMoneda').value;
-        let selector = document.getElementById('filtroMesAnio');
-        let [anioSel, mesSel] = selector.value.split('-').map(Number);
-        if(!montoPesos || montoPesos <= 0) return;
+    function liquidarDeudaGlobal(persona, neto) {
+        if(neto === 0) return alert("Saldos en cero con esta persona.");
+        let txt = neto > 0 ? `Te debe $${neto.toLocaleString()}` : `Le debés $${Math.abs(neto).toLocaleString()}`;
+        let mInput = prompt(`${txt}.\n\nIngresá el importe exacto que estás cobrando o pagando AHORA (Ej: si te entrega de más, poné el total):`, Math.abs(neto));
+        if(!mInput) return; let mReal = parseFloat(mInput); if(isNaN(mReal) || mReal <= 0) return alert("Monto inválido");
 
-        let conceptoDetalle = "";
-        if(monedaDestino === "ARS") {
-            patrimonio.pesos += montoPesos; conceptoDetalle = "Envío a Ahorros (Pesos)";
+        todosLosMovimientos.forEach(m => { if(m.tipo === "Cuenta Cobrar" && m.deudor === persona && m.estado === "Pendiente") m.estado = "Saldado"; });
+        
+        let hoy = new Date().toISOString().split('T')[0];
+        if(neto > 0) {
+            patrimonio.pesos += mReal; todosLosMovimientos.push({ monto: mReal, tipo: "Ingreso", concepto: `Cobro global: ${persona}`, fecha: hoy });
         } else {
-            let cotizacion = parseFloat(document.getElementById('ahorroCotizacion').value);
-            if(!cotizacion) { alert("Ingresá cotización"); return; }
-            let dolaresComprados = montoPesos / cotizacion;
-            patrimonio.dolares += dolaresComprados; conceptoDetalle = `Compra USD (${dolaresComprados.toFixed(2)} USD a $${cotizacion})`;
+            patrimonio.pesos -= mReal; todosLosMovimientos.push({ monto: mReal, tipo: "Gasto Variable", concepto: `Pago global: ${persona}`, fecha: hoy });
         }
-        let fechaFalsaEnvio = `${anioSel}-${(mesSel + 1).toString().padStart(2,'0')}-28`;
-        todosLosMovimientos.push({ monto: montoPesos, tipo: "Gasto Fijo", concepto: conceptoDetalle, fecha: fechaFalsaEnvio });
-        document.getElementById('ahorroMontoPesos').value = "";
         actualizarApp(); guardarDatosEnNube();
+    }
+
+    // --- ACCIONES SECUNDARIAS ---
+    function borrarMovimiento(idx) {
+        if(confirm("¿Eliminar registro definitivo? (Si era ingreso/gasto, ajustará tu caja fuerte)")) {
+            let m = todosLosMovimientos[idx];
+            if(m.tipo === "Ingreso") patrimonio.pesos -= m.monto; else if(m.tipo === "Gasto Variable" || m.tipo === "Gasto Fijo") patrimonio.pesos += m.monto;
+            todosLosMovimientos.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
+        }
+    }
+    
+    function toggleCamposInversion() {
+        let i = document.getElementById('invInstrumento').value;
+        if(i === "S&P 500") {
+            document.getElementById('grupoInteres').style.display = "none";
+            document.getElementById('grupoCotizacionMercado').style.display = "flex";
+            document.getElementById('lblPrecioMercado').innerText = `$${mercado.spy.toLocaleString('es-AR')}`;
+        } else if (i === "Mercado Pago") {
+            document.getElementById('grupoInteres').style.display = "flex";
+            document.getElementById('grupoCotizacionMercado').style.display = "flex";
+            document.getElementById('lblPrecioMercado').innerText = `TNA API: ${mercado.mpTna}%`;
+            document.getElementById('invInteres').value = mercado.mpTna;
+        } else {
+            document.getElementById('grupoInteres').style.display = "flex";
+            document.getElementById('grupoCotizacionMercado').style.display = "none";
+            document.getElementById('invInteres').value = "";
+        }
     }
 
     function ejecutarInversion() {
-        let monto = parseFloat(document.getElementById('invMonto').value);
-        let moneda = document.getElementById('invMoneda').value;
-        let instrumento = document.getElementById('invInstrumento').value;
-        let fecha = document.getElementById('invFecha').value;
-        if(!monto || !fecha) { alert("Completa los datos."); return; }
-        if(moneda === "ARS" && patrimonio.pesos < monto) { alert("Efectivo insuficiente ARS."); return; }
-        if(moneda === "USD" && patrimonio.dolares < monto) { alert("Efectivo insuficiente USD."); return; }
-
-        let nominalesCalc = 0; let interes = 0; let precioCompraBase = 0;
-        if(instrumento === "S&P 500") {
-            let precioIngresado = parseFloat(document.getElementById('invPrecioNominal').value);
-            if(!precioIngresado) { alert("Falta el precio nominal."); return; }
-            precioCompraBase = precioIngresado; nominalesCalc = monto / precioCompraBase;
-        } else { interes = parseFloat(document.getElementById('invInteres').value) || 0; }
-
-        if(moneda === "ARS") patrimonio.pesos -= monto; else patrimonio.dolares -= monto;
-        inversiones.push({ monto: monto, moneda: moneda, instrumento: instrumento, fecha: fecha, nominales: nominalesCalc, interes: interes, precioCompraBase: precioCompraBase });
+        let m = parseFloat(document.getElementById('invMonto').value); let mon = document.getElementById('invMoneda').value;
+        let inst = document.getElementById('invInstrumento').value; let fec = document.getElementById('invFecha').value;
+        if(!m || !fec) return alert("Faltan datos");
+        if(mon === "ARS" && patrimonio.pesos < m) return alert("Efectivo insuficiente");
+        
+        let nom = 0; let int = parseFloat(document.getElementById('invInteres').value) || (inst==="Mercado Pago"?mercado.mpTna:0);
+        if(inst === "S&P 500") nom = m / (mon === "ARS" ? mercado.spy : (mercado.spy/mercado.mep));
+        
+        if(mon === "ARS") patrimonio.pesos -= m; else patrimonio.dolares -= m;
+        inversiones.push({ monto: m, moneda: mon, instrumento: inst, fecha: fec, nominales: nom, interes: int });
         document.getElementById('invMonto').value = ""; actualizarApp(); guardarDatosEnNube();
     }
 
-    function retirarInversion(index) {
-        let inv = inversiones[index];
-        let simbolo = inv.moneda === "ARS" ? "$" : "US$";
-        let nuevoImporteInput = prompt(`Liquidando capital. Ingresa importe FINAL devuelto:`, inv.monto);
-        if (nuevoImporteInput === null) return;
-        let nuevoImporte = parseFloat(nuevoImporteInput);
-        if(inv.moneda === "ARS") patrimonio.pesos += nuevoImporte; else patrimonio.dolares += nuevoImporte;
-        inversiones.splice(index, 1);
-        actualizarApp(); guardarDatosEnNube();
-    }
-
-    function borrarMovimiento(index) {
-        if(confirm("¿Borrar movimiento definitivo?")) {
-            let mov = todosLosMovimientos[index];
-            if(mov.tipo === "Ingreso") { patrimonio.pesos -= mov.monto; }
-            todosLosMovimientos.splice(index, 1);
-            actualizarApp(); guardarDatosEnNube();
-        }
+    function retirarInversion(idx, valorSugerido) {
+        let i = inversiones[idx];
+        let nInput = prompt(`Liquidando capital.\nCapital original: $${i.monto}\nValor estimado actual: $${Math.floor(valorSugerido)}\n\nIngresá importe FINAL devuelto a tu caja:`, Math.floor(valorSugerido));
+        if(!nInput) return; let n = parseFloat(nInput);
+        if(i.moneda === "ARS") patrimonio.pesos += n; else patrimonio.dolares += n;
+        inversiones.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
     }
 
     function cambiarPestaña(tabId, boton) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
         document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        boton.classList.add('active');
-        if(tabId === 'tab-graficos') renderizarGrafico();
-        else actualizarApp();
-    }
-
-    function toggleCotizacion() {
-        let moneda = document.getElementById('ahorroDestinoMoneda').value;
-        document.getElementById('grupoCotizacion').style.display = (moneda === "USD") ? "block" : "none";
-    }
-
-    function toggleCamposInversion() {
-        let inst = document.getElementById('invInstrumento').value;
-        document.getElementById('grupoInteres').style.display = (inst !== "S&P 500") ? "flex" : "none";
-        document.getElementById('grupoNominal').style.display = (inst === "S&P 500") ? "flex" : "none";
-    }
-
-    async function obtenerDatosMercado() {
-        let precioCedearARS = 16983.81; let dolarMEP = 1250;
-        try {
-            let resYahoo = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/SPY.BA"));
-            let dataYahoo = await resYahoo.json();
-            if(dataYahoo.chart.result) precioCedearARS = dataYahoo.chart.result[0].meta.regularMarketPrice;
-        } catch(e){}
-        try {
-            let resDolar = await fetch("https://dolarapi.com/v1/dolares/mep");
-            let dataDolar = await resDolar.json();
-            if(dataDolar.venta) dolarMEP = dataDolar.venta;
-        } catch(e){}
-        return { precioARS: precioCedearARS, mep: dolarMEP };
-    }
-
-    async function buscarPrecioAPI() {
-        let btn = document.getElementById('btnBuscarApi'); btn.innerText = "⏳...";
-        let moneda = document.getElementById('invMoneda').value;
-        let datos = await obtenerDatosMercado();
-        let precioRealARS = datos.precioARS;
-        if(precioRealARS > 100000) precioRealARS /= 10;
-        let precioFinalDisplay = moneda === "ARS" ? precioRealARS : (precioRealARS / datos.mep);
-        document.getElementById('invPrecioNominal').value = precioFinalDisplay.toFixed(2);
-        btn.innerText = "🔍 API";
-    }
-
-    function renderizarGrafico() {
-        let ctx = document.getElementById('patrimonioChart').getContext('2d');
-        if(miGrafico) miGrafico.destroy();
-        let dataPlazoFijo = [0, 0, 0, 0, 0, 0]; let dataSP500 = [0, 0, 0, 0, 0, 0]; let dataEfectivo = [0, 0, 0, 0, 0, 0];
-        inversiones.forEach(inv => {
-            let m = new Date(inv.fecha + 'T00:00:00').getMonth() % 6;
-            if(inv.instrumento === "Plazo Fijo") dataPlazoFijo[m] += inv.monto;
-            if(inv.instrumento === "S&P 500") dataSP500[m] += inv.monto;
-        });
-        dataEfectivo = dataEfectivo.map((v, i) => patrimonio.pesos / (6 - i));
-        miGrafico = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"],
-                datasets: [
-                    { label: '📈 S&P 500', data: dataSP500, borderColor: '#ffb300', backgroundColor: 'transparent', borderWidth: 3 },
-                    { label: '🏦 Plazo Fijo', data: dataPlazoFijo, borderColor: '#3f51b5', backgroundColor: 'transparent', borderWidth: 3 },
-                    { label: '💵 Efectivo', data: dataEfectivo, borderColor: '#4caf50', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5, 5] }
-                ]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
-
-    function resetearApp() {
-        if(confirm("⚠️ PELIGRO CRÍTICO: Se purgarán todos los balances de la nube.")) {
-            let p = prompt("Escribe BORRAR:");
-            if(p === "BORRAR") {
-                todosLosMovimientos = []; patrimonio = { pesos: 0, dolares: 0 }; inversiones = []; listaAmigos = [];
-                guardarDatosEnNube(); actualizarApp();
-            }
-        }
+        document.getElementById(tabId).classList.add('active'); boton.classList.add('active');
     }
 </script>
 
