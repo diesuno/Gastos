@@ -765,10 +765,48 @@
         inversiones.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
     }
 
-    function cambiarPestaña(tabId, boton) {
+  function cambiarPestaña(tabId, boton) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
         document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
         document.getElementById(tabId).classList.add('active'); boton.classList.add('active');
+        
+        // Disparador del gráfico
+        if (tabId === 'tab-graficos') {
+            renderizarGrafico();
+        }
+    }
+    function renderizarGrafico() {
+        let ctx = document.getElementById('patrimonioChart').getContext('2d');
+        if(miGrafico) miGrafico.destroy(); // Limpia el gráfico anterior para que no se superpongan
+        
+        let dataARS = [0, 0, 0, 0, 0, 0]; 
+        let dataUSD = [0, 0, 0, 0, 0, 0];
+        
+        inversiones.forEach(inv => {
+            let m = new Date(inv.fecha + 'T00:00:00').getMonth() % 6;
+            let precioCot = inv.moneda === "ARS" ? mercado.spy_ars : mercado.spy_usd;
+            // Calcula el valor real de la inversión
+            let val = inv.instrumento === "S&P 500" ? (inv.nominales * precioCot) : inv.monto;
+            
+            // Separa por moneda
+            if(inv.moneda === "ARS") {
+                dataARS[m] += val; 
+            } else {
+                dataUSD[m] += val;
+            }
+        });
+
+        miGrafico = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ["Mes 1", "Mes 2", "Mes 3", "Mes 4", "Mes 5", "Mes Actual"],
+                datasets: [
+                    { label: '📈 Activos en Pesos (ARS)', data: dataARS, borderColor: '#4caf50', backgroundColor: 'transparent', borderWidth: 3, tension: 0.2 },
+                    { label: '💵 Activos en Dólares (USD)', data: dataUSD, borderColor: '#ffb300', backgroundColor: 'transparent', borderWidth: 3, tension: 0.2 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
     }
 </script>
 
