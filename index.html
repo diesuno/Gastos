@@ -49,7 +49,6 @@
         .historico-selector { background: #1a237e; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; display: flex; justify-content: center; gap: 15px;}
         .historico-selector select { padding: 6px 12px; font-size: 1em; border-radius: 4px; border: none; font-weight: bold;}
         
-        /* Grillas mejoradas para evitar solapamiento en PC */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
         
@@ -69,7 +68,7 @@
         
         .btn-verde { background-color: #4caf50; } 
         .btn-naranja { background-color: #ff9800; } 
-        .btn-borrar { background-color: #ff5252; color: white; padding: 4px 8px; font-size: 0.8em; border-radius: 3px; border: none; cursor:pointer;}
+        .btn-borrar { background-color: #ff5252; color: white; padding: 4px 8px; font-size: 0.8em; border-radius: 3px; border: none; cursor: pointer;}
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; overflow-x: auto; display: block;}
         th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; white-space: nowrap;}
@@ -149,7 +148,7 @@
         <div class="form-section">
             <h3 style="margin-top:0;">Cargar Nuevo Movimiento</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Monto Total ($)</label><input type="number" id="inputMonto"></div>
+                <div class="form-group"><label>Monto Total ($)</label><input type="number" step="any" id="inputMonto"></div>
                 <div class="form-group"><label>Tipo</label>
                     <select id="inputTipo" onchange="evaluarCamposDinamicosGasto()">
                         <option value="Ingreso">Ingreso</option>
@@ -192,11 +191,11 @@
             <h3 style="margin-top:0; color:#0d47a1;">✉️ Enviar Flujo Disponible a la Billetera</h3>
             <p style="font-size: 0.85em; margin-top:-5px;">Convierte el disponible del mes en capital real en tu Billetera Patrimonial.</p>
             <div class="form-grid">
-                <div class="form-group"><label>Monto a Enviar</label><input type="number" id="ahorroMontoPesos"></div>
+                <div class="form-group"><label>Monto a Enviar</label><input type="number" step="any" id="ahorroMontoPesos"></div>
                 <div class="form-group"><label>Destino</label>
                     <select id="ahorroDestinoMoneda">
-                        <option value="ARS">Ahorro en Pesos (ARS)</option>
-                        <option value="USD">Ahorro en Dólares (USD)</option>
+                        <option value="ARS">Pesos (ARS)</option>
+                        <option value="USD">Dólares (USD)</option>
                     </select>
                 </div>
                 <button class="btn-verde" onclick="ejecutarEnvioAhorro()">Procesar Envío</button>
@@ -214,23 +213,23 @@
         <h2>🏦 Mi Balance General</h2>
         
         <div class="dashboard-grid">
-            <div class="card ahorro"><h3>Pesos</h3><p>$<span id="walletPesos">0</span></p><span class="porcentaje">Efectivo Líquido</span></div>
-            <div class="card oro"><h3>Dólares</h3><p>US$ <span id="walletDolares">0</span></p><span class="porcentaje">Efectivo Líquido</span></div>
+            <div class="card ahorro"><h3>Pesos</h3><p>$<span id="walletPesos">0.00</span></p><span class="porcentaje">Efectivo Líquido</span></div>
+            <div class="card oro"><h3>Dólares</h3><p>US$ <span id="walletDolares">0.00</span></p><span class="porcentaje">Efectivo Líquido</span></div>
             
             <div class="card" style="background:#e8f5e9; border-left-color:#4caf50;">
-                <h3>Invertido (ARS)</h3><p>$<span id="invTotalPesos">0</span></p>
-                <span class="porcentaje" id="invRendPesos" style="font-size: 1em;">0%</span>
+                <h3>Invertido Pesos</h3><p>$<span id="invTotalPesos">0.00</span></p>
+                <span class="porcentaje" id="invRendPesos" style="font-size: 0.9em;">0%</span>
             </div>
             <div class="card" style="background:#fff8e1; border-left-color:#ffb300;">
-                <h3>Invertido (USD)</h3><p>US$ <span id="invTotalDolares">0</span></p>
-                <span class="porcentaje" id="invRendDolares" style="font-size: 1em;">0%</span>
+                <h3>Invertido Dólares</h3><p>US$ <span id="invTotalDolares">0.00</span></p>
+                <span class="porcentaje" id="invRendDolares" style="font-size: 0.9em;">0%</span>
             </div>
         </div>
 
         <div class="form-section" style="background: #f5f5f5; border-color: #9e9e9e;">
             <h3 style="margin-top:0; color:#424242;">💵 Inyección de Capital Existente</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Monto a Sumar</label><input type="number" id="ajusteMonto"></div>
+                <div class="form-group"><label>Monto a Sumar</label><input type="number" step="any" id="ajusteMonto"></div>
                 <div class="form-group"><label>Moneda</label>
                     <select id="ajusteMoneda"><option value="ARS">Pesos (ARS)</option><option value="USD">Dólares (USD)</option></select>
                 </div>
@@ -241,9 +240,9 @@
         <div class="form-section" style="background: #fff8e1; border-color: #ffb300;">
             <h3 style="margin-top:0; color:#b78103;">📈 Colocar Dinero en Inversión</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Capital a Invertir</label><input type="number" id="invMonto"></div>
+                <div class="form-group"><label>Capital a Invertir</label><input type="number" step="any" id="invMonto"></div>
                 <div class="form-group"><label>Moneda</label>
-                    <select id="invMoneda"><option value="ARS">Pesos (ARS)</option><option value="USD">Dólares (USD)</option></select>
+                    <select id="invMoneda" onchange="toggleCamposInversion()"><option value="ARS">Pesos (ARS)</option><option value="USD">Dólares (USD)</option></select>
                 </div>
                 <div class="form-group"><label>Instrumento</label>
                     <select id="invInstrumento" onchange="toggleCamposInversion()">
@@ -252,14 +251,14 @@
                         <option value="S&P 500">S&P 500</option>
                     </select>
                 </div>
-                <div class="form-group" id="grupoInteres"><label>Tasa Int. Anual (%)</label><input type="number" id="invInteres" placeholder="TNA"></div>
+                <div class="form-group" id="grupoInteres"><label>Tasa Int. Anual (%)</label><input type="number" step="any" id="invInteres" placeholder="TNA"></div>
                 
                 <div class="form-group" id="grupoCotizacionMercado" style="display:none; justify-content:center; padding-top: 5px;">
                     <span style="font-size:0.85em; color:#555;">Referencia de Mercado API:</span>
                     <span id="lblPrecioMercado" style="font-size:1.1em; font-weight:bold; color:#0d47a1;">Cargando...</span>
                 </div>
 
-                <div class="form-group"><label>Fecha</label><input type="date" id="invFecha"></div>
+                <div class="form-group"><label>Fecha Alta</label><input type="date" id="invFecha"></div>
                 <button style="background-color: #ffb300; color: #333;" onclick="ejecutarInversion()">Colocar Fondos</button>
             </div>
         </div>
@@ -294,7 +293,7 @@
         <h2>Resumen de Saldos Netos</h2>
         <div class="dashboard-grid" id="gridResumenDeudas"></div>
 
-        <h2>Detalle Histórico</h2>
+        <h2>Detalle Histórico (Podés borrar registros incorrectos con la X)</h2>
         <table>
             <thead>
                 <tr>
@@ -323,16 +322,16 @@
 
 <script>
     // ==========================================
-    // ⚙️ CONFIGURACIÓN DE FIREBASE (PEGÁ TUS DATOS ACÁ)
+    // ⚙️ CONFIGURACIÓN DE FIREBASE (LLAVES PROPIAS INYECTADAS)
     // ==========================================
-   const firebaseConfig = {
-  apiKey: "AIzaSyD6b5jRsGPzKmwB-M-cDbyn1qQCAdN5ecE",
-  authDomain: "gastos-a56f7.firebaseapp.com",
-  projectId: "gastos-a56f7",
-  storageBucket: "gastos-a56f7.firebasestorage.app",
-  messagingSenderId: "537729737132",
-  appId: "1:537729737132:web:2423ab40ff20fef30b9a09"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyD6b5jRsGPzKmwB-M-cDbyn1qQCAdN5ecE",
+        authDomain: "gastos-a56f7.firebaseapp.com",
+        projectId: "gastos-a56f7",
+        storageBucket: "gastos-a56f7.firebasestorage.app",
+        messagingSenderId: "537729737132",
+        appId: "1:537729737132:web:2423ab40ff20fef30b9a09"
+    };
     // ==========================================
 
     firebase.initializeApp(firebaseConfig);
@@ -345,8 +344,8 @@
     let listaAmigos = [];
     let perfilUsuario = { nombre: "Usuario" };
     
-    // VARIABLES DE MERCADO
-    let mercado = { spy_ars: 17000, spy_usd: 540, mpTna: 17.5 };
+    // DOBLE CANAL DE REFERENCIA S&P 500 (ARS vs USD)
+    let mercado = { spy_ars: 17000, spy_usd: 540, mpARS: 17.5, mpUSD: 1.9 };
 
     const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
     const fechaActual = new Date();
@@ -367,17 +366,15 @@
         }
     });
 
-    // --- APIS DE MERCADO (CORREGIDAS) ---
+    // --- APIS EN TIEMPO REAL ---
     async function inicializarMercado() {
-        // FCI TNA
         try {
             let resFci = await fetch("https://api.argentinadatos.com/v1/finanzas/rendimientos/fci");
             let dataFci = await resFci.json();
             let mp = dataFci.find(f => f.fondo.toLowerCase().includes("mercado"));
-            if(mp && mp.tna) mercado.mpTna = (mp.tna * 100).toFixed(1);
+            if(mp && mp.tna) mercado.mpARS = (mp.tna * 100).toFixed(1);
         } catch(e) {}
         
-        // S&P 500 (CEDEAR ARS)
         try {
             let resSpyArs = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/SPY.BA"));
             let dataSpyArs = await resSpyArs.json();
@@ -388,7 +385,6 @@
             }
         } catch(e) {}
 
-        // S&P 500 (ETF USD REAL)
         try {
             let resSpyUsd = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/SPY"));
             let dataSpyUsd = await resSpyUsd.json();
@@ -401,12 +397,12 @@
         actualizarApp(); 
     }
 
-    // --- LOGIN ---
+    // --- SESIÓN Y USUARIO ---
     function registrarUsuario() {
         const email = document.getElementById('authEmail').value;
         const pass = document.getElementById('authPassword').value;
         if(!email || !pass) return;
-        auth.createUserWithEmailAndPassword(email, pass).then(()=>alert("Creado!")).catch(e=>alert(e.message));
+        auth.createUserWithEmailAndPassword(email, pass).then(()=>alert("¡Registrado!")).catch(e=>alert(e.message));
     }
     function loginUsuario() {
         const email = document.getElementById('authEmail').value;
@@ -414,9 +410,8 @@
         if(!email || !pass) return;
         auth.signInWithEmailAndPassword(email, pass).catch(e=>alert(e.message));
     }
-    function logoutUsuario() { if(confirm("¿Salir?")) auth.signOut(); }
+    function logoutUsuario() { if(confirm("¿Cerrar sesión?")) auth.signOut(); }
     
-    // --- PERFIL ---
     function togglePerfilPanel() {
         let p = document.getElementById('profile-section');
         p.style.display = p.style.display === "block" ? "none" : "block";
@@ -428,11 +423,11 @@
     }
     function cambiarPasswordPerfil() {
         let n = document.getElementById('profilePasswordInput').value;
-        if(n.length < 6) return alert("Mínimo 6 chars");
-        auth.currentUser.updatePassword(n).then(() => { alert("Clave cambiada"); togglePerfilPanel(); }).catch(()=>alert("Volvé a iniciar sesión"));
+        if(n.length < 6) return alert("Mínimo 6 caracteres");
+        auth.currentUser.updatePassword(n).then(() => { alert("Clave cambiada"); togglePerfilPanel(); }).catch(()=>alert("Reautenticate primero"));
     }
 
-    // --- NUBE ---
+    // --- CONTROLADOR DE FIRESTORE ---
     function cargarDatosDesdeNube(uid) {
         db.collection("usuarios").doc(uid).onSnapshot(doc => {
             if (doc.exists) {
@@ -454,7 +449,7 @@
         }, { merge: true });
     }
 
-    // --- FORMULARIO DINÁMICO ---
+    // --- INTERFAZ DINÁMICA ---
     function evaluarCamposDinamicosGasto() {
         let t = document.getElementById('inputTipo').value;
         let v = (t === "Ingreso") ? "none" : "block";
@@ -484,18 +479,18 @@
         document.getElementById('ajusteMonto').value = ""; actualizarApp(); guardarDatosEnNube();
     }
 
-    // --- FLUJO MENSUAL (DESACOPLADO DEL PATRIMONIO) ---
+    // --- FLUJO MENSUAL (CON CARGA DECIMAL INALTERADA) ---
     function agregarMovimiento() {
         let montoTotal = parseFloat(document.getElementById('inputMonto').value);
         let tipo = document.getElementById('inputTipo').value;
         let concepto = document.getElementById('inputConcepto').value.trim();
         let fechaBaseStr = document.getElementById('inputFecha').value;
-        if(!montoTotal || !concepto || !fechaBaseStr) return alert("Completá los campos");
+        if(!montoTotal || !concepto || !fechaBaseStr) return alert("Por favor, completa los campos.");
 
         let cuotas = parseInt(document.getElementById('inputCuotas').value) || 1;
         let dividir = document.getElementById('inputDividir').value;
         let amigo = document.getElementById('inputAmigoAsignado').value;
-        if(dividir !== "NO" && !amigo) return alert("Elegí una persona");
+        if(dividir !== "NO" && !amigo) return alert("Elegí una persona para la división");
 
         let montoPorCuota = montoTotal / cuotas;
 
@@ -506,7 +501,6 @@
             
             if(tipo === "Ingreso") {
                 todosLosMovimientos.push({ monto: montoPorCuota, tipo: "Ingreso", concepto: conceptoF, fecha: fechaF });
-                // NOTA: Ya no suma a patrimonio.pesos automáticamente
             } else {
                 let registrarDeuda = false; let mDeuda = 0; let tDeuda = ""; 
                 
@@ -536,7 +530,7 @@
         actualizarApp(); guardarDatosEnNube();
     }
 
-    // --- TABLEROS ---
+    // --- MOTOR DE CONTROL Y ACTUALIZACIÓN ---
     function inicializarSelectorHistorico() {
         let sel = document.getElementById('filtroMesAnio'); if(sel.innerHTML !== '') return;
         let anio = fechaActual.getFullYear();
@@ -561,26 +555,26 @@
             if (mov.tipo === "Gasto Variable") varb += mov.monto;
         });
 
-        document.getElementById('lblIngresos').innerText = ing.toLocaleString('es-AR');
-        document.getElementById('lblFijos').innerText = fij.toLocaleString('es-AR');
-        document.getElementById('lblVariables').innerText = varb.toLocaleString('es-AR');
-        document.getElementById('lblAhorro').innerText = (ing-fij-varb).toLocaleString('es-AR');
+        document.getElementById('lblIngresos').innerText = ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('lblFijos').innerText = fij.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('lblVariables').innerText = varb.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('lblTotalGasto').innerText = (fij+varb).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('lblAhorro').innerText = (ing-fij-varb).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
 
         let tabla = document.getElementById('tablaMovimientos'); tabla.innerHTML = '';
         [...filtrados].reverse().forEach(mov => {
             if(mov.tipo === "Cuenta Cobrar") return; 
             let idx = todosLosMovimientos.findIndex(t => t === mov);
             let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.concepto}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR')}</td><td><button class="btn-borrar" onclick="borrarMovimiento(${idx})">X</button></td></tr>`;
+            tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.concepto}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td><button class="btn-borrar" onclick="borrarMovimiento(${idx})">X</button></td></tr>`;
         });
 
-        // BILLETERA PATRIMONIAL
-        document.getElementById('walletPesos').innerText = patrimonio.pesos.toLocaleString('es-AR');
-        document.getElementById('walletDolares').innerText = patrimonio.dolares.toLocaleString('es-AR');
+        // BALANCE PATRIMONIAL - AHORA CON DECIMALES FIJOS (CONSERVACIÓN DE VALOR)
+        document.getElementById('walletPesos').innerText = patrimonio.pesos.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('walletDolares').innerText = patrimonio.dolares.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
 
         let totalInvARS = 0, capInvARS = 0;
         let totalInvUSD = 0, capInvUSD = 0;
-        
         let hoyLimpiada = new Date(); hoyLimpiada.setHours(0,0,0,0);
 
         let tablaInv = document.getElementById('tablaInversiones'); tablaInv.innerHTML = '';
@@ -589,7 +583,7 @@
             let fDate = new Date(inv.fecha + 'T00:00:00'); 
             let ff = `${fDate.getDate().toString().padStart(2,'0')}/${(fDate.getMonth()+1).toString().padStart(2,'0')}/${fDate.getFullYear()}`;
             
-            // Calculamos días desde la fecha de alta hasta hoy a la medianoche
+            // Días exactos corridos desde la medianoche inicial
             let dias = Math.max(0, Math.round((hoyLimpiada - fDate) / (1000 * 60 * 60 * 24)));
             let valorAct = inv.monto; let colDetalle = "";
 
@@ -598,7 +592,7 @@
                 valorAct = (inv.nominales || 0) * precioCot;
                 colDetalle = `<strong>${(inv.nominales||0).toFixed(4)} Nom.</strong>`;
             } else {
-                let tna = inv.interes || (inv.instrumento === "Mercado Pago" ? mercado.mpTna : 0);
+                let tna = inv.interes || (inv.moneda === "ARS" ? mercado.mpARS : mercado.mpUSD);
                 let rend = inv.monto * (tna / 100) * (dias / 365);
                 valorAct = inv.monto + rend;
                 colDetalle = `<span>${tna}% TNA (${dias} días)</span>`;
@@ -608,12 +602,11 @@
             else { totalInvUSD += valorAct; capInvUSD += inv.monto; }
 
             let colorValor = valorAct >= inv.monto ? "#2e7d32" : "#c62828";
-            tablaInv.innerHTML += `<tr><td>${ff}</td><td><strong>${inv.instrumento}</strong></td><td>${sim}${inv.monto.toLocaleString('es-AR')}</td><td style="color:${colorValor}; font-weight:bold;">${sim}${valorAct.toLocaleString('es-AR',{maximumFractionDigits:0})}</td><td>${colDetalle}</td><td><button class="btn-naranja" onclick="retirarInversion(${index}, ${valorAct})">Liquidar</button></td></tr>`;
+            tablaInv.innerHTML += `<tr><td>${ff}</td><td><strong>${inv.instrumento}</strong></td><td>${sim}${inv.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:${colorValor}; font-weight:bold;">${sim}${valorAct.toLocaleString('es-AR',{minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${colDetalle}</td><td><button class="btn-naranja" onclick="retirarInversion(${index}, ${valorAct})">Liquidar</button></td></tr>`;
         });
 
-        // ACTUALIZAR TARJETAS DE RENDIMIENTO
-        document.getElementById('invTotalPesos').innerText = totalInvARS.toLocaleString('es-AR', {maximumFractionDigits:0});
-        document.getElementById('invTotalDolares').innerText = totalInvUSD.toLocaleString('es-AR', {maximumFractionDigits:0});
+        document.getElementById('invTotalPesos').innerText = totalInvARS.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('invTotalDolares').innerText = totalInvUSD.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
         
         let pctARS = capInvARS > 0 ? (((totalInvARS - capInvARS) / capInvARS) * 100).toFixed(2) : 0;
         let pctUSD = capInvUSD > 0 ? (((totalInvUSD - capInvUSD) / capInvUSD) * 100).toFixed(2) : 0;
@@ -629,7 +622,7 @@
         actualizarPestañaCuentasCobrar();
     }
 
-    // --- DEUDAS: LIQUIDACIÓN Y AJUSTES ---
+    // --- DEUDAS COMPARTIDAS ---
     function actualizarPestañaCuentasCobrar() {
         let totPers = {}; listaAmigos.forEach(am => totPers[am] = 0);
         let tablaDeudas = document.getElementById('tablaDeudasDetalle'); tablaDeudas.innerHTML = '';
@@ -644,7 +637,7 @@
             let btnA = mov.estado === "Pendiente" ? (mov.sentido === "A_FAVOR" ? `<button class="btn-verde" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual(${index})">Cobrar</button>` : `<button class="btn-naranja" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual(${index})">Pagar</button>`) : (mov.sentido === "A_FAVOR" ? `<span style="color:green;">✓</span>` : `<span style="color:grey;">✓</span>`);
             btnA += ` <button class="btn-borrar" style="padding:3px; font-size:0.8em; margin-left:5px;" onclick="borrarMovimiento(${index})">X</button>`;
             
-            let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR')}` : `-$${mov.monto.toLocaleString('es-AR')} (Debo)`;
+            let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}` : `-$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})} (Debo)`;
             tablaDeudas.innerHTML += `<tr><td>${ff}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${sim}</td><td>${btnA}</td></tr>`;
         });
 
@@ -652,13 +645,13 @@
         for(let p in totPers) {
             let saldo = totPers[p]; let colorC = saldo >= 0 ? "#e8f5e9" : "#ffebee"; let colorB = saldo >= 0 ? "#4caf50" : "#f44336";
             let txt = saldo >= 0 ? "Te debe neto:" : "Le debés neto:";
-            gridDeudas.innerHTML += `<div class="card" style="border-left-color: ${colorB}; background:${colorC};"><h3>${p}</h3><p>$${Math.abs(saldo).toLocaleString('es-AR')}</p><span class="porcentaje">${txt}</span><button style="margin-top:10px; font-size:0.8em; background:#3f51b5; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="liquidarDeudaGlobal('${p}', ${saldo})">Saldar / Ajustar</button></div>`;
+            gridDeudas.innerHTML += `<div class="card" style="border-left-color: ${colorB}; background:${colorC};"><h3>${p}</h3><p>$${Math.abs(saldo).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">${txt}</span><button style="margin-top:10px; font-size:0.8em; background:#3f51b5; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="liquidarDeudaGlobal('${p}', ${saldo})">Saldar / Ajustar</button></div>`;
         }
     }
 
     function liquidarDeudaIndividual(idx) {
         let mov = todosLosMovimientos[idx];
-        if(confirm(mov.sentido === "A_FAVOR" ? "¿Confirmas que cobraste esto? Se sumará como un INGRESO en el mes actual." : "¿Confirmas que pagaste esto? Se anotará como un GASTO en el mes actual.")) {
+        if(confirm(mov.sentido === "A_FAVOR" ? "¿Confirmas que cobraste esto? Se sumará al Disponible mensual." : "¿Confirmas que pagaste esto? Se restará del Disponible mensual.")) {
             mov.estado = "Saldado";
             let hoy = new Date().toISOString().split('T')[0];
             if(mov.sentido === "A_FAVOR") {
@@ -673,7 +666,7 @@
     function liquidarDeudaGlobal(persona, neto) {
         if(neto === 0) return alert("Saldos en cero con esta persona.");
         let txt = neto > 0 ? `Te debe $${neto.toLocaleString()}` : `Le debés $${Math.abs(neto).toLocaleString()}`;
-        let mInput = prompt(`${txt}.\n\nIngresá el importe exacto que cobraste/pagaste (Se sumará/restará a tu Disponible mensual):`, Math.abs(neto));
+        let mInput = prompt(`${txt}.\n\nIngresá el importe exacto cobrado/pagado (Afectará tu Disponible corriente):`, Math.abs(neto));
         if(!mInput) return; let mReal = parseFloat(mInput); if(isNaN(mReal) || mReal <= 0) return alert("Monto inválido");
 
         todosLosMovimientos.forEach(m => { if(m.tipo === "Cuenta Cobrar" && m.deudor === persona && m.estado === "Pendiente") m.estado = "Saldado"; });
@@ -688,12 +681,12 @@
     }
 
     function borrarMovimiento(idx) {
-        if(confirm("¿Eliminar registro histórico? Esto borra la operación para siempre.")) {
+        if(confirm("¿Eliminar registro histórico definitivo?")) {
             todosLosMovimientos.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
         }
     }
     
-    // --- ENVIO Y RETIRO DE INVERSIONES ---
+    // --- ACCIONES PATRIMONIALES ---
     function ejecutarEnvioAhorro() {
         let m = parseFloat(document.getElementById('ahorroMontoPesos').value);
         let mon = document.getElementById('ahorroDestinoMoneda').value;
@@ -703,20 +696,20 @@
 
         let conceptoD = "";
         if(mon === "ARS") {
-            patrimonio.pesos += m; conceptoD = "Envío a Ahorros (Pesos)";
+            patrimonio.pesos += m; conceptoD = "Envío a Billetera (Pesos)";
         } else {
-            // El usuario ingresa cuánto pagó el USD manualmente
-            let cotizacion = parseFloat(document.getElementById('ahorroCotizacion').value);
-            if(!cotizacion) return alert("Ingresá a cuánto compraste el Dólar."); 
+            let cotizacion = parseFloat(prompt("Ingresá la cotización por dólar para esta operación:"));
+            if(!cotizacion) return alert("Operación cancelada. Se requiere cotización."); 
             let dComprados = m / cotizacion;
             patrimonio.dolares += dComprados; conceptoD = `Compra USD (${dComprados.toFixed(2)} USD a $${cotizacion})`;
         }
         let fFalsa = `${aSel}-${(mSel + 1).toString().padStart(2,'0')}-28`;
-        todosLosMovimientos.push({ monto: m, tipo: "Enviado a Ahorros", concepto: conceptoD, fecha: fFalsa });
+        todosLosMovimientos.push({ monto: m, tipo: "Gasto Fijo", concepto: conceptoD, fecha: fFalsa });
         document.getElementById('ahorroMontoPesos').value = "";
         actualizarApp(); guardarDatosEnNube();
     }
 
+    // SELECTOR INTELIGENTE ARS / USD
     function toggleCamposInversion() {
         let i = document.getElementById('invInstrumento').value;
         let mon = document.getElementById('invMoneda').value;
@@ -726,12 +719,14 @@
             document.getElementById('grupoCotizacionMercado').style.display = "flex";
             let valM = mon === "ARS" ? mercado.spy_ars : mercado.spy_usd;
             let sim = mon === "ARS" ? "$" : "US$";
-            document.getElementById('lblPrecioMercado').innerText = `${sim}${valM.toLocaleString('es-AR')}`;
+            document.getElementById('lblPrecioMercado').innerText = `${sim}${valM.toLocaleString('es-AR', {minimumFractionDigits:2})}`;
         } else if (i === "Mercado Pago") {
             document.getElementById('grupoInteres').style.display = "flex";
             document.getElementById('grupoCotizacionMercado').style.display = "flex";
-            document.getElementById('lblPrecioMercado').innerText = `TNA API: ${mercado.mpTna}%`;
-            document.getElementById('invInteres').value = mercado.mpTna;
+            // Tasa adaptativa según moneda seleccionada por el usuario
+            let tasaAsignada = mon === "ARS" ? mercado.mpARS : mercado.mpUSD;
+            document.getElementById('lblPrecioMercado').innerText = `TNA Dinámica: ${tasaAsignada}%`;
+            document.getElementById('invInteres').value = tasaAsignada;
         } else {
             document.getElementById('grupoInteres').style.display = "flex";
             document.getElementById('grupoCotizacionMercado').style.display = "none";
@@ -743,10 +738,10 @@
         let m = parseFloat(document.getElementById('invMonto').value); let mon = document.getElementById('invMoneda').value;
         let inst = document.getElementById('invInstrumento').value; let fec = document.getElementById('invFecha').value;
         if(!m || !fec) return alert("Faltan datos");
-        if(mon === "ARS" && patrimonio.pesos < m) return alert("Efectivo Pesos insuficiente en la billetera.");
-        if(mon === "USD" && patrimonio.dolares < m) return alert("Efectivo USD insuficiente en la billetera.");
+        if(mon === "ARS" && patrimonio.pesos < m) return alert("Saldo líquido en Pesos insuficiente.");
+        if(mon === "USD" && patrimonio.dolares < m) return alert("Saldo líquido en Dólares insuficiente.");
         
-        let nom = 0; let int = parseFloat(document.getElementById('invInteres').value) || (inst==="Mercado Pago"?mercado.mpTna:0);
+        let nom = 0; let int = parseFloat(document.getElementById('invInteres').value);
         if(inst === "S&P 500") {
             let precioAct = mon === "ARS" ? mercado.spy_ars : mercado.spy_usd;
             nom = m / precioAct;
@@ -759,16 +754,57 @@
 
     function retirarInversion(idx, valorSugerido) {
         let i = inversiones[idx];
-        let nInput = prompt(`Liquidando inversión.\n\nEl sistema estima un valor de: $${Math.floor(valorSugerido)}\n\nIngresá importe EXACTO devuelto a tu caja:`, Math.floor(valorSugerido));
+        let nInput = prompt(`Liquidando inversión.\n\nValor de mercado estimado: ${valorSugerido.toFixed(2)}\n\nIngresá importe real neto devuelto a tu caja fuerte:`, valorSugerido.toFixed(2));
         if(!nInput) return; let n = parseFloat(nInput);
         if(i.moneda === "ARS") patrimonio.pesos += n; else patrimonio.dolares += n;
         inversiones.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
     }
 
+    // REHABILITACIÓN DEL MOTOR DE GRÁFICOS HISTÓRICOS
     function cambiarPestaña(tabId, boton) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
         document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
         document.getElementById(tabId).classList.add('active'); boton.classList.add('active');
+        
+        // Disparador crítico: Dibuja el gráfico cada vez que el usuario ingresa a la pestaña
+        if(tabId === 'tab-graficos') renderizarGrafico();
+        else actualizarApp();
+    }
+
+    function renderizarGrafico() {
+        let ctx = document.getElementById('patrimonioChart').getContext('2d');
+        if(miGrafico) miGrafico.destroy();
+        
+        let dataARS = [0, 0, 0, 0, 0, 0]; let dataUSD = [0, 0, 0, 0, 0, 0];
+        
+        inversiones.forEach(inv => {
+            let m = new Date(inv.fecha + 'T00:00:00').getMonth() % 6;
+            let precioCot = inv.moneda === "ARS" ? mercado.spy_ars : mercado.spy_usd;
+            let val = inv.instrumento === "S&P 500" ? (inv.nominales * precioCot) : inv.monto;
+            if(inv.moneda === "ARS") dataARS[m] += val; else dataUSD[m] += val;
+        });
+
+        miGrafico = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
+                datasets: [
+                    { label: '📈 Activos en Pesos (ARS)', data: dataARS, borderColor: '#4caf50', backgroundColor: 'transparent', borderWidth: 3, tension: 0.2 },
+                    { label: '💵 Activos en Dólares (USD)', data: dataUSD, borderColor: '#ffb300', backgroundColor: 'transparent', borderWidth: 3, tension: 0.2 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function resetearApp() {
+        if(confirm("⚠️ PELIGRO CRÍTICO: Se purgarán todos los balances de la nube.")) {
+            let p = prompt("Escribe BORRAR:");
+            if(p === "BORRAR") {
+                todosLosMovimientos = []; patrimonio = { pesos: 0, dolares: 0 }; inversiones = []; listaAmigos = [];
+                guardarDatosEnNube(); actualizarApp();
+            }
+        }
     }
 </script>
 
