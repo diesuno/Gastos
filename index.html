@@ -46,11 +46,10 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .historico-selector { background: #1a237e; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; display: flex; justify-content: center; gap: 15px;}
+        .historico-selector { background: #1a237e; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 15px;}
         .historico-selector select { padding: 6px 12px; font-size: 1em; border-radius: 4px; border: none; font-weight: bold;}
         
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        /* SOLUCIÓN AL SOLAPAMIENTO: Ancho min aumentado a 220px */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; align-items: end; }
         
         .card { background: #e8eaf6; padding: 15px; border-radius: 8px; text-align: center; border-left: 5px solid #3f51b5;}
@@ -133,13 +132,12 @@
         <button class="tab-button" onclick="cambiarPestaña('tab-graficos', this)">📈 Gráficos</button>
     </div>
 
-    <!-- FLUJO MENSUAL -->
-    <div id="tab-flujo" class="tab-content active">
-        <div class="historico-selector">
-            <label style="color: white; font-size: 1.1em; margin: 0;">Período:</label>
-            <select id="filtroMesAnio" onchange="actualizarApp()"></select>
-        </div>
+    <div class="historico-selector" id="panel-selector-mes">
+        <label style="color: white; font-size: 1.1em; margin: 0;">Período a visualizar:</label>
+        <select id="filtroMesAnio" onchange="actualizarApp()"></select>
+    </div>
 
+    <div id="tab-flujo" class="tab-content active">
         <div class="dashboard-grid">
             <div class="card ingreso"><h3>Ingresos Totales</h3><p>$<span id="lblIngresos">0</span></p></div>
             <div class="card gasto" style="background:#fff3e0; border-left-color:#ff9800;">
@@ -242,13 +240,12 @@
         </table>
     </div>
 
-    <!-- DETALLE GASTOS -->
     <div id="tab-detalle-gastos" class="tab-content">
         <h2>🧾 Análisis de Obligaciones del Mes</h2>
         
         <h3 style="color:#1a237e; border-bottom: 2px solid #ccc; padding-bottom: 5px;">💳 Tarjetas de Crédito (Cuotas a pagar este mes)</h3>
         <table>
-            <thead><tr><th>Concepto</th><th>Cuota Mes</th><th>Valor Cuota</th><th>Saldo Restante</th><th>Compartido</th><th>Deuda Asoc.</th><th>Acción</th></tr></thead>
+            <thead><tr><th>Concepto</th><th>Cuota Mes</th><th>Valor Cuota</th><th>Saldo Restante Deuda</th><th>Compartido</th><th>Deuda Asoc.</th><th>Acción</th></tr></thead>
             <tbody id="tablaCreditos"></tbody>
         </table>
         <div class="totales-footer" id="lblTotalCreditos">Total Tarjetas: $0.00</div>
@@ -261,7 +258,6 @@
         <div class="totales-footer" id="lblTotalServicios">Total Servicios: $0.00</div>
     </div>
 
-    <!-- BILLETERA -->
     <div id="tab-ahorros" class="tab-content">
         <h2>🏦 Mi Balance General</h2>
         <div class="dashboard-grid">
@@ -321,7 +317,6 @@
         </table>
     </div>
 
-    <!-- CUENTAS POR COBRAR (TABLAS SEPARADAS Y BOTONES ESPECÍFICOS) -->
     <div id="tab-cuentas" class="tab-content">
         <h2>🤝 Gestión de Gastos Compartidos y Deudas</h2>
         
@@ -333,7 +328,7 @@
             </div>
         </div>
 
-        <h2>Resumen de Saldos (Por tipo de obligación)</h2>
+        <h2>Resumen de Saldos Netos del Mes</h2>
         <div class="dashboard-grid" id="gridResumenDeudas"></div>
 
         <h3 style="color:#1a237e; border-bottom: 2px solid #ccc; padding-bottom: 5px;">🛒 Deudas Diarias (Pagadas en el Acto)</h3>
@@ -349,7 +344,6 @@
         </table>
     </div>
 
-    <!-- GRÁFICOS -->
     <div id="tab-graficos" class="tab-content">
         <h2>📈 Evolución Histórica de Inversiones</h2>
         <div class="chart-container"><canvas id="patrimonioChart"></canvas></div>
@@ -387,6 +381,7 @@
     let listaAmigos = [];
     let perfilUsuario = { nombre: "Usuario" };
     
+    // Variables Virtuales Globales para manejo en vivo
     let movimientosMesGlobal = [];
     let keyMesActualGlobal = "";
     
@@ -398,6 +393,7 @@
     document.getElementById('invFecha').valueAsDate = fechaActual;
     let miGrafico = null;
 
+    // GENERADOR DE IDS UNICOS
     function generarId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
 
     auth.onAuthStateChanged(user => {
@@ -475,6 +471,7 @@
             if (doc.exists) {
                 const data = doc.data();
                 todosLosMovimientos = data.todosLosMovimientos || [];
+                // Actualizar DB antigua a la nueva arquitectura (ID únicos)
                 todosLosMovimientos.forEach(m => {
                     if (!m.id) m.id = generarId();
                     if (!m.idGrupo) m.idGrupo = m.id;
@@ -504,6 +501,7 @@
     function evaluarCamposDinamicosGasto() {
         let t = document.getElementById('inputTipo').value;
         let esGasto = (t !== "Ingreso");
+        
         let mSelect = document.getElementById('inputMetodoPago');
         let m = mSelect ? mSelect.value : "EN_EL_ACTO";
 
@@ -517,6 +515,8 @@
             document.getElementById('boxDebitoAuto').style.display = "none";
             return;
         }
+
+        // Lógica de método de pago
         document.getElementById('boxPlanCuotas').style.display = (m === "CREDITO") ? "block" : "none";
         document.getElementById('boxDebitoAuto').style.display = (m === "SERVICIO") ? "block" : "none";
         if(m !== "CREDITO") document.getElementById('inputCuotas').value = "1";
@@ -545,6 +545,7 @@
         document.getElementById('ajusteMonto').value = ""; actualizarApp(); guardarDatosEnNube();
     }
 
+    // --- NUEVO FLUJO (ID GRUPO Y SERVICIOS VIRTUALES) ---
     function agregarMovimiento() {
         let montoTotal = parseFloat(document.getElementById('inputMonto').value);
         let tipo = document.getElementById('inputTipo').value;
@@ -560,17 +561,20 @@
         
         if(dividir !== "NO" && !amigo) return alert("Elegí una persona");
 
-        let idGrupoPrincipal = generarId(); 
+        let idGrupoPrincipal = generarId(); // Conecta todos los registros de esta operación
 
         if (metodoP === "SERVICIO" && tipo !== "Ingreso") {
+            // Guardado Arquitectura Mensual Recurrente
             let fBaseObj = new Date(fechaBaseStr + 'T00:00:00');
             let keyMes = `${fBaseObj.getFullYear()}-${(fBaseObj.getMonth()+1).toString().padStart(2,'0')}`;
+            
             suscripciones.push({
                 id: idGrupoPrincipal, concepto: concepto, tipo: tipo, fechaAlta: fechaBaseStr, mesBaja: null,
                 metodo: "SERVICIO", debito: debAuto, dividir: dividir, amigo: amigo,
                 montosPorMes: { [keyMes]: montoTotal }, pagosAmigo: []
             });
         } else {
+            // Guardado Arquitectura Clásica / Tarjeta Crédito (Múltiples registros en BD)
             let montoPorCuota = montoTotal / cuotas;
             for (let i = 0; i < cuotas; i++) {
                 let f = new Date(fechaBaseStr + 'T00:00:00'); f.setMonth(f.getMonth() + i);
@@ -621,6 +625,7 @@
         actualizarApp(); guardarDatosEnNube();
     }
 
+    // --- TABLEROS E INYECCIÓN VIRTUAL ---
     function inicializarSelectorHistorico() {
         let sel = document.getElementById('filtroMesAnio'); if(sel.innerHTML !== '') return;
         let anio = fechaActual.getFullYear();
@@ -630,25 +635,40 @@
         });});
     }
 
+    function cambiarPestaña(tabId, boton) {
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active'); boton.classList.add('active');
+        
+        let panelMes = document.getElementById('panel-selector-mes');
+        if(tabId === 'tab-ahorros' || tabId === 'tab-graficos') {
+            panelMes.style.display = 'none';
+        } else {
+            panelMes.style.display = 'flex';
+        }
+
+        if (tabId === 'tab-graficos') renderizarGrafico();
+    }
+
     function actualizarApp() {
         let sel = document.getElementById('filtroMesAnio'); if(!sel.value) return;
         let [aSel, mSel] = sel.value.split('-').map(Number);
         keyMesActualGlobal = `${aSel}-${(mSel + 1).toString().padStart(2, '0')}`;
         let fechaSelObj = new Date(aSel, mSel, 1);
 
-        // 1. Filtrar reales del mes
+        // 1. Filtrar los reales de la base de datos para este mes
         let filtrados = todosLosMovimientos.filter(mov => {
             let f = new Date(mov.fecha + 'T00:00:00'); return f.getFullYear() === aSel && f.getMonth() === mSel;
         });
 
-        // 2. Inyectar Servicios Virtuales
+        // 2. Inyectar Suscripciones Fijas para este mes (Magia de Virtualización)
         let movsVirtuales = [];
         suscripciones.forEach(susc => {
             let fAlta = new Date(susc.fechaAlta + 'T00:00:00');
             let fAltaMesObj = new Date(fAlta.getFullYear(), fAlta.getMonth(), 1);
             if (fechaSelObj < fAltaMesObj) return; 
             
-            if (susc.mesBaja) {
+            if (susc.mesBaja) { 
                 let [bA, bM] = susc.mesBaja.split('-').map(Number);
                 let fBajaObj = new Date(bA, bM - 1, 1);
                 if (fechaSelObj >= fBajaObj) return; 
@@ -855,7 +875,7 @@
         if(s) { s.montosPorMes[keyMesActualGlobal] = nReal; actualizarApp(); guardarDatosEnNube(); }
     }
 
-    // --- DEUDAS: PANELES SEPARADOS ---
+    // --- DEUDAS: PANELES SEPARADOS Y FILTRADOS POR MES ---
     function actualizarPestañaCuentasCobrar() {
         let totDiario = {}; let totFijo = {};
         listaAmigos.forEach(am => { totDiario[am] = 0; totFijo[am] = 0; });
@@ -863,8 +883,17 @@
         let tbDiaria = document.getElementById('tablaDeudasDiarias'); tbDiaria.innerHTML = '';
         let tbFija = document.getElementById('tablaDeudasFijas'); tbFija.innerHTML = '';
 
-        // Recopilamos todas las deudas históricas reales y virtuales del mes
-        let deudasHistoricasReales = todosLosMovimientos.filter(m => m.tipo === "Cuenta Cobrar" && m.estado === "Pendiente");
+        let sel = document.getElementById('filtroMesAnio');
+        if(!sel || !sel.value) return;
+        let [aSel, mSel] = sel.value.split('-').map(Number);
+
+        // FILTRO ESTRICTO: Solo trae las deudas pendientes QUE CORRESPONDEN AL MES SELECCIONADO
+        let deudasHistoricasReales = todosLosMovimientos.filter(m => {
+            if (m.tipo !== "Cuenta Cobrar" || m.estado !== "Pendiente") return false;
+            let f = new Date(m.fecha + 'T00:00:00');
+            return f.getFullYear() === aSel && f.getMonth() === mSel;
+        });
+        
         let deudasVirtualesMes = movimientosMesGlobal.filter(m => m.tipo === "Cuenta Cobrar" && m.estado === "Pendiente" && m.esVirtual);
         let todasLasDeudas = [...deudasHistoricasReales, ...deudasVirtualesMes];
 
@@ -888,7 +917,7 @@
         let gridDeudas = document.getElementById('gridResumenDeudas'); gridDeudas.innerHTML = '';
         for(let p in totDiario) {
             let sD = totDiario[p]; let sF = totFijo[p]; let sTotal = sD + sF;
-            if (sD === 0 && sF === 0) continue; // Solo muestra tarjetas de amigos con deuda
+            if (sD === 0 && sF === 0) continue; 
             
             let colorB = sTotal >= 0 ? "#4caf50" : "#f44336";
             let colorC = sTotal >= 0 ? "#e8f5e9" : "#ffebee";
@@ -938,7 +967,15 @@
         let mInput = prompt(`Estás por saldar deudas [${tipoPagar}] de ${persona}.\n\nIngresá el importe exacto cobrado o pagado en EFECTIVO HOY (impacta en bolsillo):`, Math.abs(neto));
         if(!mInput) return; let mReal = parseFloat(mInput); if(isNaN(mReal) || mReal <= 0) return alert("Monto inválido");
 
-        let deudasHistoricasReales = todosLosMovimientos.filter(m => m.tipo === "Cuenta Cobrar" && m.estado === "Pendiente");
+        let sel = document.getElementById('filtroMesAnio');
+        let [aSel, mSel] = sel.value.split('-').map(Number);
+        
+        let deudasHistoricasReales = todosLosMovimientos.filter(m => {
+            if (m.tipo !== "Cuenta Cobrar" || m.estado !== "Pendiente") return false;
+            let f = new Date(m.fecha + 'T00:00:00');
+            return f.getFullYear() === aSel && f.getMonth() === mSel;
+        });
+        
         let deudasVirtualesMes = movimientosMesGlobal.filter(m => m.tipo === "Cuenta Cobrar" && m.estado === "Pendiente" && m.esVirtual);
         let todasLasDeudas = [...deudasHistoricasReales, ...deudasVirtualesMes];
 
@@ -991,28 +1028,6 @@
         actualizarApp(); guardarDatosEnNube();
     }
 
-    function toggleCamposInversion() {
-        let i = document.getElementById('invInstrumento').value;
-        let mon = document.getElementById('invMoneda').value;
-
-        if(i === "S&P 500") {
-            document.getElementById('grupoInteres').style.display = "none";
-            document.getElementById('grupoCotizacionMercado').style.display = "flex";
-            let valM = mon === "ARS" ? mercado.spy_ars : mercado.spy_usd;
-            let sim = mon === "ARS" ? "$" : "US$";
-            document.getElementById('lblPrecioMercado').innerText = `${sim}${valM.toLocaleString('es-AR')}`;
-        } else if (i === "Mercado Pago") {
-            document.getElementById('grupoInteres').style.display = "flex";
-            document.getElementById('grupoCotizacionMercado').style.display = "flex";
-            document.getElementById('lblPrecioMercado').innerText = `TNA API: ${mercado.mpTna}%`;
-            document.getElementById('invInteres').value = mercado.mpTna;
-        } else {
-            document.getElementById('grupoInteres').style.display = "flex";
-            document.getElementById('grupoCotizacionMercado').style.display = "none";
-            document.getElementById('invInteres').value = "";
-        }
-    }
-
     function ejecutarInversion() {
         let m = parseFloat(document.getElementById('invMonto').value); let mon = document.getElementById('invMoneda').value;
         let inst = document.getElementById('invInstrumento').value; let fec = document.getElementById('invFecha').value;
@@ -1034,13 +1049,6 @@
         if(!nInput) return; let n = parseFloat(nInput);
         if(i.moneda === "ARS") patrimonio.pesos += n; else patrimonio.dolares += n;
         inversiones.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
-    }
-
-    function cambiarPestaña(tabId, boton) {
-        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-        document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active'); boton.classList.add('active');
-        if (tabId === 'tab-graficos') renderizarGrafico();
     }
     
     function renderizarGrafico() {
