@@ -20,7 +20,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- REDISEÑO MODERNO (UI/UX) -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
         
@@ -47,7 +46,7 @@
         .btn-perfil-top { background-color: #f1f5f9; color: #334155; } .btn-perfil-top:hover { background-color: #e2e8f0; }
         .btn-logout-top { background-color: #fee2e2; color: #b91c1c; } .btn-logout-top:hover { background-color: #fca5a5; }
 
-        #profile-section { background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        #profile-section { display: none; background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
 
         .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; flex-wrap: wrap;}
         .tab-button { background-color: transparent; color: #64748b; padding: 12px 24px; border: none; border-radius: 12px; cursor: pointer; font-size: 1em; font-weight: 600; transition: 0.3s; }
@@ -94,8 +93,8 @@
         .chart-container { position: relative; margin: auto; height: 400px; width: 100%; }
         .footer-peligro { margin-top: 60px; text-align: center; border-top: 2px dashed #fca5a5; padding-top: 30px;}
 
-        /* MODIFICADORES DE PERFIL */
-        .avanzado-only { display: none; } /* Oculto por defecto hasta leer el perfil */
+        /* LÓGICA DE PERFILES - CLASE MAGICA */
+        body.modo-basico .avanzado-only { display: none !important; }
 
         @media (max-width: 768px) {
             #auth-section { margin: 20px auto; padding: 25px; }
@@ -105,7 +104,7 @@
             .tab-button { border-radius: 12px; margin-bottom: 10px; width: 100%; padding: 15px; }
             .form-grid { grid-template-columns: 1fr; }
             .historico-selector { flex-direction: column; gap: 10px; }
-            input, select, button { min-height: 48px; font-size: 16px; } /* Mejor para dedos */
+            input, select, button { min-height: 48px; font-size: 16px; }
             .chart-container { height: 300px; }
             .onboarding-card { padding: 25px; }
             .mode-btn { flex: 1 1 100%; width: 100%; margin-bottom: 10px;}
@@ -118,14 +117,14 @@
 <!-- MODAL ONBOARDING (PRIMER INGRESO) -->
 <div id="onboarding-modal">
     <div class="onboarding-card">
-        <h2 style="margin-top:0;">👋 ¡Bienvenido a tu Plataforma Financiera!</h2>
-        <p style="color:#475569; font-size:1.1em;">Para darte la mejor experiencia, elegí cómo querés usar el sistema. (Podés cambiarlo después en tu perfil).</p>
+        <h2 style="margin-top:0;">👋 ¡Bienvenido a tu Plataforma!</h2>
+        <p style="color:#475569; font-size:1.1em;">Para darte la mejor experiencia, elegí cómo querés usar el sistema. (Podés cambiarlo después en Mi Perfil).</p>
         
         <div style="display:flex; gap:20px; margin-top:30px;">
             <button class="mode-btn mode-basic" onclick="guardarModoDesdeOnboarding('BASICO')">
                 <span style="font-size:1.5em; display:block; margin-bottom:5px;">🌱</span>
                 <b style="font-size:1.2em;">Modo Básico</b>
-                <p style="margin-top:8px; font-size:0.9em; line-height:1.4; color:#004d40;">Fácil y directo. Ideal para mi mamá. Anotá tus ingresos y gastos fijos/variables diarios sin enredarte con tarjetas o deudas complejas.</p>
+                <p style="margin-top:8px; font-size:0.9em; line-height:1.4; color:#004d40;">Fácil y directo. Anotá tus ingresos y gastos fijos/variables diarios sin enredarte con tarjetas o deudas complejas.</p>
             </button>
             <button class="mode-btn mode-adv" onclick="guardarModoDesdeOnboarding('AVANZADO')">
                 <span style="font-size:1.5em; display:block; margin-bottom:5px;">🚀</span>
@@ -161,12 +160,12 @@
             <div class="form-group"><label>Mi Nombre</label><input type="text" id="profileNameInput"></div>
             <div class="form-group">
                 <label>Modo de Plataforma</label>
-                <select id="profileModoInput" onchange="cambiarModoDesdePerfil()">
+                <select id="profileModoInput">
                     <option value="BASICO">🌱 Básico (Simple)</option>
                     <option value="AVANZADO">🚀 Avanzado (Profesional)</option>
                 </select>
             </div>
-            <button class="btn-verde" onclick="guardarNombrePerfil()">Actualizar Datos</button>
+            <button class="btn-verde" onclick="guardarCambiosDesdePerfil()">Guardar Cambios</button>
             <div class="form-group"><label>Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
             <button style="background-color: #0ea5e9;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
         </div>
@@ -253,7 +252,7 @@
             </div>
         </div>
 
-        <div class="form-section" style="background: #e0f2fe; border: none;">
+        <div class="form-section avanzado-only" style="background: #e0f2fe; border: none;">
             <h3 style="margin-top:0; color:#0369a1;">✉️ Enviar Flujo Disponible a la Billetera</h3>
             <p style="font-size: 0.85em; margin-top:-5px; color:#0c4a6e;">Convierte el disponible del mes en capital real en tu Billetera Patrimonial.</p>
             <div class="form-grid">
@@ -360,7 +359,7 @@
     <div id="tab-cuentas" class="tab-content">
         <h2>🤝 Gestión de Gastos Compartidos y Deudas</h2>
         
-        <div class="form-section" style="background: #faf5ff; border: none;">
+        <div class="form-section avanzado-only" style="background: #faf5ff; border: none;">
             <h3 style="margin-top:0; color:#7e22ce;">👤 Crear Nueva Persona</h3>
             <div class="form-grid">
                 <div class="form-group"><label>Nombre de la Persona</label><input type="text" id="nuevoAmigoNombre" placeholder="Ej: Juan"></div>
@@ -428,7 +427,7 @@
     let patrimonio = { pesos: 0, dolares: 0 };
     let inversiones = [];
     let listaAmigos = [];
-    let perfilUsuario = { nombre: "Usuario", modo: "" }; // NUEVO: MODO
+    let perfilUsuario = { nombre: "Usuario", modo: "" };
     
     let movimientosMesGlobal = [];
     let keyMesActualGlobal = "";
@@ -483,14 +482,20 @@
                 patrimonio = data.patrimonio || { pesos: 0, dolares: 0 };
                 inversiones = data.inversiones || [];
                 listaAmigos = data.listaAmigos || [];
-                perfilUsuario = data.perfilUsuario || { nombre: "Usuario", modo: "" };
+                
+                if (data.perfilUsuario) {
+                    perfilUsuario = data.perfilUsuario;
+                }
+                // Si venía de una versión anterior que no tenía 'modo' guardado
+                if (typeof perfilUsuario.modo === "undefined") {
+                    perfilUsuario.modo = "";
+                }
             }
             
             document.getElementById('userNameDisplay').innerText = perfilUsuario.nombre;
             document.getElementById('profileNameInput').value = perfilUsuario.nombre;
             
-            // LÓGICA DE ONBOARDING
-            if (!perfilUsuario.modo) {
+            if (perfilUsuario.modo === "") {
                 document.getElementById('onboarding-modal').style.display = 'flex';
             } else {
                 document.getElementById('onboarding-modal').style.display = 'none';
@@ -508,39 +513,41 @@
         document.getElementById('onboarding-modal').style.display = 'none';
         document.getElementById('profileModoInput').value = modoElegido;
         guardarDatosEnNube();
-        aplicarFiltrosDeModo();
-        actualizarApp();
     }
 
-    function cambiarModoDesdePerfil() {
+    function guardarCambiosDesdePerfil() {
+        let n = document.getElementById('profileNameInput').value;
+        if(n) perfilUsuario.nombre = n;
+        
         perfilUsuario.modo = document.getElementById('profileModoInput').value;
+        
+        guardarDatosEnNube();
+        aplicarFiltrosDeModo();
+        actualizarApp();
+        alert("Perfil actualizado correctamente.");
     }
 
     function guardarNombrePerfil() {
-        let n = document.getElementById('profileNameInput').value;
-        if(n) perfilUsuario.nombre = n;
-        guardarDatosEnNube();
-        alert("Perfil actualizado correctamente.");
-        aplicarFiltrosDeModo();
-        actualizarApp();
+        guardarCambiosDesdePerfil();
     }
 
     function aplicarFiltrosDeModo() {
         let esAvanzado = (perfilUsuario.modo === "AVANZADO");
         
-        // CSS Display Control
-        document.querySelectorAll('.avanzado-only').forEach(el => {
-            if (el.tagName === 'TABLE' || el.tagName === 'DIV' || el.tagName === 'H3' || el.tagName === 'BUTTON') {
-                el.style.display = esAvanzado ? "" : "none";
-                if(el.tagName === 'BUTTON' && !esAvanzado) el.style.display = "none";
+        if (esAvanzado) {
+            document.body.classList.remove('modo-basico');
+        } else {
+            document.body.classList.add('modo-basico');
+            
+            // Si estaba parado en la pestaña Detalles, lo devuelvo al inicio
+            if (document.getElementById('tab-detalle-gastos').classList.contains('active')) {
+                document.querySelector('.tab-button').click();
             }
-        });
+        }
 
-        // Toggle text for Concept
         document.getElementById('lblConceptoTexto').innerText = esAvanzado ? "Texto" : "Concepto";
         document.getElementById('inputConcepto').placeholder = esAvanzado ? "Ej: Compra Coto, Cena..." : "Ej: Sueldo, Supermercado...";
 
-        // Cuentas por Cobrar View Toggle
         if(!esAvanzado) {
             document.getElementById('tituloDeudaUnica').style.display = "block";
             document.getElementById('tablaDeudaUnica').style.display = "block";
@@ -549,7 +556,6 @@
             document.getElementById('tablaDeudaUnica').style.display = "none";
         }
 
-        // Forzar reset de campos si está en básico
         evaluarCamposDinamicosGasto();
     }
 
@@ -583,7 +589,6 @@
             document.getElementById('boxGastoCompartido').style.display = "none";
             document.getElementById('boxSeleccionAmigo').style.display = "none";
             
-            // Reseteo silencioso para modo básico
             document.getElementById('inputMetodoPago').value = "EN_EL_ACTO";
             document.getElementById('inputCuotas').value = "1";
             document.getElementById('inputDebitoAuto').value = "NO";
@@ -591,7 +596,6 @@
             return;
         }
 
-        // Modo Avanzado Normal
         document.getElementById('boxMetodoPago').style.display = "block";
         document.getElementById('boxGastoCompartido').style.display = "block";
         
@@ -788,22 +792,22 @@
         if (esAvanzado) {
             let dispReal = ing - gastosEnActo; let dispProy = ing - (gastosEnActo + gastosCredito + gastosServicio);
             dashUI.innerHTML = `
-                <div class="card ingreso"><h3>Ingresos Totales</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2})}</p></div>
-                <div class="card gasto" style="background:#fff3e0; border-left-color:#ff9800;"><h3>Pagado (En Acto)</h3><p>$${gastosEnActo.toLocaleString('es-AR', {minimumFractionDigits:2})}</p><span class="porcentaje">Dinero que ya salió hoy.</span></div>
-                <div class="card gasto"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${(gastosCredito + gastosServicio).toLocaleString('es-AR', {minimumFractionDigits:2})}</p><span class="porcentaje">Deudas del mes a pagar.</span></div>
-                <div class="card ahorro" style="grid-column: span 3; background:#e3f2fd; display: flex; justify-content: space-around; align-items: center; padding: 20px;">
-                    <div><h3 style="margin-top:0;">Disponible Real (Bolsillo)</h3><p style="color:#2e7d32; font-size:1.6em;">$${dispReal.toLocaleString('es-AR', {minimumFractionDigits:2})}</p></div>
-                    <div><h3 style="margin-top:0;">Disponible Proyectado</h3><p style="color:#d32f2f; font-size:1.6em;">$${dispProy.toLocaleString('es-AR', {minimumFractionDigits:2})}</p></div>
+                <div class="card ingreso"><h3>Ingresos Totales</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
+                <div class="card gasto" style="background:#fffbeb; border-left-color:#f59e0b;"><h3>Pagado (En Acto)</h3><p style="color:#d97706;">$${gastosEnActo.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Dinero que ya salió hoy.</span></div>
+                <div class="card gasto"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${(gastosCredito + gastosServicio).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Deudas del mes a pagar.</span></div>
+                <div class="card ahorro" style="grid-column: span 3; background:#f1f5f9; border-color: #94a3b8; display: flex; justify-content: space-around; align-items: center; padding: 20px;">
+                    <div><h3 style="margin-top:0;">Disponible Real (Bolsillo)</h3><p style="color:#10b981; font-size:1.6em;">$${dispReal.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
+                    <div><h3 style="margin-top:0;">Disponible Proyectado</h3><p style="color:#ef4444; font-size:1.6em;">$${dispProy.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
                     <span class="porcentaje" style="position: absolute; bottom: 5px; width: 100%; text-align: center; font-weight:normal;">Real = Plata en mano hoy. Proyectado = Lo que quedará al pagar las deudas del mes.</span>
                 </div>
             `;
         } else {
             let dispBasic = ing - (gastosFijosBasic + gastosVariablesBasic);
             dashUI.innerHTML = `
-                <div class="card ingreso"><h3>Ingresos</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2})}</p></div>
-                <div class="card gasto"><h3>Gastos Fijos</h3><p>$${gastosFijosBasic.toLocaleString('es-AR', {minimumFractionDigits:2})}</p></div>
-                <div class="card gasto"><h3>Gastos Variables</h3><p>$${gastosVariablesBasic.toLocaleString('es-AR', {minimumFractionDigits:2})}</p></div>
-                <div class="card ahorro"><h3>Disponible</h3><p style="color:#1e3a8a;">$${dispBasic.toLocaleString('es-AR', {minimumFractionDigits:2})}</p><span class="porcentaje">Lo que te queda en el mes.</span></div>
+                <div class="card ingreso"><h3>Ingresos</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
+                <div class="card gasto"><h3>Gastos Fijos</h3><p>$${gastosFijosBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
+                <div class="card gasto"><h3>Gastos Variables</h3><p>$${gastosVariablesBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
+                <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${dispBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Lo que te queda en el mes.</span></div>
             `;
         }
 
@@ -831,17 +835,16 @@
                 if(mov.tipo === "Ingreso" && mov.monto === 0) return;
                 let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
                 let mtdText = mov.metodo === "CREDITO" ? "💳 Crédito" : (mov.metodo === "SERVICIO" ? "🔌 Servicio" : "💵 En el Acto");
-                let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0288d1; font-weight:bold;">SÍ</span>` : "No";
-                let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#d32f2f;">$${mov.montoAdeudado.toLocaleString('es-AR')}</span>` : "-";
-                tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.conceptoOriginal}</td><td>${mtdText}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="${mov.esVirtual ? `darDeBajaServicio('${mov.idGrupo}')` : `borrarMovimientoReal('${mov.idGrupo}')`}">X</button></td></tr>`;
+                let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0ea5e9; font-weight:bold;">SÍ</span>` : "No";
+                let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#ef4444;">$${mov.montoAdeudado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>` : "-";
+                tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.conceptoOriginal}</td><td>${mtdText}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="${mov.esVirtual ? `darDeBajaServicio('${mov.idGrupo}')` : `borrarMovimientoReal('${mov.idGrupo}')`}">X</button></td></tr>`;
             });
         } else {
-            // MODO BÁSICO TABLA
             thead.innerHTML = `<tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Monto</th><th>Acción</th></tr>`;
             [...movimientosMesGlobal].reverse().forEach(mov => {
                 if(mov.tipo === "Cuenta Cobrar") return; 
                 let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-                tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.concepto}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2})}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X</button></td></tr>`;
+                tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.concepto}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X</button></td></tr>`;
             });
         }
 
@@ -867,12 +870,13 @@
 
             Object.values(gruposUI).forEach(mov => {
                 if(mov.tipo === "Ingreso") return;
-                let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0288d1; font-weight:bold;">SÍ</span>` : "No";
-                let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#d32f2f;">$${mov.montoAdeudado.toLocaleString('es-AR')}</span>` : "-";
+                let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0ea5e9; font-weight:bold;">SÍ</span>` : "No";
+                let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#ef4444;">$${mov.montoAdeudado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>` : "-";
 
                 if(mov.metodo === "CREDITO") {
                     totalCredAgrup += mov.montoTotalAgrupado;
-                    tbCredito.innerHTML += `<tr><td>${mov.conceptoOriginal}</td><td>${mov.cuotaActual}/${mov.cuotasTotales}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2})}</td><td style="color:#d32f2f; font-weight:bold;">$${(mov.deudaRestante||0).toLocaleString('es-AR', {minimumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X Todo</button></td></tr>`;
+                    let saldoRest = mov.deudaRestante || 0;
+                    tbCredito.innerHTML += `<tr><td>${mov.conceptoOriginal}</td><td>${mov.cuotaActual}/${mov.cuotasTotales}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:#ef4444; font-weight:bold;">$${saldoRest.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X Todo</button></td></tr>`;
                 }
                 if(mov.metodo === "SERVICIO") {
                     totalServAgrup += mov.montoTotalAgrupado;
@@ -885,21 +889,22 @@
                     }
                     if(montoPasado !== null) {
                         let diff = mov.montoTotalAgrupado - montoPasado;
-                        if(diff > 0) variacionHtml = `<span style="color:red; font-weight:bold;">▲ +${((diff/montoPasado)*100).toFixed(1)}%</span>`;
-                        else if(diff < 0) variacionHtml = `<span style="color:green; font-weight:bold;">▼ -${((Math.abs(diff)/montoPasado)*100).toFixed(1)}%</span>`;
-                        else variacionHtml = `<span style="color:grey; font-weight:bold;">= Igual</span>`;
+                        if(diff > 0) variacionHtml = `<span style="color:#ef4444; font-weight:bold;">▲ +${((diff/montoPasado)*100).toFixed(1)}%</span>`;
+                        else if(diff < 0) variacionHtml = `<span style="color:#10b981; font-weight:bold;">▼ -${((Math.abs(diff)/montoPasado)*100).toFixed(1)}%</span>`;
+                        else variacionHtml = `<span style="color:#94a3b8; font-weight:bold;">= Igual</span>`;
                     } else { variacionHtml = `<span style="color:#3b82f6; font-style:italic;">Nuevo</span>`; }
                     
-                    tbServ.innerHTML += `<tr><td>${mov.conceptoOriginal}</td><td>${mov.debito==="SI"?"✅ Sí":"❌ No"}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="editarMontoServicio('${mov.idGrupo}', ${mov.montoTotalAgrupado})">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')">Baja</button></td></tr>`;
+                    let debStr = mov.debito === "SI" ? "✅ Sí" : "❌ No";
+                    tbServ.innerHTML += `<tr><td>${mov.conceptoOriginal}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="editarMontoServicio('${mov.idGrupo}', ${mov.montoTotalAgrupado})">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
                 }
             });
-            document.getElementById('lblTotalCreditos').innerText = `Total Tarjetas: $${totalCredAgrup.toLocaleString('es-AR', {minimumFractionDigits:2})}`;
-            document.getElementById('lblTotalServicios').innerText = `Total Servicios: $${totalServAgrup.toLocaleString('es-AR', {minimumFractionDigits:2})}`;
+            document.getElementById('lblTotalCreditos').innerText = `Total Tarjetas: $${totalCredAgrup.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('lblTotalServicios').innerText = `Total Servicios: $${totalServAgrup.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
         }
 
         // BILLETERA PATRIMONIAL
-        document.getElementById('walletPesos').innerText = patrimonio.pesos.toLocaleString('es-AR', {minimumFractionDigits:2});
-        document.getElementById('walletDolares').innerText = patrimonio.dolares.toLocaleString('es-AR', {minimumFractionDigits:2});
+        document.getElementById('walletPesos').innerText = patrimonio.pesos.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('walletDolares').innerText = patrimonio.dolares.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
 
         let totalInvARS = 0, capInvARS = 0, totalInvUSD = 0, capInvUSD = 0;
         let hoyLimpiada = new Date(); hoyLimpiada.setHours(0,0,0,0);
@@ -921,11 +926,11 @@
 
             if(inv.moneda === "ARS") { totalInvARS += valorAct; capInvARS += inv.monto; } else { totalInvUSD += valorAct; capInvUSD += inv.monto; }
             let colorValor = valorAct >= inv.monto ? "#10b981" : "#ef4444";
-            tablaInv.innerHTML += `<tr><td>${ff}</td><td><strong>${inv.instrumento}</strong></td><td>${sim}${inv.monto.toLocaleString('es-AR')}</td><td style="color:${colorValor}; font-weight:bold;">${sim}${valorAct.toLocaleString('es-AR',{maximumFractionDigits:2})}</td><td>${colDetalle}</td><td><button class="btn-naranja" onclick="retirarInversion(${index}, ${valorAct})">Liquidar</button></td></tr>`;
+            tablaInv.innerHTML += `<tr><td>${ff}</td><td><strong>${inv.instrumento}</strong></td><td>${sim}${inv.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:${colorValor}; font-weight:bold;">${sim}${valorAct.toLocaleString('es-AR',{minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${colDetalle}</td><td><button class="btn-naranja" onclick="retirarInversion(${index}, ${valorAct})">Liquidar</button></td></tr>`;
         });
 
-        document.getElementById('invTotalPesos').innerText = totalInvARS.toLocaleString('es-AR', {maximumFractionDigits:0});
-        document.getElementById('invTotalDolares').innerText = totalInvUSD.toLocaleString('es-AR', {maximumFractionDigits:0});
+        document.getElementById('invTotalPesos').innerText = totalInvARS.toLocaleString('es-AR', {minimumFractionDigits:0});
+        document.getElementById('invTotalDolares').innerText = totalInvUSD.toLocaleString('es-AR', {minimumFractionDigits:0});
         let pctARS = capInvARS > 0 ? (((totalInvARS - capInvARS) / capInvARS) * 100).toFixed(2) : 0;
         let pctUSD = capInvUSD > 0 ? (((totalInvUSD - capInvUSD) / capInvUSD) * 100).toFixed(2) : 0;
         
@@ -947,7 +952,7 @@
             let tbBasica = document.getElementById('tablaDeudasBasicas'); tbBasica.innerHTML = '';
             todasLasDeudas.forEach(mov => {
                 let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-                let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR')}` : `-$${mov.monto.toLocaleString('es-AR')} (Debo)`;
+                let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}` : `-$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})} (Debo)`;
                 let btnA = mov.sentido === "A_FAVOR" ? `<button class="btn-verde" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual('${mov.id}')">Cobrar</button>` : `<button class="btn-naranja" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual('${mov.id}')">Pagar</button>`;
                 tbBasica.innerHTML += `<tr><td>${ff}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${sim}</td><td>${btnA}</td></tr>`;
             });
@@ -967,7 +972,7 @@
                 else totFijo[mov.deudor] += (mov.sentido === "A_FAVOR") ? mov.monto : -mov.monto;
             }
             let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR')}` : `-$${mov.monto.toLocaleString('es-AR')} (Debo)`;
+            let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}` : `-$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})} (Debo)`;
             let btnA = mov.sentido === "A_FAVOR" ? `<button class="btn-verde" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual('${mov.id}')">Cobrar</button>` : `<button class="btn-naranja" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual('${mov.id}')">Pagar</button>`;
             let htmlRow = `<tr><td>${ff}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${sim}</td><td>${btnA} <button class="btn-borrar" style="padding:3px; font-size:0.8em; margin-left:5px;" onclick="${mov.esVirtual ? `darDeBajaServicio('${mov.idGrupo}')` : `borrarMovimientoReal('${mov.idGrupo}')`}">X</button></td></tr>`;
             
@@ -983,16 +988,16 @@
             gridDeudas.innerHTML += `<div class="card" style="border-left-color: ${colorB}; background:${colorC}; text-align:left;">
                 <h3 style="margin-top:0; text-align:center;">${p}</h3>
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9em;">
-                    <span>Diario: <b>${sD >= 0 ? '' : '-'}$${Math.abs(sD).toLocaleString('es-AR')}</b></span>
+                    <span>Diario: <b>${sD >= 0 ? '' : '-'}$${Math.abs(sD).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></span>
                     <button class="btn-secundario" style="padding:4px 8px; font-size:0.8em;" onclick="liquidarDeudaGlobal('${p}', ${sD}, 'DIARIO')">Saldar</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9em;">
-                    <span>Tarjetas/Serv: <b>${sF >= 0 ? '' : '-'}$${Math.abs(sF).toLocaleString('es-AR')}</b></span>
+                    <span>Tarjetas/Serv: <b>${sF >= 0 ? '' : '-'}$${Math.abs(sF).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></span>
                     <button class="btn-secundario" style="padding:4px 8px; font-size:0.8em;" onclick="liquidarDeudaGlobal('${p}', ${sF}, 'FIJO')">Saldar</button>
                 </div>
                 <hr style="border:0; border-top:1px solid #cbd5e1; margin:10px 0;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:1.1em; color:${colorB}; font-weight:bold;">NETO: ${sTotal >= 0 ? '' : '-'}$${Math.abs(sTotal).toLocaleString('es-AR')}</span>
+                    <span style="font-size:1.1em; color:${colorB}; font-weight:bold;">NETO: ${sTotal >= 0 ? '' : '-'}$${Math.abs(sTotal).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                     <button style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;" onclick="liquidarDeudaGlobal('${p}', ${sTotal}, 'TODO')">Pagar Todo</button>
                 </div>
             </div>`;
@@ -1135,7 +1140,7 @@
         if(confirm("⚠️ PELIGRO CRÍTICO: Se purgarán todos los balances de la nube.")) {
             if(prompt("Escribe BORRAR:") === "BORRAR") {
                 todosLosMovimientos = []; suscripciones = []; patrimonio = { pesos: 0, dolares: 0 }; inversiones = []; listaAmigos = [];
-                perfilUsuario.modo = ""; // Reset modo también
+                perfilUsuario.modo = ""; 
                 guardarDatosEnNube(); actualizarApp(); location.reload();
             }
         }
