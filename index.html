@@ -59,8 +59,16 @@
     </div>
 </div>
 
+<!-- LOADER INICIAL (mientras se conecta con Firebase y se traen los datos) -->
+<div id="loader-inicial" class="loader-overlay">
+    <div class="loader-caja">
+        <div class="loader-spinner"></div>
+        <p>Cargando tu información...</p>
+    </div>
+</div>
+
 <!-- LOGIN -->
-<div id="auth-section">
+<div id="auth-section" style="display:none;">
     <h2>🔐 Ingreso Seguro</h2>
     <div class="auth-group"><label for="authEmail">Correo Electrónico</label><input type="email" id="authEmail" placeholder="tu@email.com"></div>
     <div class="auth-group"><label for="authPassword">Contraseña</label><input type="password" id="authPassword" placeholder="••••••••"></div>
@@ -71,7 +79,7 @@
 </div>
 
 <!-- APP PRINCIPAL -->
-<div class="container" id="main-app">
+<div class="container" id="main-app" style="display:none;">
     <div class="top-actions-panel">
         <button class="btn-panel btn-perfil-top" onclick="togglePerfilPanel()">👤 Mi Perfil (<span id="userNameDisplay">Usuario</span>)</button>
         <button class="btn-panel btn-logout-top" onclick="logoutUsuario()">🚪 Salir</button>

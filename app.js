@@ -72,6 +72,16 @@ function agruparMovimientosPorGrupo(movimientos) {
     return gruposUI;
 }
 
+// El onSnapshot de Firestore se dispara en cada cambio de datos, no solo la
+// primera vez — esta bandera evita tocar el DOM del loader más de una vez.
+let loaderYaOcultado = false;
+function ocultarLoaderInicial() {
+    if (loaderYaOcultado) return;
+    loaderYaOcultado = true;
+    const loader = document.getElementById('loader-inicial');
+    if (loader) loader.style.display = 'none';
+}
+
 auth.onAuthStateChanged(user => {
     if (user) {
         document.getElementById('auth-section').style.display = 'none';
@@ -80,6 +90,7 @@ auth.onAuthStateChanged(user => {
         inicializarMercado();
         cargarDatosDesdeNube(user.uid);
     } else {
+        ocultarLoaderInicial();
         document.getElementById('auth-section').style.display = 'block';
         document.getElementById('main-app').style.display = 'none';
     }
@@ -185,6 +196,7 @@ function cargarDatosDesdeNube(uid) {
         actualizarSelectAmigosDisplay();
         aplicarFiltrosDeModo();
         actualizarApp();
+        ocultarLoaderInicial();
     });
 }
 
