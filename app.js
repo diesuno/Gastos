@@ -1,3 +1,5 @@
+import { mostrarAlerta, mostrarConfirmacion, mostrarPrompt } from './modales.js';
+
 // ==========================================
 // ⚙️ CONFIGURACIÓN DE FIREBASE
 // ==========================================
@@ -90,13 +92,13 @@ async function inicializarMercado() {
 
 function registrarUsuario() {
     const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value;
-    if(!email || !pass) return; auth.createUserWithEmailAndPassword(email, pass).then(()=>alert("Creado!")).catch(e=>alert(e.message));
+    if(!email || !pass) return; auth.createUserWithEmailAndPassword(email, pass).then(()=>mostrarAlerta("Creado!")).catch(e=>mostrarAlerta(e.message));
 }
 function loginUsuario() {
     const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value;
-    if(!email || !pass) return; auth.signInWithEmailAndPassword(email, pass).catch(e=>alert(e.message));
+    if(!email || !pass) return; auth.signInWithEmailAndPassword(email, pass).catch(e=>mostrarAlerta(e.message));
 }
-function logoutUsuario() { if(confirm("¿Salir?")) auth.signOut(); }
+async function logoutUsuario() { if(await mostrarConfirmacion("¿Salir?")) auth.signOut(); }
 
 // --- GESTIÓN DE PERFILES Y MODOS ---
 function cargarDatosDesdeNube(uid) {
@@ -150,7 +152,7 @@ function guardarCambiosDesdePerfil() {
     guardarDatosEnNube();
     aplicarFiltrosDeModo();
     actualizarApp();
-    alert("Perfil actualizado correctamente.");
+    mostrarAlerta("Perfil actualizado correctamente.");
 }
 
 function guardarNombrePerfil() {
@@ -189,10 +191,10 @@ function togglePerfilPanel() {
     let p = document.getElementById('profile-section');
     p.style.display = p.style.display === "block" ? "none" : "block";
 }
-function cambiarPasswordPerfil() {
+async function cambiarPasswordPerfil() {
     let n = document.getElementById('profilePasswordInput').value;
-    if(n.length < 6) return alert("Mínimo 6 chars");
-    auth.currentUser.updatePassword(n).then(() => { alert("Clave cambiada"); togglePerfilPanel(); }).catch(()=>alert("Volvé a iniciar sesión"));
+    if(n.length < 6) return mostrarAlerta("Mínimo 6 chars");
+    auth.currentUser.updatePassword(n).then(() => { mostrarAlerta("Clave cambiada"); togglePerfilPanel(); }).catch(()=>mostrarAlerta("Volvé a iniciar sesión"));
 }
 
 function guardarDatosEnNube() {
@@ -261,7 +263,7 @@ function agregarMovimiento() {
     let tipo = document.getElementById('inputTipo').value;
     let concepto = document.getElementById('inputConcepto').value.trim();
     let fechaBaseStr = document.getElementById('inputFecha').value;
-    if(!montoTotal || !concepto || !fechaBaseStr) return alert("Completá los campos obligatorios");
+    if(!montoTotal || !concepto || !fechaBaseStr) return mostrarAlerta("Completá los campos obligatorios");
 
     let esAvanzado = (perfilUsuario.modo === "AVANZADO");
     let cuotas = esAvanzado ? (parseInt(document.getElementById('inputCuotas').value) || 1) : 1;
@@ -270,7 +272,7 @@ function agregarMovimiento() {
     let dividir = esAvanzado ? document.getElementById('inputDividir').value : "NO";
     let amigo = esAvanzado ? document.getElementById('inputAmigoAsignado').value : "";
 
-    if(dividir !== "NO" && !amigo) return alert("Elegí una persona para dividir");
+    if(dividir !== "NO" && !amigo) return mostrarAlerta("Elegí una persona para dividir");
 
     let idGrupoPrincipal = generarId();
 
@@ -606,10 +608,10 @@ function actualizarPestañaCuentasCobrar(esAvanzado) {
     }
 }
 
-function liquidarDeudaIndividual(idMov) {
+async function liquidarDeudaIndividual(idMov) {
     let mov = todosLosMovimientos.find(m => m.id === idMov) || movimientosMesGlobal.find(m => m.id === idMov);
     if(!mov) return;
-    if(confirm(mov.sentido === "A_FAVOR" ? "¿Confirmas cobro? Suma al bolsillo hoy." : "¿Confirmas pago? Resta del bolsillo hoy.")) {
+    if(await mostrarConfirmacion(mov.sentido === "A_FAVOR" ? "¿Confirmas cobro? Suma al bolsillo hoy." : "¿Confirmas pago? Resta del bolsillo hoy.")) {
         if(mov.esVirtual) {
             let s = suscripciones.find(x => x.id === mov.idGrupo);
             if(s) { if(!s.pagosAmigo) s.pagosAmigo = []; s.pagosAmigo.push(mov.mesClave); }
@@ -622,9 +624,9 @@ function liquidarDeudaIndividual(idMov) {
     }
 }
 
-function liquidarDeudaGlobal(persona, neto, tipoPagar) {
-    if(neto === 0) return alert("Saldos en cero.");
-    let mInput = prompt(`Estás por saldar deudas [${tipoPagar}] de ${persona}.\nIngresá el importe exacto:`, Math.abs(neto));
+async function liquidarDeudaGlobal(persona, neto, tipoPagar) {
+    if(neto === 0) return mostrarAlerta("Saldos en cero.");
+    let mInput = await mostrarPrompt(`Estás por saldar deudas [${tipoPagar}] de ${persona}.\nIngresá el importe exacto:`, Math.abs(neto));
     if(!mInput) return; let mReal = parseFloat(mInput); if(isNaN(mReal) || mReal <= 0) return;
 
     let sel = document.getElementById('filtroMesAnio'); let [aSel, mSel] = sel.value.split('-').map(Number);
@@ -648,29 +650,29 @@ function liquidarDeudaGlobal(persona, neto, tipoPagar) {
     actualizarApp(); guardarDatosEnNube();
 }
 
-function borrarMovimientoReal(idGrupo) {
-    if(confirm("¿Eliminar para siempre esta operación y TODAS sus cuotas/deudas asociadas?")) {
+async function borrarMovimientoReal(idGrupo) {
+    if(await mostrarConfirmacion("¿Eliminar para siempre esta operación y TODAS sus cuotas/deudas asociadas?", {peligroso: true})) {
         todosLosMovimientos = todosLosMovimientos.filter(m => m.idGrupo !== idGrupo);
         actualizarApp(); guardarDatosEnNube();
     }
 }
-function darDeBajaServicio(idGrupo) {
-    if(confirm("¿Dar de baja este servicio a partir de ESTE mes? El historial viejo se mantiene.")) {
+async function darDeBajaServicio(idGrupo) {
+    if(await mostrarConfirmacion("¿Dar de baja este servicio a partir de ESTE mes? El historial viejo se mantiene.")) {
         let s = suscripciones.find(x => x.id === idGrupo); if(s) { s.mesBaja = keyMesActualGlobal; actualizarApp(); guardarDatosEnNube(); }
     }
 }
-function editarMontoServicio(idGrupo, montoActual) {
-    let nuevo = prompt("Ingresá el nuevo valor a pagar desde este mes en adelante:", montoActual);
+async function editarMontoServicio(idGrupo, montoActual) {
+    let nuevo = await mostrarPrompt("Ingresá el nuevo valor a pagar desde este mes en adelante:", montoActual);
     if(!nuevo) return; let nReal = parseFloat(nuevo); if(isNaN(nReal) || nReal <= 0) return;
     let s = suscripciones.find(x => x.id === idGrupo); if(s) { s.montosPorMes[keyMesActualGlobal] = nReal; actualizarApp(); guardarDatosEnNube(); }
 }
 
-function ejecutarEnvioAhorro() {
+async function ejecutarEnvioAhorro() {
     let m = parseFloat(document.getElementById('ahorroMontoPesos').value); let mon = document.getElementById('ahorroDestinoMoneda').value;
     let sel = document.getElementById('filtroMesAnio'); let [aSel, mSel] = sel.value.split('-').map(Number);
     if(!m || m <= 0) return; let conceptoD = "";
     if(mon === "ARS") { patrimonio.pesos += m; conceptoD = "Envío a Ahorros (Pesos)"; }
-    else { let cotizacion = parseFloat(prompt("Ingresá a cuánto compraste el Dólar.")); if(!cotizacion) return; let dComprados = m / cotizacion; patrimonio.dolares += dComprados; conceptoD = `Compra USD (${dComprados.toFixed(2)} USD a $${cotizacion})`; }
+    else { let cotizacion = parseFloat(await mostrarPrompt("Ingresá a cuánto compraste el Dólar.")); if(!cotizacion) return; let dComprados = m / cotizacion; patrimonio.dolares += dComprados; conceptoD = `Compra USD (${dComprados.toFixed(2)} USD a $${cotizacion})`; }
     let fFalsa = `${aSel}-${(mSel + 1).toString().padStart(2,'0')}-28`;
     todosLosMovimientos.push({ id: generarId(), idGrupo: generarId(), monto: m, tipo: "Enviado a Ahorros", concepto: conceptoD, fecha: fFalsa, metodo: "EN_EL_ACTO" });
     document.getElementById('ahorroMontoPesos').value = ""; actualizarApp(); guardarDatosEnNube();
@@ -692,9 +694,9 @@ function toggleCamposInversion() {
 function ejecutarInversion() {
     let m = parseFloat(document.getElementById('invMonto').value); let mon = document.getElementById('invMoneda').value;
     let inst = document.getElementById('invInstrumento').value; let fec = document.getElementById('invFecha').value;
-    if(!m || !fec) return alert("Faltan datos");
-    if(mon === "ARS" && patrimonio.pesos < m) return alert("Efectivo Pesos insuficiente en la billetera.");
-    if(mon === "USD" && patrimonio.dolares < m) return alert("Efectivo USD insuficiente en la billetera.");
+    if(!m || !fec) return mostrarAlerta("Faltan datos");
+    if(mon === "ARS" && patrimonio.pesos < m) return mostrarAlerta("Efectivo Pesos insuficiente en la billetera.");
+    if(mon === "USD" && patrimonio.dolares < m) return mostrarAlerta("Efectivo USD insuficiente en la billetera.");
 
     let nom = 0; let int = parseFloat(document.getElementById('invInteres').value) || (inst==="Mercado Pago"?mercado.mpTna:0);
     if(inst === "S&P 500") nom = m / (mon === "ARS" ? mercado.spy_ars : mercado.spy_usd);
@@ -704,9 +706,9 @@ function ejecutarInversion() {
     document.getElementById('invMonto').value = ""; actualizarApp(); guardarDatosEnNube();
 }
 
-function retirarInversion(idx, valorSugerido) {
+async function retirarInversion(idx, valorSugerido) {
     let i = inversiones[idx];
-    let nInput = prompt(`Liquidando inversión.\n\nEl sistema estima un valor de: $${Math.floor(valorSugerido)}\n\nIngresá importe EXACTO devuelto a tu caja:`, Math.floor(valorSugerido));
+    let nInput = await mostrarPrompt(`Liquidando inversión.\n\nEl sistema estima un valor de: $${Math.floor(valorSugerido)}\n\nIngresá importe EXACTO devuelto a tu caja:`, Math.floor(valorSugerido));
     if(!nInput) return; let n = parseFloat(nInput);
     if(i.moneda === "ARS") patrimonio.pesos += n; else patrimonio.dolares += n;
     inversiones.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
@@ -738,9 +740,9 @@ function renderizarGrafico() {
     });
 }
 
-function resetearApp() {
-    if(confirm("⚠️ PELIGRO CRÍTICO: Se purgarán todos los balances de la nube.")) {
-        if(prompt("Escribe BORRAR:") === "BORRAR") {
+async function resetearApp() {
+    if(await mostrarConfirmacion("⚠️ PELIGRO CRÍTICO: Se purgarán todos los balances de la nube.", {peligroso: true})) {
+        if(await mostrarPrompt("Escribe BORRAR:") === "BORRAR") {
             todosLosMovimientos = []; suscripciones = []; patrimonio = { pesos: 0, dolares: 0 }; inversiones = []; listaAmigos = [];
             perfilUsuario.modo = "";
             guardarDatosEnNube(); actualizarApp(); location.reload();
