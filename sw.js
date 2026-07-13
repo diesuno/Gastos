@@ -1,8 +1,10 @@
-const CACHE_NAME = 'finanzas-v5.1.0'; // Pasamos a la versión 3
+const CACHE_NAME = 'finanzas-v5.2.0'; // Subimos versión: ahora cacheamos styles.css y app.js
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './styles.css',
+  './app.js'
 ];
 
 // Instala la nueva versión
