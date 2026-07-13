@@ -46,6 +46,28 @@ function escapeHTML(texto) {
     return div.innerHTML;
 }
 
+// Agrupa una lista de movimientos por idGrupo (une las cuotas de una misma compra
+// en un solo registro para mostrar) y calcula, para cada grupo, el monto total
+// sumado y cuánto de ese grupo está compartido/adeudado con otra persona.
+// Se usa tanto en la tabla de "Flujo Mensual" como en "Detalle Gastos" — antes
+// este mismo bloque estaba copiado en los dos lugares.
+function agruparMovimientosPorGrupo(movimientos) {
+    let gruposUI = {};
+    movimientos.forEach(mov => {
+        if (mov.tipo === "Cuenta Cobrar") return;
+        if (!gruposUI[mov.idGrupo]) {
+            gruposUI[mov.idGrupo] = { ...mov, montoTotalAgrupado: 0, esCompartido: "NO", montoAdeudado: 0, conceptoOriginal: mov.concepto.replace(/^Adelanto a .*?: /, '') };
+        }
+        gruposUI[mov.idGrupo].montoTotalAgrupado += mov.monto;
+    });
+    movimientos.forEach(mov => {
+        if (mov.tipo === "Cuenta Cobrar" && gruposUI[mov.idGrupo]) {
+            gruposUI[mov.idGrupo].esCompartido = "SÍ"; gruposUI[mov.idGrupo].montoAdeudado += mov.monto;
+        }
+    });
+    return gruposUI;
+}
+
 auth.onAuthStateChanged(user => {
     if (user) {
         document.getElementById('auth-section').style.display = 'none';
@@ -421,19 +443,7 @@ function actualizarApp() {
     if (esAvanzado) {
         thead.innerHTML = `<tr><th>Fecha</th><th>Texto</th><th>Método</th><th>Monto Total</th><th>Compartido</th><th>Deuda Asoc.</th><th>Acción</th></tr>`;
 
-        let gruposUI = {};
-        movimientosMesGlobal.forEach(mov => {
-            if (mov.tipo === "Cuenta Cobrar") return;
-            if (!gruposUI[mov.idGrupo]) {
-                gruposUI[mov.idGrupo] = { ...mov, montoTotalAgrupado: 0, esCompartido: "NO", montoAdeudado: 0, conceptoOriginal: mov.concepto.replace(/^Adelanto a .*?: /, '') };
-            }
-            gruposUI[mov.idGrupo].montoTotalAgrupado += mov.monto;
-        });
-        movimientosMesGlobal.forEach(mov => {
-            if (mov.tipo === "Cuenta Cobrar" && gruposUI[mov.idGrupo]) {
-                gruposUI[mov.idGrupo].esCompartido = "SÍ"; gruposUI[mov.idGrupo].montoAdeudado += mov.monto;
-            }
-        });
+        let gruposUI = agruparMovimientosPorGrupo(movimientosMesGlobal);
 
         [...Object.values(gruposUI)].reverse().forEach(mov => {
             if(mov.tipo === "Ingreso" && mov.monto === 0) return;
@@ -458,19 +468,7 @@ function actualizarApp() {
         let tbServ = document.getElementById('tablaServicios'); tbServ.innerHTML = '';
         let totalCredAgrup = 0, totalServAgrup = 0;
 
-        let gruposUI = {};
-        movimientosMesGlobal.forEach(mov => {
-            if (mov.tipo === "Cuenta Cobrar") return;
-            if (!gruposUI[mov.idGrupo]) {
-                gruposUI[mov.idGrupo] = { ...mov, montoTotalAgrupado: 0, esCompartido: "NO", montoAdeudado: 0, conceptoOriginal: mov.concepto.replace(/^Adelanto a .*?: /, '') };
-            }
-            gruposUI[mov.idGrupo].montoTotalAgrupado += mov.monto;
-        });
-        movimientosMesGlobal.forEach(mov => {
-            if (mov.tipo === "Cuenta Cobrar" && gruposUI[mov.idGrupo]) {
-                gruposUI[mov.idGrupo].esCompartido = "SÍ"; gruposUI[mov.idGrupo].montoAdeudado += mov.monto;
-            }
-        });
+        let gruposUI = agruparMovimientosPorGrupo(movimientosMesGlobal);
 
         Object.values(gruposUI).forEach(mov => {
             if(mov.tipo === "Ingreso") return;
