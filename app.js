@@ -27,7 +27,9 @@ let perfilUsuario = { nombre: "Usuario", modo: "" };
 let movimientosMesGlobal = [];
 let keyMesActualGlobal = "";
 
-let mercado = { spy_ars: 17000, spy_usd: 540, mpTna: 17.5 };
+// "actualizado" indica si cada valor vino de una API real hoy, o si seguimos
+// usando el valor de referencia por defecto porque no se pudo conectar a nada.
+let mercado = { spy_ars: 17000, spy_usd: 540, mpTna: 17.5, actualizado: { ars: false, usd: false, mpTna: false } };
 
 const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const fechaActual = new Date();
@@ -83,10 +85,60 @@ auth.onAuthStateChanged(user => {
     }
 });
 
+// Lista de proxies CORS públicos usados para poder leer Yahoo Finance desde el
+// navegador (Yahoo no permite pedidos directos desde otro dominio). Son servicios
+// gratuitos de terceros y pueden caerse sin aviso — por eso probamos más de uno
+// en orden, y si ninguno responde, seguimos funcionando con el valor de referencia
+// en vez de romper la app.
+const PROXIES_CORS = [
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+];
+
+// Intenta traer el precio de mercado de un símbolo (ej: "SPY", "SPY.BA") probando
+// cada proxy de la lista en orden. Devuelve el precio, o null si ninguno funcionó.
+async function obtenerPrecioYahoo(simbolo) {
+    const urlYahoo = `https://query1.finance.yahoo.com/v8/finance/chart/${simbolo}`;
+    for (const construirUrlProxy of PROXIES_CORS) {
+        try {
+            let res = await fetch(construirUrlProxy(urlYahoo));
+            if (!res.ok) continue;
+            let data = await res.json();
+            if (data && data.chart && data.chart.result) {
+                return data.chart.result[0].meta.regularMarketPrice;
+            }
+        } catch (e) {
+            console.warn(`Proxy CORS falló consultando ${simbolo}:`, e.message);
+        }
+    }
+    return null;
+}
+
 async function inicializarMercado() {
-    try { let res = await fetch("https://api.argentinadatos.com/v1/finanzas/rendimientos/fci"); let data = await res.json(); let mp = data.find(f => f.fondo.toLowerCase().includes("mercado")); if(mp && mp.tna) mercado.mpTna = (mp.tna * 100).toFixed(1); } catch(e) {}
-    try { let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/SPY.BA")); let data = await res.json(); if(data.chart.result) { let p = data.chart.result[0].meta.regularMarketPrice; if(p > 100000) p /= 10; mercado.spy_ars = p; } } catch(e) {}
-    try { let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/SPY")); let data = await res.json(); if(data.chart.result) mercado.spy_usd = data.chart.result[0].meta.regularMarketPrice; } catch(e) {}
+    try {
+        let res = await fetch("https://api.argentinadatos.com/v1/finanzas/rendimientos/fci");
+        let data = await res.json();
+        let mp = data.find(f => f.fondo.toLowerCase().includes("mercado"));
+        if (mp && mp.tna) { mercado.mpTna = (mp.tna * 100).toFixed(1); mercado.actualizado.mpTna = true; }
+    } catch(e) { console.warn("No se pudo obtener la TNA de Mercado Pago, se usa valor de referencia:", e.message); }
+
+    let precioArs = await obtenerPrecioYahoo("SPY.BA");
+    if (precioArs !== null) {
+        if (precioArs > 100000) precioArs /= 10;
+        mercado.spy_ars = precioArs;
+        mercado.actualizado.ars = true;
+    } else {
+        console.warn("No se pudo obtener la cotización de SPY.BA en ningún proxy, se usa valor de referencia.");
+    }
+
+    let precioUsd = await obtenerPrecioYahoo("SPY");
+    if (precioUsd !== null) {
+        mercado.spy_usd = precioUsd;
+        mercado.actualizado.usd = true;
+    } else {
+        console.warn("No se pudo obtener la cotización de SPY en ningún proxy, se usa valor de referencia.");
+    }
+
     toggleCamposInversion(); actualizarApp();
 }
 
@@ -680,12 +732,18 @@ async function ejecutarEnvioAhorro() {
 
 function toggleCamposInversion() {
     let i = document.getElementById('invInstrumento').value; let mon = document.getElementById('invMoneda').value;
+    let lblPrecio = document.getElementById('lblPrecioMercado');
     if(i === "S&P 500") {
         document.getElementById('grupoInteres').style.display = "none"; document.getElementById('grupoCotizacionMercado').style.display = "flex";
-        let valM = mon === "ARS" ? mercado.spy_ars : mercado.spy_usd; let sim = mon === "ARS" ? "$" : "US$"; document.getElementById('lblPrecioMercado').innerText = `${sim}${valM.toLocaleString('es-AR')}`;
+        let valM = mon === "ARS" ? mercado.spy_ars : mercado.spy_usd; let sim = mon === "ARS" ? "$" : "US$";
+        let esActual = mon === "ARS" ? mercado.actualizado.ars : mercado.actualizado.usd;
+        lblPrecio.innerText = `${sim}${valM.toLocaleString('es-AR')}` + (esActual ? "" : " ⚠️ Sin conexión, valor de referencia");
+        lblPrecio.style.color = esActual ? "#1e3a8a" : "#d97706";
     } else if (i === "Mercado Pago") {
         document.getElementById('grupoInteres').style.display = "flex"; document.getElementById('grupoCotizacionMercado').style.display = "flex";
-        document.getElementById('lblPrecioMercado').innerText = `TNA API: ${mercado.mpTna}%`; document.getElementById('invInteres').value = mercado.mpTna;
+        lblPrecio.innerText = `TNA API: ${mercado.mpTna}%` + (mercado.actualizado.mpTna ? "" : " ⚠️ Sin conexión, valor de referencia");
+        lblPrecio.style.color = mercado.actualizado.mpTna ? "#1e3a8a" : "#d97706";
+        document.getElementById('invInteres').value = mercado.mpTna;
     } else {
         document.getElementById('grupoInteres').style.display = "flex"; document.getElementById('grupoCotizacionMercado').style.display = "none"; document.getElementById('invInteres').value = "";
     }
