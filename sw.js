@@ -1,11 +1,20 @@
-const CACHE_NAME = 'finanzas-v5.3.0'; // Subimos versión: ahora cacheamos modales.js también
+const CACHE_NAME = 'finanzas-v6.0.0'; // Subimos versión: app.js se dividió en varios módulos
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
   './styles.css',
-  './app.js',
-  './modales.js'
+  './modales.js',
+  './main.js',
+  './estado.js',
+  './firebase-config.js',
+  './utilidades.js',
+  './auth.js',
+  './movimientos.js',
+  './billetera.js',
+  './deudas.js',
+  './render.js',
+  './grafico.js'
 ];
 
 // Instala la nueva versión
