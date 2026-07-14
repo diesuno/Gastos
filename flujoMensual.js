@@ -79,7 +79,6 @@ export function calcularFlujoDeMes(aSel, mSel) {
         movimientosDelMes, esAvanzado,
         ing, gastosEnActo, gastosCredito, gastosServicio, gastosFijosBasic, gastosVariablesBasic,
         dispReal: ing - gastosEnActo,
-        dispProy: ing - (gastosEnActo + gastosCredito + gastosServicio),
         dispBasico: ing - (gastosFijosBasic + gastosVariablesBasic),
     };
 }

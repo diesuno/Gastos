@@ -43,16 +43,12 @@ export function actualizarApp() {
     let dashUI = document.getElementById('dashboard-dinamico');
 
     if (esAvanzado) {
-        let dispReal = ing - gastosEnActo; let dispProy = ing - (gastosEnActo + gastosCredito + gastosServicio);
+        let disponible = ing - gastosEnActo;
         dashUI.innerHTML = `
             <div class="card ingreso"><h3>Ingresos Totales</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
             <div class="card gasto" style="background:#fffbeb; border-left-color:#f59e0b;"><h3>Pagado (En Acto)</h3><p style="color:#d97706;">$${gastosEnActo.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Dinero que ya salió hoy.</span></div>
             <div class="card gasto"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${(gastosCredito + gastosServicio).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Deudas del mes a pagar.</span></div>
-            <div class="card ahorro" style="grid-column: span 3; background:#f1f5f9; border-color: #94a3b8; display: flex; justify-content: space-around; align-items: center; padding: 20px;">
-                <div><h3 style="margin-top:0;">Disponible Real (Bolsillo)</h3><p style="color:#10b981; font-size:1.6em;">$${dispReal.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-                <div><h3 style="margin-top:0;">Disponible Proyectado</h3><p style="color:#ef4444; font-size:1.6em;">$${dispProy.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-                <span class="porcentaje" style="position: absolute; bottom: 5px; width: 100%; text-align: center; font-weight:normal;">Real = Plata en mano hoy. Proyectado = Lo que quedará al pagar las deudas del mes.</span>
-            </div>
+            <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${disponible.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Plata en mano hoy (no descuenta cuotas ni servicios pendientes).</span></div>
         `;
     } else {
         let dispBasic = ing - (gastosFijosBasic + gastosVariablesBasic);
