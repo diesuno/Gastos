@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma Financiera 2026</title>
-    
+
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a237e">
     <link class="apple-touch-icon" href="icono-192.png">
@@ -19,98 +19,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        
-        body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #2d3748;}
-        .container { max-width: 1100px; margin: auto; background: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative;}
-        h1, h2, h3 { color: #1e3a8a; text-align: center; font-weight: 800;}
-        
-        /* LOGIN & ONBOARDING */
-        #auth-section { max-width: 400px; margin: 80px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;}
-        .auth-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 20px;}
-        .auth-group label { font-weight: 600; margin-bottom: 8px; color: #4a5568; font-size: 0.9em;}
-        .auth-btn-container { display: flex; flex-direction: column; gap: 12px; margin-top: 25px;}
-        
-        #onboarding-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px);}
-        .onboarding-card { background: white; padding: 40px; border-radius: 20px; max-width: 600px; width: 90%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25);}
-        .mode-btn { border: none; padding: 20px; border-radius: 16px; cursor: pointer; transition: all 0.3s ease; text-align: left; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
-        .mode-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.1);}
-        .mode-basic { background: #e0f2f1; border-left: 5px solid #00897b; color: #004d40;}
-        .mode-adv { background: #e8eaf6; border-left: 5px solid #3f51b5; color: #1a237e;}
 
-        /* NAVEGACIÓN Y PANELES */
-        .top-actions-panel { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px;}
-        .btn-panel { padding: 8px 16px; font-size: 0.85em; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s;}
-        .btn-perfil-top { background-color: #f1f5f9; color: #334155; } .btn-perfil-top:hover { background-color: #e2e8f0; }
-        .btn-logout-top { background-color: #fee2e2; color: #b91c1c; } .btn-logout-top:hover { background-color: #fca5a5; }
-
-        #profile-section { display: none; background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
-
-        .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; flex-wrap: wrap;}
-        .tab-button { background-color: transparent; color: #64748b; padding: 12px 24px; border: none; border-radius: 12px; cursor: pointer; font-size: 1em; font-weight: 600; transition: 0.3s; }
-        .tab-button:hover { background-color: #f1f5f9; color: #1e3a8a;}
-        .tab-button.active { background-color: #1e3a8a; color: white; box-shadow: 0 4px 10px rgba(30,58,138,0.3);}
-        .tab-content { display: none; animation: fadeIn 0.4s ease;}
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .historico-selector { background: #1e3a8a; color: white; padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 25px; display: flex; justify-content: center; align-items: center; gap: 15px; box-shadow: 0 10px 20px rgba(30,58,138,0.2);}
-        .historico-selector select { padding: 8px 16px; font-size: 1em; border-radius: 8px; border: none; font-weight: 600; background: white; color: #1e3a8a; outline: none; cursor: pointer;}
-        
-        /* GRILLAS Y TARJETAS */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; align-items: end; }
-        
-        .card { background: white; padding: 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02), 0 10px 15px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; transition: transform 0.2s;}
-        .card:hover { transform: translateY(-2px); }
-        .card h3 { margin: 0 0 10px 0; font-size: 1em; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
-        .card p { margin: 0; font-size: 1.8em; font-weight: 800; color: #1e293b;}
-        .porcentaje { font-size: 0.85em; color: #94a3b8; display: block; margin-top: 8px; font-weight: 600;}
-
-        /* FORMULARIOS */
-        .form-section { background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
-        .form-group { display: flex; flex-direction: column; }
-        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 1em; background: white; color: #334155; transition: border-color 0.2s, box-shadow 0.2s; outline: none;}
-        input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        
-        button { background-color: #3b82f6; color: white; padding: 14px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1em; transition: 0.2s; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);}
-        button:hover { background-color: #2563eb; transform: translateY(-1px); box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);}
-        .btn-secundario { background-color: #94a3b8; box-shadow: none;} .btn-secundario:hover { background-color: #64748b; }
-        .btn-verde { background-color: #10b981; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);} .btn-verde:hover { background-color: #059669; }
-        .btn-naranja { background-color: #f59e0b; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);} .btn-naranja:hover { background-color: #d97706; }
-        .btn-borrar { background-color: #ef4444; color: white; padding: 6px 12px; font-size: 0.85em; border-radius: 6px; border: none; cursor:pointer; box-shadow: none;} .btn-borrar:hover { background-color: #dc2626;}
-        .btn-editar { background-color: #0ea5e9; color: white; padding: 6px 12px; font-size: 0.85em; border-radius: 6px; border: none; cursor:pointer; box-shadow: none;}
-        
-        /* TABLAS */
-        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; overflow-x: auto; display: block; border-radius: 12px;}
-        th, td { padding: 15px; border-bottom: 1px solid #e2e8f0; text-align: left; white-space: nowrap;}
-        th { background-color: #f1f5f9; font-weight: 600; color: #475569; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.5px;}
-        tr:hover { background-color: #f8fafc; }
-        .totales-footer { background-color: #f1f5f9; padding: 15px; text-align: right; font-weight: 800; font-size: 1.1em; color: #b91c1c; border-radius: 0 0 12px 12px; }
-        
-        .chart-container { position: relative; margin: auto; height: 400px; width: 100%; }
-        .footer-peligro { margin-top: 60px; text-align: center; border-top: 2px dashed #fca5a5; padding-top: 30px;}
-
-        /* LÓGICA DE PERFILES - CLASE MAGICA */
-        body.modo-basico .avanzado-only { display: none !important; }
-
-        @media (max-width: 768px) {
-            #auth-section { margin: 20px auto; padding: 25px; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .card.ahorro { grid-column: span 1 !important; flex-direction: column !important; gap: 15px;}
-            .nav-tabs { flex-direction: column; border-bottom: none; }
-            .tab-button { border-radius: 12px; margin-bottom: 10px; width: 100%; padding: 15px; }
-            .form-grid { grid-template-columns: 1fr; }
-            .historico-selector { flex-direction: column; gap: 10px; }
-            input, select, button { min-height: 48px; font-size: 16px; }
-            .chart-container { height: 300px; }
-            .onboarding-card { padding: 25px; }
-            .mode-btn { flex: 1 1 100%; width: 100%; margin-bottom: 10px;}
-            #onboarding-modal > div > div { flex-direction: column; }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -119,7 +29,7 @@
     <div class="onboarding-card">
         <h2 style="margin-top:0;">👋 ¡Bienvenido a tu Plataforma!</h2>
         <p style="color:#475569; font-size:1.1em;">Para darte la mejor experiencia, elegí cómo querés usar el sistema. (Podés cambiarlo después en Mi Perfil).</p>
-        
+
         <div style="display:flex; gap:20px; margin-top:30px;">
             <button class="mode-btn mode-basic" onclick="guardarModoDesdeOnboarding('BASICO')">
                 <span style="font-size:1.5em; display:block; margin-bottom:5px;">🌱</span>
@@ -135,11 +45,33 @@
     </div>
 </div>
 
+<!-- MODAL GENÉRICO (reemplaza alert/confirm/prompt nativos) -->
+<div id="modal-generico" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <p id="modal-mensaje" class="modal-mensaje"></p>
+        <div id="modal-input-container" class="modal-input-container" style="display:none;">
+            <input type="text" id="modal-input">
+        </div>
+        <div class="modal-botones">
+            <button id="modal-btn-cancelar" class="btn-secundario">Cancelar</button>
+            <button id="modal-btn-confirmar">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- LOADER INICIAL (mientras se conecta con Firebase y se traen los datos) -->
+<div id="loader-inicial" class="loader-overlay">
+    <div class="loader-caja">
+        <div class="loader-spinner"></div>
+        <p>Cargando tu información...</p>
+    </div>
+</div>
+
 <!-- LOGIN -->
-<div id="auth-section">
+<div id="auth-section" style="display:none;">
     <h2>🔐 Ingreso Seguro</h2>
-    <div class="auth-group"><label>Correo Electrónico</label><input type="email" id="authEmail" placeholder="tu@email.com"></div>
-    <div class="auth-group"><label>Contraseña</label><input type="password" id="authPassword" placeholder="••••••••"></div>
+    <div class="auth-group"><label for="authEmail">Correo Electrónico</label><input type="email" id="authEmail" placeholder="tu@email.com"></div>
+    <div class="auth-group"><label for="authPassword">Contraseña</label><input type="password" id="authPassword" placeholder="••••••••"></div>
     <div class="auth-btn-container">
         <button onclick="loginUsuario()">Iniciar Sesión</button>
         <button class="btn-secundario" onclick="registrarUsuario()">Registrarme Nuevo</button>
@@ -147,7 +79,7 @@
 </div>
 
 <!-- APP PRINCIPAL -->
-<div class="container" id="main-app">
+<div class="container" id="main-app" style="display:none;">
     <div class="top-actions-panel">
         <button class="btn-panel btn-perfil-top" onclick="togglePerfilPanel()">👤 Mi Perfil (<span id="userNameDisplay">Usuario</span>)</button>
         <button class="btn-panel btn-logout-top" onclick="logoutUsuario()">🚪 Salir</button>
@@ -157,16 +89,16 @@
     <div id="profile-section">
         <h3 style="margin-top: 0;">👤 Configuración de Perfil</h3>
         <div class="form-grid">
-            <div class="form-group"><label>Mi Nombre</label><input type="text" id="profileNameInput"></div>
+            <div class="form-group"><label for="profileNameInput">Mi Nombre</label><input type="text" id="profileNameInput"></div>
             <div class="form-group">
-                <label>Modo de Plataforma</label>
+                <label for="profileModoInput">Modo de Plataforma</label>
                 <select id="profileModoInput">
                     <option value="BASICO">🌱 Básico (Simple)</option>
                     <option value="AVANZADO">🚀 Avanzado (Profesional)</option>
                 </select>
             </div>
             <button class="btn-verde" onclick="guardarCambiosDesdePerfil()">Guardar Cambios</button>
-            <div class="form-group"><label>Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
+            <div class="form-group"><label for="profilePasswordInput">Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
             <button style="background-color: #0ea5e9;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
         </div>
         <p style="text-align: center; margin-top: 20px;"><button class="btn-secundario" onclick="togglePerfilPanel()">Cerrar Perfil</button></p>
@@ -177,9 +109,8 @@
     <div class="nav-tabs">
         <button class="tab-button active" onclick="cambiarPestaña('tab-flujo', this)">📊 Flujo Mensual</button>
         <button class="tab-button avanzado-only" id="tab-btn-detalle" onclick="cambiarPestaña('tab-detalle-gastos', this)">🧾 Detalle Gastos</button>
-        <button class="tab-button" onclick="cambiarPestaña('tab-ahorros', this)">🏦 Billetera / Inversiones</button>
+        <button class="tab-button" onclick="cambiarPestaña('tab-inversiones', this)">💹 Inversiones</button>
         <button class="tab-button" onclick="cambiarPestaña('tab-cuentas', this)">🤝 Cuentas por Cobrar</button>
-        <button class="tab-button" onclick="cambiarPestaña('tab-graficos', this)">📈 Gráficos</button>
     </div>
 
     <div class="historico-selector" id="panel-selector-mes">
@@ -189,7 +120,7 @@
 
     <!-- FLUJO MENSUAL -->
     <div id="tab-flujo" class="tab-content active">
-        
+
         <!-- DASHBOARD DINÁMICO (BÁSICO VS AVANZADO) -->
         <div class="dashboard-grid" id="dashboard-dinamico">
             <!-- Se llena vía JavaScript según el Modo -->
@@ -198,8 +129,8 @@
         <div class="form-section">
             <h3 style="margin-top:0;">Cargar Nuevo Movimiento</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Monto Total ($)</label><input type="number" step="any" id="inputMonto" placeholder="0.00"></div>
-                <div class="form-group"><label>Tipo</label>
+                <div class="form-group"><label for="inputMonto">Monto Total ($)</label><input type="number" step="any" id="inputMonto" placeholder="0.00"></div>
+                <div class="form-group"><label for="inputTipo">Tipo</label>
                     <select id="inputTipo" onchange="evaluarCamposDinamicosGasto()">
                         <option value="Ingreso">Ingreso</option>
                         <option value="Gasto Fijo">Gasto Fijo</option>
@@ -207,10 +138,10 @@
                     </select>
                 </div>
                 <!-- ETIQUETA DINÁMICA CONCEPTO/TEXTO -->
-                <div class="form-group"><label id="lblConceptoTexto">Concepto</label><input type="text" id="inputConcepto" placeholder="Ej: Sueldo, Supermercado..."></div>
-                <div class="form-group"><label>Fecha</label><input type="date" id="inputFecha"></div>
-                
-                <div class="form-group avanzado-only" id="boxMetodoPago"><label>Método de Pago</label>
+                <div class="form-group"><label id="lblConceptoTexto" for="inputConcepto">Concepto</label><input type="text" id="inputConcepto" placeholder="Ej: Sueldo, Supermercado..."></div>
+                <div class="form-group"><label for="inputFecha">Fecha</label><input type="date" id="inputFecha"></div>
+
+                <div class="form-group avanzado-only" id="boxMetodoPago"><label for="inputMetodoPago">Método de Pago</label>
                     <select id="inputMetodoPago" onchange="evaluarCamposDinamicosGasto()">
                         <option value="EN_EL_ACTO">En el acto (Débito/Efectivo)</option>
                         <option value="CREDITO">Tarjeta de Crédito</option>
@@ -218,22 +149,22 @@
                     </select>
                 </div>
 
-                <div class="form-group avanzado-only" id="boxPlanCuotas" style="display:none;"><label>Cuotas</label>
+                <div class="form-group avanzado-only" id="boxPlanCuotas" style="display:none;"><label for="inputCuotas">Cuotas</label>
                     <select id="inputCuotas">
                         <option value="1">1 pago (Sin cuotas)</option>
                         <option value="2">2 Cuotas fijas</option><option value="3">3 Cuotas fijas</option><option value="4">4 Cuotas fijas</option><option value="5">5 Cuotas fijas</option><option value="6">6 Cuotas fijas</option><option value="7">7 Cuotas fijas</option><option value="8">8 Cuotas fijas</option><option value="9">9 Cuotas fijas</option><option value="10">10 Cuotas fijas</option><option value="11">11 Cuotas fijas</option><option value="12">12 Cuotas fijas</option>
                         <option value="13">13 Cuotas fijas</option><option value="14">14 Cuotas fijas</option><option value="15">15 Cuotas fijas</option><option value="16">16 Cuotas fijas</option><option value="17">17 Cuotas fijas</option><option value="18">18 Cuotas fijas</option><option value="19">19 Cuotas fijas</option><option value="20">20 Cuotas fijas</option><option value="21">21 Cuotas fijas</option><option value="22">22 Cuotas fijas</option><option value="23">23 Cuotas fijas</option><option value="24">24 Cuotas fijas</option>
                     </select>
-                </div> 
+                </div>
 
-                <div class="form-group avanzado-only" id="boxDebitoAuto" style="display:none;"><label>¿Débito Automático?</label>
+                <div class="form-group avanzado-only" id="boxDebitoAuto" style="display:none;"><label for="inputDebitoAuto">¿Débito Automático?</label>
                     <select id="inputDebitoAuto">
                         <option value="NO">No</option>
                         <option value="SI">Sí, adherido</option>
                     </select>
                 </div>
 
-                <div class="form-group avanzado-only" id="boxGastoCompartido" style="display:none;"><label>División del pago</label>
+                <div class="form-group avanzado-only" id="boxGastoCompartido" style="display:none;"><label for="inputDividir">División del pago</label>
                     <select id="inputDividir" onchange="toggleSelectAmigo()">
                         <option value="NO">100% Propio (Normal)</option>
                         <option value="PAGUE_50_TOTAL">Pagué solo mi mitad</option>
@@ -243,8 +174,8 @@
                         <option value="PAGO_OTRO_100_DEUDA">Pagaron por mí (Debo 100%)</option>
                     </select>
                 </div>
-                
-                <div class="form-group avanzado-only" id="boxSeleccionAmigo" style="display:none;"><label>¿Con quién?</label>
+
+                <div class="form-group avanzado-only" id="boxSeleccionAmigo" style="display:none;"><label for="inputAmigoAsignado">¿Con quién?</label>
                     <select id="inputAmigoAsignado"></select>
                 </div>
 
@@ -252,19 +183,9 @@
             </div>
         </div>
 
-        <div class="form-section avanzado-only" style="background: #e0f2fe; border: none;">
-            <h3 style="margin-top:0; color:#0369a1;">✉️ Enviar Flujo Disponible a la Billetera</h3>
-            <p style="font-size: 0.85em; margin-top:-5px; color:#0c4a6e;">Convierte el disponible del mes en capital real en tu Billetera Patrimonial.</p>
-            <div class="form-grid">
-                <div class="form-group"><label>Monto a Enviar</label><input type="number" step="any" id="ahorroMontoPesos" placeholder="0.00"></div>
-                <div class="form-group"><label>Destino</label>
-                    <select id="ahorroDestinoMoneda">
-                        <option value="ARS">Ahorro en Pesos (ARS)</option>
-                        <option value="USD">Ahorro en Dólares (USD)</option>
-                    </select>
-                </div>
-                <button class="btn-verde" style="height:46px;" onclick="ejecutarEnvioAhorro()">Procesar Envío</button>
-            </div>
+        <div class="form-section" style="background: #e0f2fe; border: none;">
+            <h3 style="margin-top:0; color:#0369a1;">ℹ️ Pesos en Billetera</h3>
+            <p style="font-size: 0.85em; margin-top:-5px; color:#0c4a6e;">El Disponible de cada mes se suma solo al pool de Pesos de la pestaña "Inversiones" cuando ese mes ya pasó — no hace falta enviarlo a mano.</p>
         </div>
 
         <h2>Detalle de Movimientos del Mes</h2>
@@ -279,7 +200,7 @@
     <!-- PESTAÑA DETALLE GASTOS (SOLO AVANZADO) -->
     <div id="tab-detalle-gastos" class="tab-content avanzado-only">
         <h2>🧾 Análisis de Obligaciones del Mes</h2>
-        
+
         <h3 style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">💳 Tarjetas de Crédito (Cuotas a pagar este mes)</h3>
         <table>
             <thead><tr><th>Texto</th><th>Cuota Mes</th><th>Valor Cuota</th><th>Saldo Restante Deuda</th><th>Compartido</th><th>Deuda Asoc.</th><th>Acción</th></tr></thead>
@@ -295,74 +216,122 @@
         <div class="totales-footer" id="lblTotalServicios">Total Servicios: $0.00</div>
     </div>
 
-    <!-- PESTAÑA BILLETERA -->
-    <div id="tab-ahorros" class="tab-content">
-        <h2>🏦 Mi Balance General</h2>
-        <div class="dashboard-grid">
-            <div class="card" style="background:#f8fafc;"><h3>Pesos</h3><p style="color:#10b981;">$<span id="walletPesos">0</span></p><span class="porcentaje">Efectivo Líquido</span></div>
-            <div class="card" style="background:#f8fafc;"><h3>Dólares</h3><p style="color:#f59e0b;">US$ <span id="walletDolares">0</span></p><span class="porcentaje">Efectivo Líquido</span></div>
-            <div class="card" style="background:#ecfdf5; border-left-color:#10b981;">
-                <h3>Invertido (ARS)</h3><p>$<span id="invTotalPesos">0</span></p>
-                <span class="porcentaje" id="invRendPesos" style="font-size: 1em;">0%</span>
+    <!-- PESTAÑA INVERSIONES (unifica Billetera + Gráficos) -->
+    <div id="tab-inversiones" class="tab-content">
+        <h2>💹 Inversiones</h2>
+
+        <!-- CARDS RESUMEN: Pesos siempre, el resto solo si hay saldo -->
+        <div class="dashboard-grid" id="dashboard-inversiones"></div>
+
+        <!-- GRÁFICO: últimos 6 meses, con checks de qué series ver -->
+        <div class="form-section" style="background:#f8fafc;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:10px;">
+                <h3 style="margin:0;">📈 Evolución (últimos 6 meses)</h3>
+                <div id="chkSeriesGrafico" style="display:flex; gap:20px; flex-wrap:wrap;"></div>
             </div>
-            <div class="card" style="background:#fffbeb; border-left-color:#f59e0b;">
-                <h3>Invertido (USD)</h3><p>US$ <span id="invTotalDolares">0</span></p>
-                <span class="porcentaje" id="invRendDolares" style="font-size: 1em;">0%</span>
-            </div>
+            <div class="chart-container" style="height:320px;"><canvas id="patrimonioChart"></canvas></div>
         </div>
 
+        <!-- MOVIMIENTO: Inversión o Retiro -->
         <div class="form-section">
-            <h3 style="margin-top:0; color:#334155;">💵 Inyección de Capital Existente</h3>
-            <div class="form-grid">
-                <div class="form-group"><label>Monto a Sumar</label><input type="number" step="any" id="ajusteMonto"></div>
-                <div class="form-group"><label>Moneda</label>
-                    <select id="ajusteMoneda"><option value="ARS">Pesos (ARS)</option><option value="USD">Dólares (USD)</option></select>
+            <div class="form-group" style="max-width:280px; margin-bottom:20px;">
+                <label for="invMovimiento">Movimiento</label>
+                <select id="invMovimiento" onchange="toggleMovimientoInversion()">
+                    <option value="INVERSION">Inversión</option>
+                    <option value="RETIRO">Retiro</option>
+                </select>
+            </div>
+
+            <!-- SECCIÓN INVERSIÓN -->
+            <div id="seccionInversion">
+                <h3 style="margin-top:0; color:#334155;">Inversión</h3>
+                <div class="form-grid">
+                    <div class="form-group" id="boxInvOrigen"><label for="invOrigen">Origen de los Fondos</label>
+                        <select id="invOrigen" onchange="evaluarCamposInversion()">
+                            <option value="PESOS">Pesos</option>
+                            <option value="DOLARES">Dólares</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label for="invInstrumentoNuevo">Instrumento</label>
+                        <select id="invInstrumentoNuevo" onchange="evaluarCamposInversion()">
+                            <option value="Dólares">Dólares</option>
+                            <option value="S&P 500">S&P 500</option>
+                            <option value="Plazo Fijo">Plazo Fijo Bancario</option>
+                            <option value="Mercado Pago">FCI Mercado Pago</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label id="lblInvMontoNuevo" for="invMontoNuevo">Pesos a Invertir</label><input type="number" step="any" id="invMontoNuevo" oninput="evaluarCamposInversion()"></div>
+
+                    <div class="form-group" id="boxInvCotizacionDolar" style="display:none;"><label for="invCotizacionDolar">Cotización de Compra</label><input type="number" step="any" id="invCotizacionDolar" placeholder="$ por USD"></div>
+
+                    <div class="form-group" id="boxInvNominales" style="display:none;"><label for="invNominalesNuevo">Nominales</label><input type="number" step="any" id="invNominalesNuevo"></div>
+
+                    <div class="form-group" id="boxInvInteres" style="display:none;"><label for="invInteresNuevo">Tasa Int. Anual (%)</label><input type="number" step="any" id="invInteresNuevo" placeholder="TNA"></div>
+
+                    <div class="form-group"><label for="invFechaNueva">Fecha</label><input type="date" id="invFechaNueva"></div>
+                    <button style="background-color: #f59e0b; color: white; height:46px;" onclick="ejecutarInversionNueva()">Invertir</button>
                 </div>
-                <button class="btn-secundario" style="height:46px;" onclick="ingresarSaldoExistente()">Inyectar Saldo</button>
+            </div>
+
+            <!-- SECCIÓN RETIRO -->
+            <div id="seccionRetiro" style="display:none;">
+                <h3 style="margin-top:0; color:#334155;">Retiro</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label for="retInstrumento">Moneda / Instrumento</label>
+                        <select id="retInstrumento" onchange="evaluarCamposRetiro()">
+                            <option value="Dólares">Dólares</option>
+                            <option value="S&P 500">S&P 500</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="boxRetMontoUsd"><label for="retMontoUsd">Monto (US$)</label><input type="number" step="any" id="retMontoUsd"></div>
+
+                    <div class="form-group" id="boxRetSp" style="display:none;">
+                        <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:8px;">
+                            <input type="checkbox" id="retCargarNominales" onchange="evaluarCamposRetiro()"> Cargar nominales exactos
+                        </label>
+                        <div class="form-group" id="boxRetMontoUsdSp"><label for="retMontoUsdSp">Valor en US$ a Retirar</label><input type="number" step="any" id="retMontoUsdSp"></div>
+                        <div class="form-group" id="boxRetNominalesExactos" style="display:none;"><label for="retNominalesExactos">Nominales Exactos</label><input type="number" step="any" id="retNominalesExactos"></div>
+                    </div>
+
+                    <button style="background-color: #ef4444; color: white; height:46px;" onclick="ejecutarRetiroNuevo()">Retirar</button>
+                </div>
             </div>
         </div>
 
-        <div class="form-section" style="background: #fffbeb; border: none;">
-            <h3 style="margin-top:0; color:#b45309;">📈 Colocar Dinero en Inversión</h3>
-            <div class="form-grid">
-                <div class="form-group"><label>Capital a Invertir</label><input type="number" step="any" id="invMonto"></div>
-                <div class="form-group"><label>Moneda</label>
-                    <select id="invMoneda" onchange="toggleCamposInversion()"><option value="ARS">Pesos (ARS)</option><option value="USD">Dólares (USD)</option></select>
-                </div>
-                <div class="form-group"><label>Instrumento</label>
-                    <select id="invInstrumento" onchange="toggleCamposInversion()">
-                        <option value="Plazo Fijo">Plazo Fijo Bancario</option>
-                        <option value="Mercado Pago">FCI Mercado Pago</option>
-                        <option value="S&P 500">S&P 500</option>
-                    </select>
-                </div>
-                <div class="form-group" id="grupoInteres"><label>Tasa Int. Anual (%)</label><input type="number" step="any" id="invInteres" placeholder="TNA"></div>
-                
-                <div class="form-group" id="grupoCotizacionMercado" style="display:none; justify-content:center; padding-top: 5px;">
-                    <span style="font-size:0.85em; color:#64748b;">Referencia de Mercado API:</span>
-                    <span id="lblPrecioMercado" style="font-size:1.1em; font-weight:800; color:#1e3a8a;">Cargando...</span>
-                </div>
-
-                <div class="form-group"><label>Fecha</label><input type="date" id="invFecha"></div>
-                <button style="background-color: #f59e0b; color: white; height:46px;" onclick="ejecutarInversion()">Colocar Fondos</button>
-            </div>
-        </div>
-
-        <h2>Portafolio Detallado de Inversiones Activas</h2>
+        <h2>Posiciones Activas (Plazo Fijo / Mercado Pago)</h2>
         <table>
-            <thead><tr><th>Fecha Alta</th><th>Instrumento</th><th>Capital Inicial</th><th style="color:#1e3a8a;">Valor Actualizado</th><th>Detalle</th><th>Acción</th></tr></thead>
+            <thead><tr><th>Fecha Alta</th><th>Instrumento</th><th>Capital Inicial</th><th style="color:#1e3a8a;">Valor Actualizado</th><th>Tasa</th><th>Acción</th></tr></thead>
             <tbody id="tablaInversiones"></tbody>
         </table>
+
+        <h2>Detalle</h2>
+        <div class="historico-selector" style="background:#f1f5f9; color:#1e3a8a;">
+            <label style="margin:0;">Instrumento:</label>
+            <select id="filtroDetalleInstrumento" onchange="actualizarFiltrosDetalle()">
+                <option value="TODOS">Todos</option>
+                <option value="Dólares">Dólares</option>
+                <option value="S&P 500">S&P 500</option>
+                <option value="Plazo Fijo">Plazo Fijo</option>
+                <option value="Mercado Pago">Mercado Pago</option>
+            </select>
+            <label style="margin:0;">Año:</label>
+            <select id="filtroDetalleAnio" onchange="actualizarFiltrosDetalle()"></select>
+        </div>
+        <table>
+            <thead><tr><th>Mov</th><th>Pesos Invertidos</th><th>Instrumento</th><th>Monto</th><th>Fecha</th></tr></thead>
+            <tbody id="tablaDetalleInversiones"></tbody>
+        </table>
     </div>
+
 
     <!-- PESTAÑA CUENTAS POR COBRAR -->
     <div id="tab-cuentas" class="tab-content">
         <h2>🤝 Gestión de Gastos Compartidos y Deudas</h2>
-        
+
         <div class="form-section avanzado-only" style="background: #faf5ff; border: none;">
             <h3 style="margin-top:0; color:#7e22ce;">👤 Crear Nueva Persona</h3>
             <div class="form-grid">
-                <div class="form-group"><label>Nombre de la Persona</label><input type="text" id="nuevoAmigoNombre" placeholder="Ej: Juan"></div>
+                <div class="form-group"><label for="nuevoAmigoNombre">Nombre de la Persona</label><input type="text" id="nuevoAmigoNombre" placeholder="Ej: Juan"></div>
                 <button style="background-color: #9333ea; height:46px;" onclick="crearPersonaDeuda()">Registrar Persona</button>
             </div>
         </div>
@@ -391,12 +360,6 @@
 
     </div>
 
-    <!-- PESTAÑA GRÁFICOS -->
-    <div id="tab-graficos" class="tab-content">
-        <h2>📈 Evolución Histórica de Inversiones</h2>
-        <div class="chart-container"><canvas id="patrimonioChart"></canvas></div>
-    </div>
-
     <div class="footer-peligro">
         <button style="background-color: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 800; font-size:1em; transition: 0.2s;" onclick="resetearApp()" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
             ⚠️ Blanquear Todos mis Datos (Reset)
@@ -404,748 +367,7 @@
     </div>
 </div>
 
-<script>
-    // ==========================================
-    // ⚙️ CONFIGURACIÓN DE FIREBASE
-    // ==========================================
-      const firebaseConfig = {
-          apiKey: "AIzaSyD6b5jRsGPzKmwB-M-cDbyn1qQCAdN5ecE",
-          authDomain: "gastos-a56f7.firebaseapp.com",
-          projectId: "gastos-a56f7",
-          storageBucket: "gastos-a56f7.firebasestorage.app",
-          messagingSenderId: "537729737132",
-          appId: "1:537729737132:web:2423ab40ff20fef30b9a09"
-      };
-    // ==========================================
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    let todosLosMovimientos = [];
-    let suscripciones = []; 
-    let patrimonio = { pesos: 0, dolares: 0 };
-    let inversiones = [];
-    let listaAmigos = [];
-    let perfilUsuario = { nombre: "Usuario", modo: "" };
-    
-    let movimientosMesGlobal = [];
-    let keyMesActualGlobal = "";
-    
-    let mercado = { spy_ars: 17000, spy_usd: 540, mpTna: 17.5 };
-
-    const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-    const fechaActual = new Date();
-    document.getElementById('inputFecha').valueAsDate = fechaActual;
-    document.getElementById('invFecha').valueAsDate = fechaActual;
-    let miGrafico = null;
-
-    function generarId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
-
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            inicializarSelectorHistorico();
-            inicializarMercado(); 
-            cargarDatosDesdeNube(user.uid);
-        } else {
-            document.getElementById('auth-section').style.display = 'block';
-            document.getElementById('main-app').style.display = 'none';
-        }
-    });
-
-    async function inicializarMercado() {
-        try { let res = await fetch("https://api.argentinadatos.com/v1/finanzas/rendimientos/fci"); let data = await res.json(); let mp = data.find(f => f.fondo.toLowerCase().includes("mercado")); if(mp && mp.tna) mercado.mpTna = (mp.tna * 100).toFixed(1); } catch(e) {}
-        try { let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/SPY.BA")); let data = await res.json(); if(data.chart.result) { let p = data.chart.result[0].meta.regularMarketPrice; if(p > 100000) p /= 10; mercado.spy_ars = p; } } catch(e) {}
-        try { let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/SPY")); let data = await res.json(); if(data.chart.result) mercado.spy_usd = data.chart.result[0].meta.regularMarketPrice; } catch(e) {}
-        toggleCamposInversion(); actualizarApp(); 
-    }
-
-    function registrarUsuario() {
-        const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value;
-        if(!email || !pass) return; auth.createUserWithEmailAndPassword(email, pass).then(()=>alert("Creado!")).catch(e=>alert(e.message));
-    }
-    function loginUsuario() {
-        const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value;
-        if(!email || !pass) return; auth.signInWithEmailAndPassword(email, pass).catch(e=>alert(e.message));
-    }
-    function logoutUsuario() { if(confirm("¿Salir?")) auth.signOut(); }
-    
-    // --- GESTIÓN DE PERFILES Y MODOS ---
-    function cargarDatosDesdeNube(uid) {
-        db.collection("usuarios").doc(uid).onSnapshot(doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                todosLosMovimientos = data.todosLosMovimientos || [];
-                suscripciones = data.suscripciones || [];
-                patrimonio = data.patrimonio || { pesos: 0, dolares: 0 };
-                inversiones = data.inversiones || [];
-                listaAmigos = data.listaAmigos || [];
-                
-                if (data.perfilUsuario) {
-                    perfilUsuario = data.perfilUsuario;
-                }
-                // Si venía de una versión anterior que no tenía 'modo' guardado
-                if (typeof perfilUsuario.modo === "undefined") {
-                    perfilUsuario.modo = "";
-                }
-            }
-            
-            document.getElementById('userNameDisplay').innerText = perfilUsuario.nombre;
-            document.getElementById('profileNameInput').value = perfilUsuario.nombre;
-            
-            if (perfilUsuario.modo === "") {
-                document.getElementById('onboarding-modal').style.display = 'flex';
-            } else {
-                document.getElementById('onboarding-modal').style.display = 'none';
-                document.getElementById('profileModoInput').value = perfilUsuario.modo;
-            }
-
-            actualizarSelectAmigosDisplay(); 
-            aplicarFiltrosDeModo();
-            actualizarApp();
-        });
-    }
-
-    function guardarModoDesdeOnboarding(modoElegido) {
-        perfilUsuario.modo = modoElegido;
-        document.getElementById('onboarding-modal').style.display = 'none';
-        document.getElementById('profileModoInput').value = modoElegido;
-        guardarDatosEnNube();
-    }
-
-    function guardarCambiosDesdePerfil() {
-        let n = document.getElementById('profileNameInput').value;
-        if(n) perfilUsuario.nombre = n;
-        
-        perfilUsuario.modo = document.getElementById('profileModoInput').value;
-        
-        guardarDatosEnNube();
-        aplicarFiltrosDeModo();
-        actualizarApp();
-        alert("Perfil actualizado correctamente.");
-    }
-
-    function guardarNombrePerfil() {
-        guardarCambiosDesdePerfil();
-    }
-
-    function aplicarFiltrosDeModo() {
-        let esAvanzado = (perfilUsuario.modo === "AVANZADO");
-        
-        if (esAvanzado) {
-            document.body.classList.remove('modo-basico');
-        } else {
-            document.body.classList.add('modo-basico');
-            
-            // Si estaba parado en la pestaña Detalles, lo devuelvo al inicio
-            if (document.getElementById('tab-detalle-gastos').classList.contains('active')) {
-                document.querySelector('.tab-button').click();
-            }
-        }
-
-        document.getElementById('lblConceptoTexto').innerText = esAvanzado ? "Texto" : "Concepto";
-        document.getElementById('inputConcepto').placeholder = esAvanzado ? "Ej: Compra Coto, Cena..." : "Ej: Sueldo, Supermercado...";
-
-        if(!esAvanzado) {
-            document.getElementById('tituloDeudaUnica').style.display = "block";
-            document.getElementById('tablaDeudaUnica').style.display = "block";
-        } else {
-            document.getElementById('tituloDeudaUnica').style.display = "none";
-            document.getElementById('tablaDeudaUnica').style.display = "none";
-        }
-
-        evaluarCamposDinamicosGasto();
-    }
-
-    function togglePerfilPanel() {
-        let p = document.getElementById('profile-section');
-        p.style.display = p.style.display === "block" ? "none" : "block";
-    }
-    function cambiarPasswordPerfil() {
-        let n = document.getElementById('profilePasswordInput').value;
-        if(n.length < 6) return alert("Mínimo 6 chars");
-        auth.currentUser.updatePassword(n).then(() => { alert("Clave cambiada"); togglePerfilPanel(); }).catch(()=>alert("Volvé a iniciar sesión"));
-    }
-
-    function guardarDatosEnNube() {
-        if(auth.currentUser) db.collection("usuarios").doc(auth.currentUser.uid).set({
-            todosLosMovimientos: todosLosMovimientos, suscripciones: suscripciones,
-            patrimonio: patrimonio, inversiones: inversiones, listaAmigos: listaAmigos, perfilUsuario: perfilUsuario
-        }, { merge: true });
-    }
-
-    // --- FORMULARIO Y LÓGICA DE CARGA ---
-    function evaluarCamposDinamicosGasto() {
-        let t = document.getElementById('inputTipo').value;
-        let esGasto = (t !== "Ingreso");
-        let esAvanzado = (perfilUsuario.modo === "AVANZADO");
-
-        if (!esGasto || !esAvanzado) {
-            document.getElementById('boxMetodoPago').style.display = "none";
-            document.getElementById('boxPlanCuotas').style.display = "none";
-            document.getElementById('boxDebitoAuto').style.display = "none";
-            document.getElementById('boxGastoCompartido').style.display = "none";
-            document.getElementById('boxSeleccionAmigo').style.display = "none";
-            
-            document.getElementById('inputMetodoPago').value = "EN_EL_ACTO";
-            document.getElementById('inputCuotas').value = "1";
-            document.getElementById('inputDebitoAuto').value = "NO";
-            document.getElementById('inputDividir').value = "NO";
-            return;
-        }
-
-        document.getElementById('boxMetodoPago').style.display = "block";
-        document.getElementById('boxGastoCompartido').style.display = "block";
-        
-        let m = document.getElementById('inputMetodoPago').value;
-        document.getElementById('boxPlanCuotas').style.display = (m === "CREDITO") ? "block" : "none";
-        document.getElementById('boxDebitoAuto').style.display = (m === "SERVICIO") ? "block" : "none";
-        
-        if(m !== "CREDITO") document.getElementById('inputCuotas').value = "1";
-        toggleSelectAmigo();
-    }
-
-    function toggleSelectAmigo() {
-        if (perfilUsuario.modo !== "AVANZADO") return;
-        let d = document.getElementById('inputDividir').value;
-        document.getElementById('boxSeleccionAmigo').style.display = (d !== "NO") ? "block" : "none";
-    }
-
-    function crearPersonaDeuda() {
-        let n = document.getElementById('nuevoAmigoNombre').value.trim();
-        if(!n || listaAmigos.includes(n)) return;
-        listaAmigos.push(n); document.getElementById('nuevoAmigoNombre').value = "";
-        actualizarSelectAmigosDisplay(); guardarDatosEnNube(); actualizarApp();
-    }
-    function actualizarSelectAmigosDisplay() {
-        let s = document.getElementById('inputAmigoAsignado'); s.innerHTML = '';
-        listaAmigos.forEach(am => { let o = document.createElement('option'); o.value = am; o.text = am; s.appendChild(o); });
-    }
-    function ingresarSaldoExistente() {
-        let m = parseFloat(document.getElementById('ajusteMonto').value); let mon = document.getElementById('ajusteMoneda').value;
-        if(!m || m <= 0) return;
-        if(mon === "ARS") patrimonio.pesos += m; else patrimonio.dolares += m;
-        document.getElementById('ajusteMonto').value = ""; actualizarApp(); guardarDatosEnNube();
-    }
-
-    function agregarMovimiento() {
-        let montoTotal = parseFloat(document.getElementById('inputMonto').value);
-        let tipo = document.getElementById('inputTipo').value;
-        let concepto = document.getElementById('inputConcepto').value.trim();
-        let fechaBaseStr = document.getElementById('inputFecha').value;
-        if(!montoTotal || !concepto || !fechaBaseStr) return alert("Completá los campos obligatorios");
-
-        let esAvanzado = (perfilUsuario.modo === "AVANZADO");
-        let cuotas = esAvanzado ? (parseInt(document.getElementById('inputCuotas').value) || 1) : 1;
-        let metodoP = esAvanzado ? document.getElementById('inputMetodoPago').value : "EN_EL_ACTO";
-        let debAuto = esAvanzado ? document.getElementById('inputDebitoAuto').value : "NO";
-        let dividir = esAvanzado ? document.getElementById('inputDividir').value : "NO";
-        let amigo = esAvanzado ? document.getElementById('inputAmigoAsignado').value : "";
-        
-        if(dividir !== "NO" && !amigo) return alert("Elegí una persona para dividir");
-
-        let idGrupoPrincipal = generarId(); 
-
-        if (metodoP === "SERVICIO" && tipo !== "Ingreso") {
-            let fBaseObj = new Date(fechaBaseStr + 'T00:00:00');
-            let keyMes = `${fBaseObj.getFullYear()}-${(fBaseObj.getMonth()+1).toString().padStart(2,'0')}`;
-            suscripciones.push({
-                id: idGrupoPrincipal, concepto: concepto, tipo: tipo, fechaAlta: fechaBaseStr, mesBaja: null,
-                metodo: "SERVICIO", debito: debAuto, dividir: dividir, amigo: amigo,
-                montosPorMes: { [keyMes]: montoTotal }, pagosAmigo: []
-            });
-        } else {
-            let montoPorCuota = montoTotal / cuotas;
-            for (let i = 0; i < cuotas; i++) {
-                let f = new Date(fechaBaseStr + 'T00:00:00'); f.setMonth(f.getMonth() + i);
-                let fechaF = `${f.getFullYear()}-${(f.getMonth()+1).toString().padStart(2,'0')}-${f.getDate().toString().padStart(2,'0')}`;
-                let conceptoF = (cuotas > 1) ? `${concepto} (${i+1}/${cuotas})` : concepto;
-                
-                let objBase = { 
-                    id: generarId(), idGrupo: idGrupoPrincipal, monto: montoPorCuota, tipo: tipo, concepto: conceptoF, 
-                    fecha: fechaF, metodo: metodoP, cuotaActual: i+1, cuotasTotales: cuotas, 
-                    deudaRestante: montoTotal - (montoPorCuota * (i + 1)), esVirtual: false
-                };
-                
-                if(tipo === "Ingreso") {
-                    todosLosMovimientos.push(objBase);
-                } else {
-                    let registrarDeuda = false; let mDeuda = 0; let tDeuda = ""; 
-                    
-                    if (dividir === "PAGUE_50_TOTAL") {
-                        objBase.monto = montoPorCuota/2; todosLosMovimientos.push(objBase);
-                    } else if (dividir === "PAGUE_50_INTEGRO") {
-                        objBase.monto = montoPorCuota/2; todosLosMovimientos.push(objBase);
-                        let vAdelanto = {...objBase, id: generarId(), monto: montoPorCuota/2, tipo: "Gasto Variable", concepto: `Adelanto a ${amigo}: ${conceptoF}`};
-                        todosLosMovimientos.push(vAdelanto);
-                        registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "A_FAVOR";
-                    } else if (dividir === "PAGO_OTRO_50") {
-                        registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "EN_CONTRA";
-                    } else if (dividir === "PAGUE_100_DEUDA") {
-                        objBase.monto = montoPorCuota; objBase.tipo = "Gasto Variable"; objBase.concepto = `Adelanto a ${amigo}: ${conceptoF}`;
-                        todosLosMovimientos.push(objBase);
-                        registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "A_FAVOR";
-                    } else if (dividir === "PAGO_OTRO_100_DEUDA") {
-                        registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "EN_CONTRA";
-                    } else {
-                        todosLosMovimientos.push(objBase);
-                    }
-
-                    if(registrarDeuda) {
-                        todosLosMovimientos.push({ 
-                            id: generarId(), idGrupo: idGrupoPrincipal, monto: mDeuda, tipo: "Cuenta Cobrar", 
-                            concepto: tDeuda === "A_FAVOR" ? `Te debe por: ${conceptoF}` : `Le debés por: ${conceptoF}`, 
-                            fecha: fechaF, deudor: amigo, sentido: tDeuda, estado: "Pendiente", metodo: metodoP, esVirtual: false 
-                        });
-                    }
-                }
-            }
-        }
-        document.getElementById('inputMonto').value = ""; document.getElementById('inputConcepto').value = "";
-        actualizarApp(); guardarDatosEnNube();
-    }
-
-    // --- RENDERIZADO Y TABLEROS ---
-    function inicializarSelectorHistorico() {
-        let sel = document.getElementById('filtroMesAnio'); if(sel.innerHTML !== '') return;
-        let anio = fechaActual.getFullYear();
-        [anio-1, anio, anio+1].forEach(a => { nombresMeses.forEach((m, i) => {
-            let o = document.createElement('option'); o.value = `${a}-${i}`; o.text = `${m} ${a}`;
-            if(a === anio && i === fechaActual.getMonth()) o.selected = true; sel.appendChild(o);
-        });});
-    }
-
-    function cambiarPestaña(tabId, boton) {
-        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-        document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active'); boton.classList.add('active');
-        
-        let panelMes = document.getElementById('panel-selector-mes');
-        if(tabId === 'tab-ahorros' || tabId === 'tab-graficos') panelMes.style.display = 'none';
-        else panelMes.style.display = 'flex';
-
-        if (tabId === 'tab-graficos') renderizarGrafico();
-    }
-
-    function actualizarApp() {
-        let sel = document.getElementById('filtroMesAnio'); if(!sel.value) return;
-        let [aSel, mSel] = sel.value.split('-').map(Number);
-        keyMesActualGlobal = `${aSel}-${(mSel + 1).toString().padStart(2, '0')}`;
-        let fechaSelObj = new Date(aSel, mSel, 1);
-        let esAvanzado = (perfilUsuario.modo === "AVANZADO");
-
-        let filtrados = todosLosMovimientos.filter(mov => {
-            let f = new Date(mov.fecha + 'T00:00:00'); return f.getFullYear() === aSel && f.getMonth() === mSel;
-        });
-
-        let movsVirtuales = [];
-        if(esAvanzado) {
-            suscripciones.forEach(susc => {
-                let fAlta = new Date(susc.fechaAlta + 'T00:00:00'); let fAltaMesObj = new Date(fAlta.getFullYear(), fAlta.getMonth(), 1);
-                if (fechaSelObj < fAltaMesObj) return; 
-                if (susc.mesBaja) { let [bA, bM] = susc.mesBaja.split('-').map(Number); if (fechaSelObj >= new Date(bA, bM - 1, 1)) return; }
-
-                let montoActivo = 0; let diffKeys = Object.keys(susc.montosPorMes).sort();
-                for (let key of diffKeys) { let [kA, kM] = key.split('-').map(Number); if (new Date(kA, kM - 1, 1) <= fechaSelObj) montoActivo = susc.montosPorMes[key]; }
-                if (montoActivo === 0) return;
-
-                let vMov = { id: susc.id + "_" + keyMesActualGlobal, idGrupo: susc.id, monto: montoActivo, tipo: susc.tipo, concepto: susc.concepto, fecha: `${aSel}-${(mSel+1).toString().padStart(2,'0')}-01`, metodo: "SERVICIO", debito: susc.debito, dividir: susc.dividir, amigo: susc.amigo, esVirtual: true };
-
-                let registrarDeuda = false; let mDeuda = 0; let tDeuda = ""; 
-                if (susc.dividir === "PAGUE_50_TOTAL") { vMov.monto = montoActivo/2; } 
-                else if (susc.dividir === "PAGUE_50_INTEGRO") { vMov.monto = montoActivo/2; movsVirtuales.push({...vMov, id: generarId(), monto: montoActivo/2, tipo: "Gasto Variable", concepto: `Adelanto a ${susc.amigo}: ${susc.concepto}`}); registrarDeuda = true; mDeuda = montoActivo/2; tDeuda = "A_FAVOR"; } 
-                else if (susc.dividir === "PAGO_OTRO_50") { registrarDeuda = true; mDeuda = montoActivo/2; tDeuda = "EN_CONTRA"; } 
-                else if (susc.dividir === "PAGUE_100_DEUDA") { vMov.monto = montoActivo; vMov.tipo = "Gasto Variable"; vMov.concepto = `Adelanto a ${susc.amigo}: ${susc.concepto}`; registrarDeuda = true; mDeuda = montoActivo; tDeuda = "A_FAVOR"; } 
-                else if (susc.dividir === "PAGO_OTRO_100_DEUDA") { registrarDeuda = true; mDeuda = montoActivo; tDeuda = "EN_CONTRA"; }
-
-                if (susc.dividir !== "PAGO_OTRO_50" && susc.dividir !== "PAGO_OTRO_100_DEUDA") { movsVirtuales.push(vMov); }
-
-                if(registrarDeuda) {
-                    let yaPagado = (susc.pagosAmigo && susc.pagosAmigo.includes(keyMesActualGlobal));
-                    movsVirtuales.push({ id: susc.id + "_deuda_" + keyMesActualGlobal, idGrupo: susc.id, monto: mDeuda, tipo: "Cuenta Cobrar", concepto: tDeuda === "A_FAVOR" ? `Te debe por: ${susc.concepto}` : `Le debés por: ${susc.concepto}`, fecha: vMov.fecha, deudor: susc.amigo, sentido: tDeuda, estado: yaPagado ? "Saldado" : "Pendiente", metodo: "SERVICIO", esVirtual: true, mesClave: keyMesActualGlobal });
-                }
-            });
-        }
-
-        movimientosMesGlobal = filtrados.concat(movsVirtuales); 
-
-        // RENDER DASHBOARD DINÁMICO
-        let dashUI = document.getElementById('dashboard-dinamico');
-        let ing = 0, gastosEnActo = 0, gastosCredito = 0, gastosServicio = 0;
-        let gastosFijosBasic = 0, gastosVariablesBasic = 0;
-
-        movimientosMesGlobal.forEach(mov => {
-            if (mov.tipo === "Ingreso") ing += mov.monto;
-            if (mov.tipo === "Gasto Fijo" || mov.tipo === "Enviado a Ahorros") gastosFijosBasic += mov.monto;
-            if (mov.tipo === "Gasto Variable") gastosVariablesBasic += mov.monto;
-            
-            if (mov.tipo !== "Ingreso" && mov.tipo !== "Cuenta Cobrar") {
-                let mtd = mov.metodo || "EN_EL_ACTO";
-                if(mtd === "EN_EL_ACTO") gastosEnActo += mov.monto;
-                if(mtd === "CREDITO") gastosCredito += mov.monto;
-                if(mtd === "SERVICIO") gastosServicio += mov.monto;
-            }
-        });
-
-        if (esAvanzado) {
-            let dispReal = ing - gastosEnActo; let dispProy = ing - (gastosEnActo + gastosCredito + gastosServicio);
-            dashUI.innerHTML = `
-                <div class="card ingreso"><h3>Ingresos Totales</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-                <div class="card gasto" style="background:#fffbeb; border-left-color:#f59e0b;"><h3>Pagado (En Acto)</h3><p style="color:#d97706;">$${gastosEnActo.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Dinero que ya salió hoy.</span></div>
-                <div class="card gasto"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${(gastosCredito + gastosServicio).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Deudas del mes a pagar.</span></div>
-                <div class="card ahorro" style="grid-column: span 3; background:#f1f5f9; border-color: #94a3b8; display: flex; justify-content: space-around; align-items: center; padding: 20px;">
-                    <div><h3 style="margin-top:0;">Disponible Real (Bolsillo)</h3><p style="color:#10b981; font-size:1.6em;">$${dispReal.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-                    <div><h3 style="margin-top:0;">Disponible Proyectado</h3><p style="color:#ef4444; font-size:1.6em;">$${dispProy.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-                    <span class="porcentaje" style="position: absolute; bottom: 5px; width: 100%; text-align: center; font-weight:normal;">Real = Plata en mano hoy. Proyectado = Lo que quedará al pagar las deudas del mes.</span>
-                </div>
-            `;
-        } else {
-            let dispBasic = ing - (gastosFijosBasic + gastosVariablesBasic);
-            dashUI.innerHTML = `
-                <div class="card ingreso"><h3>Ingresos</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-                <div class="card gasto"><h3>Gastos Fijos</h3><p>$${gastosFijosBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-                <div class="card gasto"><h3>Gastos Variables</h3><p>$${gastosVariablesBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-                <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${dispBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Lo que te queda en el mes.</span></div>
-            `;
-        }
-
-        // RENDER TABLA FLUJO
-        let tabla = document.getElementById('tablaMovimientos'); tabla.innerHTML = '';
-        let thead = document.getElementById('headTablaMovimientos');
-        if (esAvanzado) {
-            thead.innerHTML = `<tr><th>Fecha</th><th>Texto</th><th>Método</th><th>Monto Total</th><th>Compartido</th><th>Deuda Asoc.</th><th>Acción</th></tr>`;
-            
-            let gruposUI = {};
-            movimientosMesGlobal.forEach(mov => {
-                if (mov.tipo === "Cuenta Cobrar") return; 
-                if (!gruposUI[mov.idGrupo]) {
-                    gruposUI[mov.idGrupo] = { ...mov, montoTotalAgrupado: 0, esCompartido: "NO", montoAdeudado: 0, conceptoOriginal: mov.concepto.replace(/^Adelanto a .*?: /, '') };
-                }
-                gruposUI[mov.idGrupo].montoTotalAgrupado += mov.monto;
-            });
-            movimientosMesGlobal.forEach(mov => {
-                if (mov.tipo === "Cuenta Cobrar" && gruposUI[mov.idGrupo]) {
-                    gruposUI[mov.idGrupo].esCompartido = "SÍ"; gruposUI[mov.idGrupo].montoAdeudado += mov.monto;
-                }
-            });
-            
-            [...Object.values(gruposUI)].reverse().forEach(mov => {
-                if(mov.tipo === "Ingreso" && mov.monto === 0) return;
-                let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-                let mtdText = mov.metodo === "CREDITO" ? "💳 Crédito" : (mov.metodo === "SERVICIO" ? "🔌 Servicio" : "💵 En el Acto");
-                let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0ea5e9; font-weight:bold;">SÍ</span>` : "No";
-                let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#ef4444;">$${mov.montoAdeudado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>` : "-";
-                tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.conceptoOriginal}</td><td>${mtdText}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="${mov.esVirtual ? `darDeBajaServicio('${mov.idGrupo}')` : `borrarMovimientoReal('${mov.idGrupo}')`}">X</button></td></tr>`;
-            });
-        } else {
-            thead.innerHTML = `<tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Monto</th><th>Acción</th></tr>`;
-            [...movimientosMesGlobal].reverse().forEach(mov => {
-                if(mov.tipo === "Cuenta Cobrar") return; 
-                let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-                tabla.innerHTML += `<tr><td>${ff}</td><td>${mov.concepto}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X</button></td></tr>`;
-            });
-        }
-
-        // RENDER DETALLES GASTOS (SOLO AVANZADO)
-        if (esAvanzado) {
-            let tbCredito = document.getElementById('tablaCreditos'); tbCredito.innerHTML = '';
-            let tbServ = document.getElementById('tablaServicios'); tbServ.innerHTML = '';
-            let totalCredAgrup = 0, totalServAgrup = 0;
-            
-            let gruposUI = {};
-            movimientosMesGlobal.forEach(mov => {
-                if (mov.tipo === "Cuenta Cobrar") return; 
-                if (!gruposUI[mov.idGrupo]) {
-                    gruposUI[mov.idGrupo] = { ...mov, montoTotalAgrupado: 0, esCompartido: "NO", montoAdeudado: 0, conceptoOriginal: mov.concepto.replace(/^Adelanto a .*?: /, '') };
-                }
-                gruposUI[mov.idGrupo].montoTotalAgrupado += mov.monto;
-            });
-            movimientosMesGlobal.forEach(mov => {
-                if (mov.tipo === "Cuenta Cobrar" && gruposUI[mov.idGrupo]) {
-                    gruposUI[mov.idGrupo].esCompartido = "SÍ"; gruposUI[mov.idGrupo].montoAdeudado += mov.monto;
-                }
-            });
-
-            Object.values(gruposUI).forEach(mov => {
-                if(mov.tipo === "Ingreso") return;
-                let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0ea5e9; font-weight:bold;">SÍ</span>` : "No";
-                let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#ef4444;">$${mov.montoAdeudado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>` : "-";
-
-                if(mov.metodo === "CREDITO") {
-                    totalCredAgrup += mov.montoTotalAgrupado;
-                    let saldoRest = mov.deudaRestante || 0;
-                    tbCredito.innerHTML += `<tr><td>${mov.conceptoOriginal}</td><td>${mov.cuotaActual}/${mov.cuotasTotales}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:#ef4444; font-weight:bold;">$${saldoRest.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X Todo</button></td></tr>`;
-                }
-                if(mov.metodo === "SERVICIO") {
-                    totalServAgrup += mov.montoTotalAgrupado;
-                    let prevMonthDate = new Date(aSel, mSel - 1, 1);
-                    let montoPasado = null; let variacionHtml = "-";
-                    let suscObj = suscripciones.find(s => s.id === mov.idGrupo);
-                    if(suscObj) {
-                        let dKeys = Object.keys(suscObj.montosPorMes).sort();
-                        for (let key of dKeys) { let [kA, kM] = key.split('-').map(Number); if (new Date(kA, kM - 1, 1) <= prevMonthDate) montoPasado = suscObj.montosPorMes[key]; }
-                    }
-                    if(montoPasado !== null) {
-                        let diff = mov.montoTotalAgrupado - montoPasado;
-                        if(diff > 0) variacionHtml = `<span style="color:#ef4444; font-weight:bold;">▲ +${((diff/montoPasado)*100).toFixed(1)}%</span>`;
-                        else if(diff < 0) variacionHtml = `<span style="color:#10b981; font-weight:bold;">▼ -${((Math.abs(diff)/montoPasado)*100).toFixed(1)}%</span>`;
-                        else variacionHtml = `<span style="color:#94a3b8; font-weight:bold;">= Igual</span>`;
-                    } else { variacionHtml = `<span style="color:#3b82f6; font-style:italic;">Nuevo</span>`; }
-                    
-                    let debStr = mov.debito === "SI" ? "✅ Sí" : "❌ No";
-                    tbServ.innerHTML += `<tr><td>${mov.conceptoOriginal}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="editarMontoServicio('${mov.idGrupo}', ${mov.montoTotalAgrupado})">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
-                }
-            });
-            document.getElementById('lblTotalCreditos').innerText = `Total Tarjetas: $${totalCredAgrup.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            document.getElementById('lblTotalServicios').innerText = `Total Servicios: $${totalServAgrup.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-        }
-
-        // BILLETERA PATRIMONIAL
-        document.getElementById('walletPesos').innerText = patrimonio.pesos.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
-        document.getElementById('walletDolares').innerText = patrimonio.dolares.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
-
-        let totalInvARS = 0, capInvARS = 0, totalInvUSD = 0, capInvUSD = 0;
-        let hoyLimpiada = new Date(); hoyLimpiada.setHours(0,0,0,0);
-        let tablaInv = document.getElementById('tablaInversiones'); tablaInv.innerHTML = '';
-        inversiones.forEach((inv, index) => {
-            let sim = inv.moneda === "ARS" ? "$" : "US$";
-            let fDate = new Date(inv.fecha + 'T00:00:00'); let ff = `${fDate.getDate().toString().padStart(2,'0')}/${(fDate.getMonth()+1).toString().padStart(2,'0')}/${fDate.getFullYear()}`;
-            let dias = Math.max(0, Math.round((hoyLimpiada - fDate) / (1000 * 60 * 60 * 24)));
-            let valorAct = inv.monto; let colDetalle = "";
-
-            if(inv.instrumento === "S&P 500") {
-                valorAct = (inv.nominales || 0) * (inv.moneda === "ARS" ? mercado.spy_ars : mercado.spy_usd);
-                colDetalle = `<strong>${(inv.nominales||0).toFixed(4)} Nom.</strong>`;
-            } else {
-                let tna = inv.interes || (inv.moneda === "ARS" ? mercado.mpARS : mercado.mpUSD);
-                valorAct = inv.monto + (inv.monto * (tna / 100) * (dias / 365));
-                colDetalle = `<span>${tna}% TNA (${dias} días)</span>`;
-            }
-
-            if(inv.moneda === "ARS") { totalInvARS += valorAct; capInvARS += inv.monto; } else { totalInvUSD += valorAct; capInvUSD += inv.monto; }
-            let colorValor = valorAct >= inv.monto ? "#10b981" : "#ef4444";
-            tablaInv.innerHTML += `<tr><td>${ff}</td><td><strong>${inv.instrumento}</strong></td><td>${sim}${inv.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:${colorValor}; font-weight:bold;">${sim}${valorAct.toLocaleString('es-AR',{minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${colDetalle}</td><td><button class="btn-naranja" onclick="retirarInversion(${index}, ${valorAct})">Liquidar</button></td></tr>`;
-        });
-
-        document.getElementById('invTotalPesos').innerText = totalInvARS.toLocaleString('es-AR', {minimumFractionDigits:0});
-        document.getElementById('invTotalDolares').innerText = totalInvUSD.toLocaleString('es-AR', {minimumFractionDigits:0});
-        let pctARS = capInvARS > 0 ? (((totalInvARS - capInvARS) / capInvARS) * 100).toFixed(2) : 0;
-        let pctUSD = capInvUSD > 0 ? (((totalInvUSD - capInvUSD) / capInvUSD) * 100).toFixed(2) : 0;
-        
-        document.getElementById('invRendPesos').innerText = (pctARS >= 0 ? "+" : "") + pctARS + "%"; document.getElementById('invRendPesos').style.color = pctARS >= 0 ? "#10b981" : "#ef4444";
-        document.getElementById('invRendDolares').innerText = (pctUSD >= 0 ? "+" : "") + pctUSD + "%"; document.getElementById('invRendDolares').style.color = pctUSD >= 0 ? "#10b981" : "#ef4444";
-
-        actualizarPestañaCuentasCobrar(esAvanzado);
-    }
-
-    function actualizarPestañaCuentasCobrar(esAvanzado) {
-        let sel = document.getElementById('filtroMesAnio'); if(!sel || !sel.value) return;
-        let [aSel, mSel] = sel.value.split('-').map(Number);
-        
-        let deudasHistoricasReales = todosLosMovimientos.filter(m => m.tipo === "Cuenta Cobrar" && m.estado === "Pendiente" && new Date(m.fecha + 'T00:00:00').getFullYear() === aSel && new Date(m.fecha + 'T00:00:00').getMonth() === mSel);
-        let deudasVirtualesMes = movimientosMesGlobal.filter(m => m.tipo === "Cuenta Cobrar" && m.estado === "Pendiente" && m.esVirtual);
-        let todasLasDeudas = [...deudasHistoricasReales, ...deudasVirtualesMes];
-
-        if (!esAvanzado) {
-            let tbBasica = document.getElementById('tablaDeudasBasicas'); tbBasica.innerHTML = '';
-            todasLasDeudas.forEach(mov => {
-                let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-                let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}` : `-$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})} (Debo)`;
-                let btnA = mov.sentido === "A_FAVOR" ? `<button class="btn-verde" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual('${mov.id}')">Cobrar</button>` : `<button class="btn-naranja" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual('${mov.id}')">Pagar</button>`;
-                tbBasica.innerHTML += `<tr><td>${ff}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${sim}</td><td>${btnA}</td></tr>`;
-            });
-            return;
-        }
-
-        // MODO AVANZADO
-        let totDiario = {}; let totFijo = {};
-        listaAmigos.forEach(am => { totDiario[am] = 0; totFijo[am] = 0; });
-        let tbDiaria = document.getElementById('tablaDeudasDiarias'); tbDiaria.innerHTML = '';
-        let tbFija = document.getElementById('tablaDeudasFijas'); tbFija.innerHTML = '';
-
-        todasLasDeudas.forEach(mov => {
-            let esDiario = (mov.metodo === "EN_EL_ACTO");
-            if(totDiario[mov.deudor] !== undefined) {
-                if(esDiario) totDiario[mov.deudor] += (mov.sentido === "A_FAVOR") ? mov.monto : -mov.monto;
-                else totFijo[mov.deudor] += (mov.sentido === "A_FAVOR") ? mov.monto : -mov.monto;
-            }
-            let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            let sim = mov.sentido === "A_FAVOR" ? `$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}` : `-$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})} (Debo)`;
-            let btnA = mov.sentido === "A_FAVOR" ? `<button class="btn-verde" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual('${mov.id}')">Cobrar</button>` : `<button class="btn-naranja" style="padding:3px; font-size:0.8em;" onclick="liquidarDeudaIndividual('${mov.id}')">Pagar</button>`;
-            let htmlRow = `<tr><td>${ff}</td><td><strong>${mov.deudor}</strong></td><td>${mov.concepto}</td><td>${sim}</td><td>${btnA} <button class="btn-borrar" style="padding:3px; font-size:0.8em; margin-left:5px;" onclick="${mov.esVirtual ? `darDeBajaServicio('${mov.idGrupo}')` : `borrarMovimientoReal('${mov.idGrupo}')`}">X</button></td></tr>`;
-            
-            if(esDiario) tbDiaria.innerHTML += htmlRow; else tbFija.innerHTML += htmlRow;
-        });
-
-        let gridDeudas = document.getElementById('gridResumenDeudas'); gridDeudas.innerHTML = '';
-        for(let p in totDiario) {
-            let sD = totDiario[p]; let sF = totFijo[p]; let sTotal = sD + sF;
-            if (sD === 0 && sF === 0) continue; 
-            let colorB = sTotal >= 0 ? "#10b981" : "#ef4444"; let colorC = sTotal >= 0 ? "#ecfdf5" : "#fef2f2";
-            
-            gridDeudas.innerHTML += `<div class="card" style="border-left-color: ${colorB}; background:${colorC}; text-align:left;">
-                <h3 style="margin-top:0; text-align:center;">${p}</h3>
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9em;">
-                    <span>Diario: <b>${sD >= 0 ? '' : '-'}$${Math.abs(sD).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></span>
-                    <button class="btn-secundario" style="padding:4px 8px; font-size:0.8em;" onclick="liquidarDeudaGlobal('${p}', ${sD}, 'DIARIO')">Saldar</button>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9em;">
-                    <span>Tarjetas/Serv: <b>${sF >= 0 ? '' : '-'}$${Math.abs(sF).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></span>
-                    <button class="btn-secundario" style="padding:4px 8px; font-size:0.8em;" onclick="liquidarDeudaGlobal('${p}', ${sF}, 'FIJO')">Saldar</button>
-                </div>
-                <hr style="border:0; border-top:1px solid #cbd5e1; margin:10px 0;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:1.1em; color:${colorB}; font-weight:bold;">NETO: ${sTotal >= 0 ? '' : '-'}$${Math.abs(sTotal).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
-                    <button style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;" onclick="liquidarDeudaGlobal('${p}', ${sTotal}, 'TODO')">Pagar Todo</button>
-                </div>
-            </div>`;
-        }
-    }
-
-    function liquidarDeudaIndividual(idMov) {
-        let mov = todosLosMovimientos.find(m => m.id === idMov) || movimientosMesGlobal.find(m => m.id === idMov);
-        if(!mov) return;
-        if(confirm(mov.sentido === "A_FAVOR" ? "¿Confirmas cobro? Suma al bolsillo hoy." : "¿Confirmas pago? Resta del bolsillo hoy.")) {
-            if(mov.esVirtual) {
-                let s = suscripciones.find(x => x.id === mov.idGrupo);
-                if(s) { if(!s.pagosAmigo) s.pagosAmigo = []; s.pagosAmigo.push(mov.mesClave); }
-            } else { mov.estado = "Saldado"; }
-
-            let hoy = new Date().toISOString().split('T')[0];
-            if(mov.sentido === "A_FAVOR") todosLosMovimientos.push({ id: generarId(), idGrupo: generarId(), monto: mov.monto, tipo: "Ingreso", concepto: `Cobro deuda: ${mov.deudor}`, fecha: hoy, metodo: "EN_EL_ACTO" });
-            else todosLosMovimientos.push({ id: generarId(), idGrupo: generarId(), monto: mov.monto, tipo: "Gasto Variable", concepto: `Pago deuda: ${mov.deudor}`, fecha: hoy, metodo: "EN_EL_ACTO" });
-            actualizarApp(); guardarDatosEnNube();
-        }
-    }
-
-    function liquidarDeudaGlobal(persona, neto, tipoPagar) {
-        if(neto === 0) return alert("Saldos en cero.");
-        let mInput = prompt(`Estás por saldar deudas [${tipoPagar}] de ${persona}.\nIngresá el importe exacto:`, Math.abs(neto));
-        if(!mInput) return; let mReal = parseFloat(mInput); if(isNaN(mReal) || mReal <= 0) return;
-
-        let sel = document.getElementById('filtroMesAnio'); let [aSel, mSel] = sel.value.split('-').map(Number);
-        let deudasHistoricasReales = todosLosMovimientos.filter(m => m.tipo === "Cuenta Cobrar" && m.estado === "Pendiente" && new Date(m.fecha + 'T00:00:00').getFullYear() === aSel && new Date(m.fecha + 'T00:00:00').getMonth() === mSel);
-        let deudasVirtualesMes = movimientosMesGlobal.filter(m => m.tipo === "Cuenta Cobrar" && m.estado === "Pendiente" && m.esVirtual);
-        let todasLasDeudas = [...deudasHistoricasReales, ...deudasVirtualesMes];
-
-        todasLasDeudas.forEach(m => { 
-            if(m.deudor === persona) {
-                let condFiltro = (tipoPagar === "TODO") || (tipoPagar === "DIARIO" && m.metodo === "EN_EL_ACTO") || (tipoPagar === "FIJO" && m.metodo !== "EN_EL_ACTO");
-                if (condFiltro) {
-                    if (m.esVirtual) { let s = suscripciones.find(x => x.id === m.idGrupo); if(s) { if(!s.pagosAmigo) s.pagosAmigo = []; s.pagosAmigo.push(m.mesClave); } } 
-                    else { let r = todosLosMovimientos.find(x => x.id === m.id); if(r) r.estado = "Saldado"; }
-                }
-            }
-        });
-        
-        let hoy = new Date().toISOString().split('T')[0];
-        if(neto > 0) todosLosMovimientos.push({ id: generarId(), idGrupo: generarId(), monto: mReal, tipo: "Ingreso", concepto: `Cobro ${tipoPagar}: ${persona}`, fecha: hoy, metodo: "EN_EL_ACTO" });
-        else todosLosMovimientos.push({ id: generarId(), idGrupo: generarId(), monto: mReal, tipo: "Gasto Variable", concepto: `Pago ${tipoPagar}: ${persona}`, fecha: hoy, metodo: "EN_EL_ACTO" });
-        actualizarApp(); guardarDatosEnNube();
-    }
-
-    function borrarMovimientoReal(idGrupo) {
-        if(confirm("¿Eliminar para siempre esta operación y TODAS sus cuotas/deudas asociadas?")) {
-            todosLosMovimientos = todosLosMovimientos.filter(m => m.idGrupo !== idGrupo);
-            actualizarApp(); guardarDatosEnNube();
-        }
-    }
-    function darDeBajaServicio(idGrupo) {
-        if(confirm("¿Dar de baja este servicio a partir de ESTE mes? El historial viejo se mantiene.")) {
-            let s = suscripciones.find(x => x.id === idGrupo); if(s) { s.mesBaja = keyMesActualGlobal; actualizarApp(); guardarDatosEnNube(); }
-        }
-    }
-    function editarMontoServicio(idGrupo, montoActual) {
-        let nuevo = prompt("Ingresá el nuevo valor a pagar desde este mes en adelante:", montoActual);
-        if(!nuevo) return; let nReal = parseFloat(nuevo); if(isNaN(nReal) || nReal <= 0) return;
-        let s = suscripciones.find(x => x.id === idGrupo); if(s) { s.montosPorMes[keyMesActualGlobal] = nReal; actualizarApp(); guardarDatosEnNube(); }
-    }
-    
-    function ejecutarEnvioAhorro() {
-        let m = parseFloat(document.getElementById('ahorroMontoPesos').value); let mon = document.getElementById('ahorroDestinoMoneda').value;
-        let sel = document.getElementById('filtroMesAnio'); let [aSel, mSel] = sel.value.split('-').map(Number);
-        if(!m || m <= 0) return; let conceptoD = "";
-        if(mon === "ARS") { patrimonio.pesos += m; conceptoD = "Envío a Ahorros (Pesos)"; } 
-        else { let cotizacion = parseFloat(prompt("Ingresá a cuánto compraste el Dólar.")); if(!cotizacion) return; let dComprados = m / cotizacion; patrimonio.dolares += dComprados; conceptoD = `Compra USD (${dComprados.toFixed(2)} USD a $${cotizacion})`; }
-        let fFalsa = `${aSel}-${(mSel + 1).toString().padStart(2,'0')}-28`;
-        todosLosMovimientos.push({ id: generarId(), idGrupo: generarId(), monto: m, tipo: "Enviado a Ahorros", concepto: conceptoD, fecha: fFalsa, metodo: "EN_EL_ACTO" });
-        document.getElementById('ahorroMontoPesos').value = ""; actualizarApp(); guardarDatosEnNube();
-    }
-
-    function toggleCamposInversion() {
-        let i = document.getElementById('invInstrumento').value; let mon = document.getElementById('invMoneda').value;
-        if(i === "S&P 500") {
-            document.getElementById('grupoInteres').style.display = "none"; document.getElementById('grupoCotizacionMercado').style.display = "flex";
-            let valM = mon === "ARS" ? mercado.spy_ars : mercado.spy_usd; let sim = mon === "ARS" ? "$" : "US$"; document.getElementById('lblPrecioMercado').innerText = `${sim}${valM.toLocaleString('es-AR')}`;
-        } else if (i === "Mercado Pago") {
-            document.getElementById('grupoInteres').style.display = "flex"; document.getElementById('grupoCotizacionMercado').style.display = "flex";
-            document.getElementById('lblPrecioMercado').innerText = `TNA API: ${mercado.mpTna}%`; document.getElementById('invInteres').value = mercado.mpTna;
-        } else {
-            document.getElementById('grupoInteres').style.display = "flex"; document.getElementById('grupoCotizacionMercado').style.display = "none"; document.getElementById('invInteres').value = "";
-        }
-    }
-
-    function ejecutarInversion() {
-        let m = parseFloat(document.getElementById('invMonto').value); let mon = document.getElementById('invMoneda').value;
-        let inst = document.getElementById('invInstrumento').value; let fec = document.getElementById('invFecha').value;
-        if(!m || !fec) return alert("Faltan datos");
-        if(mon === "ARS" && patrimonio.pesos < m) return alert("Efectivo Pesos insuficiente en la billetera.");
-        if(mon === "USD" && patrimonio.dolares < m) return alert("Efectivo USD insuficiente en la billetera.");
-        
-        let nom = 0; let int = parseFloat(document.getElementById('invInteres').value) || (inst==="Mercado Pago"?mercado.mpTna:0);
-        if(inst === "S&P 500") nom = m / (mon === "ARS" ? mercado.spy_ars : mercado.spy_usd);
-        
-        if(mon === "ARS") patrimonio.pesos -= m; else patrimonio.dolares -= m;
-        inversiones.push({ monto: m, moneda: mon, instrumento: inst, fecha: fec, nominales: nom, interes: int });
-        document.getElementById('invMonto').value = ""; actualizarApp(); guardarDatosEnNube();
-    }
-
-    function retirarInversion(idx, valorSugerido) {
-        let i = inversiones[idx];
-        let nInput = prompt(`Liquidando inversión.\n\nEl sistema estima un valor de: $${Math.floor(valorSugerido)}\n\nIngresá importe EXACTO devuelto a tu caja:`, Math.floor(valorSugerido));
-        if(!nInput) return; let n = parseFloat(nInput);
-        if(i.moneda === "ARS") patrimonio.pesos += n; else patrimonio.dolares += n;
-        inversiones.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
-    }
-    
-    function renderizarGrafico() {
-        let ctx = document.getElementById('patrimonioChart').getContext('2d');
-        if(miGrafico) miGrafico.destroy();
-        
-        let dataARS = [0, 0, 0, 0, 0, 0]; let dataUSD = [0, 0, 0, 0, 0, 0];
-        
-        inversiones.forEach(inv => {
-            let m = new Date(inv.fecha + 'T00:00:00').getMonth() % 6;
-            let precioCot = inv.moneda === "ARS" ? mercado.spy_ars : mercado.spy_usd;
-            let val = inv.instrumento === "S&P 500" ? (inv.nominales * precioCot) : inv.monto;
-            if(inv.moneda === "ARS") dataARS[m] += val; else dataUSD[m] += val;
-        });
-
-        miGrafico = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ["Mes 1", "Mes 2", "Mes 3", "Mes 4", "Mes 5", "Mes Actual"],
-                datasets: [
-                    { label: '📈 Activos en Pesos (ARS)', data: dataARS, borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 3, tension: 0.2 },
-                    { label: '💵 Activos en Dólares (USD)', data: dataUSD, borderColor: '#f59e0b', backgroundColor: 'transparent', borderWidth: 3, tension: 0.2 }
-                ]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
-
-    function resetearApp() {
-        if(confirm("⚠️ PELIGRO CRÍTICO: Se purgarán todos los balances de la nube.")) {
-            if(prompt("Escribe BORRAR:") === "BORRAR") {
-                todosLosMovimientos = []; suscripciones = []; patrimonio = { pesos: 0, dolares: 0 }; inversiones = []; listaAmigos = [];
-                perfilUsuario.modo = ""; 
-                guardarDatosEnNube(); actualizarApp(); location.reload();
-            }
-        }
-    }
-</script>
+<script type="module" src="main.js"></script>
 
 </body>
 </html>

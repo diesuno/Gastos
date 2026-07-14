@@ -1,8 +1,22 @@
-const CACHE_NAME = 'finanzas-v5.1.0'; // Pasamos a la versión 3
+const CACHE_NAME = 'finanzas-v7.0.0'; // Rediseño de Inversiones: pools de Dólares/S&P, Pesos automático
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './styles.css',
+  './modales.js',
+  './main.js',
+  './estado.js',
+  './firebase-config.js',
+  './utilidades.js',
+  './auth.js',
+  './movimientos.js',
+  './billetera.js',
+  './deudas.js',
+  './render.js',
+  './grafico.js',
+  './flujoMensual.js',
+  './cierreMensual.js'
 ];
 
 // Instala la nueva versión
