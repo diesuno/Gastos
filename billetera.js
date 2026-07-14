@@ -89,11 +89,11 @@ export function evaluarCamposInversion() {
         // Comprar dólares siempre sale del pool de Pesos.
         boxOrigen.style.display = 'none';
         boxCotizacion.style.display = 'block';
-        lblMonto.innerText = 'Pesos a Invertir';
+        lblMonto.innerText = 'Monto a Invertir (Pesos)';
     } else {
         boxOrigen.style.display = 'block';
         let origen = document.getElementById('invOrigen').value;
-        lblMonto.innerText = origen === "PESOS" ? "Pesos a Invertir" : "Dólares a Invertir";
+        lblMonto.innerText = origen === "PESOS" ? "Monto a Invertir (Pesos)" : "Monto a Invertir (Dólares)";
 
         if (inst === "S&P 500") {
             boxNominales.style.display = 'block';
@@ -109,17 +109,14 @@ export function evaluarCamposInversion() {
     }
 }
 
-// --- FORMULARIO: campos dinámicos de Retiro según instrumento ---
+// --- FORMULARIO: campos dinámicos de Retiro ---
+// Los dólares no se pueden retirar (son capital para invertir en S&P 500),
+// así que Retiro hoy es solo para S&P 500 — el único toggle que queda es
+// "cargar nominales exactos" vs. "valor en dólares deseado".
 export function evaluarCamposRetiro() {
-    let inst = document.getElementById('retInstrumento').value;
-    document.getElementById('boxRetMontoUsd').style.display = inst === "Dólares" ? 'block' : 'none';
-    document.getElementById('boxRetSp').style.display = inst === "S&P 500" ? 'block' : 'none';
-
-    if (inst === "S&P 500") {
-        let cargarNominales = document.getElementById('retCargarNominales').checked;
-        document.getElementById('boxRetMontoUsdSp').style.display = cargarNominales ? 'none' : 'block';
-        document.getElementById('boxRetNominalesExactos').style.display = cargarNominales ? 'block' : 'none';
-    }
+    let cargarNominales = document.getElementById('retCargarNominales').checked;
+    document.getElementById('boxRetMontoUsdSp').style.display = cargarNominales ? 'none' : 'block';
+    document.getElementById('boxRetNominalesExactos').style.display = cargarNominales ? 'block' : 'none';
 }
 
 // Registra un movimiento (Inversión o Retiro) en el historial que alimenta la
@@ -171,34 +168,26 @@ export function ejecutarInversionNueva() {
     actualizarApp(); guardarDatosEnNube();
 }
 
+// Los dólares no se retiran (son capital para invertir en S&P 500) — Retiro
+// hoy es exclusivamente para el pool de S&P 500.
 export function ejecutarRetiroNuevo() {
-    let inst = document.getElementById('retInstrumento').value;
     let hoy = new Date().toISOString().split('T')[0];
+    let cargarNominales = document.getElementById('retCargarNominales').checked;
+    let nominalesARetirar;
 
-    if (inst === "Dólares") {
-        let montoUsd = parseFloat(document.getElementById('retMontoUsd').value);
-        if (!montoUsd || montoUsd <= 0) return mostrarAlerta("Ingresá un monto válido");
-        if (estadoApp.patrimonio.dolares < montoUsd) return mostrarAlerta("No tenés suficientes dólares.");
-        estadoApp.patrimonio.dolares -= montoUsd;
-        registrarMovimientoInversion({ mov: "Retiro", pesosInvertidos: null, instrumento: "Dólares", monto: montoUsd, moneda: "USD", fecha: hoy });
+    if (cargarNominales) {
+        nominalesARetirar = parseFloat(document.getElementById('retNominalesExactos').value);
+        if (!nominalesARetirar || nominalesARetirar <= 0) return mostrarAlerta("Ingresá los nominales a retirar");
     } else {
-        // S&P 500
-        let cargarNominales = document.getElementById('retCargarNominales').checked;
-        let nominalesARetirar;
-        if (cargarNominales) {
-            nominalesARetirar = parseFloat(document.getElementById('retNominalesExactos').value);
-            if (!nominalesARetirar || nominalesARetirar <= 0) return mostrarAlerta("Ingresá los nominales a retirar");
-        } else {
-            let montoUsdDeseado = parseFloat(document.getElementById('retMontoUsdSp').value);
-            if (!montoUsdDeseado || montoUsdDeseado <= 0) return mostrarAlerta("Ingresá un monto válido");
-            nominalesARetirar = montoUsdDeseado / estadoApp.mercado.spy_usd;
-        }
-        if (estadoApp.sp500.nominales < nominalesARetirar) return mostrarAlerta("No tenés suficientes nominales de S&P 500.");
-
-        estadoApp.sp500.nominales -= nominalesARetirar;
-        let valorUsd = nominalesARetirar * estadoApp.mercado.spy_usd;
-        registrarMovimientoInversion({ mov: "Retiro", pesosInvertidos: null, instrumento: "S&P 500", monto: valorUsd, moneda: "USD", fecha: hoy });
+        let montoUsdDeseado = parseFloat(document.getElementById('retMontoUsdSp').value);
+        if (!montoUsdDeseado || montoUsdDeseado <= 0) return mostrarAlerta("Ingresá un monto válido");
+        nominalesARetirar = montoUsdDeseado / estadoApp.mercado.spy_usd;
     }
+    if (estadoApp.sp500.nominales < nominalesARetirar) return mostrarAlerta("No tenés suficientes nominales de S&P 500.");
+
+    estadoApp.sp500.nominales -= nominalesARetirar;
+    let valorUsd = nominalesARetirar * estadoApp.mercado.spy_usd;
+    registrarMovimientoInversion({ mov: "Retiro", pesosInvertidos: null, instrumento: "S&P 500", monto: valorUsd, moneda: "USD", fecha: hoy });
 
     registrarFotoMesActual();
     actualizarApp(); guardarDatosEnNube();

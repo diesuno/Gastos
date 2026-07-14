@@ -260,11 +260,11 @@
                             <option value="Mercado Pago">FCI Mercado Pago</option>
                         </select>
                     </div>
-                    <div class="form-group"><label id="lblInvMontoNuevo" for="invMontoNuevo">Pesos a Invertir</label><input type="number" step="any" id="invMontoNuevo" oninput="evaluarCamposInversion()"></div>
+                    <div class="form-group"><label id="lblInvMontoNuevo" for="invMontoNuevo">Monto a Invertir (Pesos)</label><input type="number" step="any" id="invMontoNuevo" oninput="evaluarCamposInversion()"></div>
 
-                    <div class="form-group" id="boxInvCotizacionDolar" style="display:none;"><label for="invCotizacionDolar">Cotización de Compra</label><input type="number" step="any" id="invCotizacionDolar" placeholder="$ por USD"></div>
+                    <div class="form-group" id="boxInvCotizacionDolar" style="display:none;"><label for="invCotizacionDolar">Cotización de Compra ($ por USD)</label><input type="number" step="any" id="invCotizacionDolar" placeholder="$ por USD"></div>
 
-                    <div class="form-group" id="boxInvNominales" style="display:none;"><label for="invNominalesNuevo">Nominales</label><input type="number" step="any" id="invNominalesNuevo"></div>
+                    <div class="form-group" id="boxInvNominales" style="display:none;"><label for="invNominalesNuevo">Nominales</label><input type="number" step="any" id="invNominalesNuevo"><span class="porcentaje">Cuántas unidades de S&P comprás</span></div>
 
                     <div class="form-group" id="boxInvInteres" style="display:none;"><label for="invInteresNuevo">Tasa Int. Anual (%)</label><input type="number" step="any" id="invInteresNuevo" placeholder="TNA"></div>
 
@@ -273,25 +273,18 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN RETIRO -->
+            <!-- SECCIÓN RETIRO (solo S&P 500 — los dólares no se retiran, son capital para invertir) -->
             <div id="seccionRetiro" style="display:none;">
-                <h3 style="margin-top:0; color:#334155;">Retiro</h3>
+                <h3 style="margin-top:0; color:#334155;">Retiro de S&P 500</h3>
+                <p style="font-size:0.85em; color:#64748b; margin-top:-10px;">Los dólares no se pueden retirar directamente — son capital para invertir en S&P 500.</p>
                 <div class="form-grid">
-                    <div class="form-group"><label for="retInstrumento">Moneda / Instrumento</label>
-                        <select id="retInstrumento" onchange="evaluarCamposRetiro()">
-                            <option value="Dólares">Dólares</option>
-                            <option value="S&P 500">S&P 500</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="boxRetMontoUsd"><label for="retMontoUsd">Monto (US$)</label><input type="number" step="any" id="retMontoUsd"></div>
-
-                    <div class="form-group" id="boxRetSp" style="display:none;">
+                    <div class="form-group" style="grid-column: 1 / -1;">
                         <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:8px;">
-                            <input type="checkbox" id="retCargarNominales" onchange="evaluarCamposRetiro()"> Cargar nominales exactos
+                            <input type="checkbox" id="retCargarNominales" onchange="evaluarCamposRetiro()"> Prefiero indicar la cantidad de acciones en vez del valor en dólares
                         </label>
-                        <div class="form-group" id="boxRetMontoUsdSp"><label for="retMontoUsdSp">Valor en US$ a Retirar</label><input type="number" step="any" id="retMontoUsdSp"></div>
-                        <div class="form-group" id="boxRetNominalesExactos" style="display:none;"><label for="retNominalesExactos">Nominales Exactos</label><input type="number" step="any" id="retNominalesExactos"></div>
                     </div>
+                    <div class="form-group" id="boxRetMontoUsdSp"><label for="retMontoUsdSp">Valor en US$ a Retirar</label><input type="number" step="any" id="retMontoUsdSp"></div>
+                    <div class="form-group" id="boxRetNominalesExactos" style="display:none;"><label for="retNominalesExactos">Nominales Exactos</label><input type="number" step="any" id="retNominalesExactos"></div>
 
                     <button style="background-color: #ef4444; color: white; height:46px;" onclick="ejecutarRetiroNuevo()">Retirar</button>
                 </div>
@@ -304,7 +297,7 @@
             <tbody id="tablaInversiones"></tbody>
         </table>
 
-        <h2>Detalle</h2>
+        <h2>Historial de Movimientos</h2>
         <div class="historico-selector" style="background:#f1f5f9; color:#1e3a8a;">
             <label style="margin:0;">Instrumento:</label>
             <select id="filtroDetalleInstrumento" onchange="actualizarFiltrosDetalle()">
