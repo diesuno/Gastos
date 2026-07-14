@@ -66,7 +66,7 @@ async function resetearApp() {
             estadoApp.todosLosMovimientos = []; estadoApp.suscripciones = [];
             estadoApp.patrimonio = { pesos: 0, dolares: 0 }; estadoApp.inversiones = [];
             estadoApp.sp500 = { nominales: 0 }; estadoApp.historialInversiones = [];
-            estadoApp.historialMensual = {}; estadoApp.mesesPesosCerrados = [];
+            estadoApp.historialMensual = {}; estadoApp.aportesPesosPorMes = {};
             estadoApp.listaAmigos = [];
             estadoApp.perfilUsuario.modo = "";
             guardarDatosEnNube(); actualizarApp(); location.reload();

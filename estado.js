@@ -33,9 +33,11 @@ export const estadoApp = {
     // graficar la evolución real de los últimos 6 meses (ver cierreMensual.js
     // y grafico.js). Clave "YYYY-MM" -> { dolares, sp500Usd }.
     historialMensual: {},
-    // Meses (clave "YYYY-MM") cuyo Disponible ya se sumó al pool de Pesos, para
-    // no sumarlo dos veces (ver cierreMensual.js).
-    mesesPesosCerrados: [],
+    // Cuánto del Disponible de cada mes (clave "YYYY-MM") ya se sumó al pool
+    // de Pesos. Incluye el mes en curso: se recalcula todo el tiempo (ver
+    // cierreMensual.js), así el pool queda siempre al día, no solo una vez
+    // que el mes termina.
+    aportesPesosPorMes: {},
 
     listaAmigos: [],
     perfilUsuario: { nombre: "Usuario", modo: "" },

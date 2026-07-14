@@ -1,33 +1,41 @@
 // ==========================================
-// 🗓️ CIERRE MENSUAL: alimenta el pool de Pesos y la foto para el gráfico
+// 🔄 SINCRONIZACIÓN DEL POOL DE PESOS CON EL DISPONIBLE
 // ==========================================
+// Antes esto "cerraba" un mes una sola vez (cuando quedaba en el pasado) y
+// nunca lo volvía a tocar. Ahora es distinto: recorre cada mes (incluido el
+// mes EN CURSO) y compara cuánto Disponible tiene hoy contra cuánto se le
+// había sumado la última vez al pool de Pesos — si cambió, suma o resta la
+// diferencia. Así el pool queda siempre al día en vivo, sin esperar a fin de
+// mes, y sin duplicar plata que ya se sumó antes.
 import { estadoApp } from './estado.js';
 import { calcularFlujoDeMes } from './flujoMensual.js';
 
-// Recorre los meses ya pasados (hasta 24 meses atrás) y, si el Disponible de
-// alguno todavía no se sumó al pool de Pesos, lo suma una única vez. El mes
-// en curso NUNCA se cierra (todavía puede seguir cambiando).
-// Devuelve true si sumó algo nuevo (para saber si hay que guardar en la nube).
-export function cerrarMesesPendientes() {
+// Devuelve true si sumó/restó algo (para saber si hay que guardar en la nube).
+export function sincronizarPoolPesos() {
     let hoy = new Date();
     let anioActual = hoy.getFullYear(), mesActual = hoy.getMonth();
     let huboCambios = false;
 
-    for (let i = 1; i <= 24; i++) {
+    // Recorremos desde 24 meses atrás hasta el mes actual, incluido.
+    for (let i = 24; i >= 0; i--) {
         let fechaIter = new Date(anioActual, mesActual - i, 1);
         let a = fechaIter.getFullYear(), m = fechaIter.getMonth();
         let key = `${a}-${(m + 1).toString().padStart(2, '0')}`;
-        if (estadoApp.mesesPesosCerrados.includes(key)) continue;
 
         let flujo = calcularFlujoDeMes(a, m);
-        // Si ese mes no tiene ningún movimiento cargado, no lo "cerramos" —
-        // evita ensuciar el registro con meses vacíos de antes de usar la app.
-        if (flujo.movimientosDelMes.length === 0) continue;
+        // Si ese mes no tiene movimientos ni un aporte previo registrado, no
+        // hay nada que hacer (evita ensuciar el registro con meses vacíos).
+        if (flujo.movimientosDelMes.length === 0 && !(key in estadoApp.aportesPesosPorMes)) continue;
 
-        let disponible = flujo.esAvanzado ? flujo.dispReal : flujo.dispBasico;
-        estadoApp.patrimonio.pesos += disponible;
-        estadoApp.mesesPesosCerrados.push(key);
-        huboCambios = true;
+        let disponibleActual = flujo.esAvanzado ? flujo.dispReal : flujo.dispBasico;
+        let aportePrevio = estadoApp.aportesPesosPorMes[key] || 0;
+        let delta = disponibleActual - aportePrevio;
+
+        if (delta !== 0) {
+            estadoApp.patrimonio.pesos += delta;
+            huboCambios = true;
+        }
+        estadoApp.aportesPesosPorMes[key] = disponibleActual;
     }
     return huboCambios;
 }

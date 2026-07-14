@@ -4,7 +4,9 @@
 import { estadoApp, nombresMeses, fechaActual } from './estado.js';
 import { escapeHTML, agruparMovimientosPorGrupo } from './utilidades.js';
 import { calcularFlujoDeMes } from './flujoMensual.js';
+import { sincronizarPoolPesos } from './cierreMensual.js';
 import { renderizarGrafico, seriesGrafico } from './grafico.js';
+import { guardarDatosEnNube } from './auth.js';
 
 export function inicializarSelectorHistorico() {
     let sel = document.getElementById('filtroMesAnio'); if(sel.innerHTML !== '') return;
@@ -38,6 +40,10 @@ export function actualizarApp() {
     let flujo = calcularFlujoDeMes(aSel, mSel);
     estadoApp.movimientosMesGlobal = flujo.movimientosDelMes;
     let { ing, gastosEnActo, gastosCredito, gastosServicio, gastosFijosBasic, gastosVariablesBasic } = flujo;
+
+    // El pool de Pesos se mantiene sincronizado con el Disponible real de cada
+    // mes (incluido el mes en curso) en cada actualización de la app.
+    if (sincronizarPoolPesos()) guardarDatosEnNube();
 
     // RENDER DASHBOARD DINÁMICO
     let dashUI = document.getElementById('dashboard-dinamico');

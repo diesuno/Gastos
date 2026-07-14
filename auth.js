@@ -12,7 +12,7 @@ import { mostrarAlerta, mostrarConfirmacion } from './modales.js';
 import { ocultarLoaderInicial } from './utilidades.js';
 import { actualizarApp } from './render.js';
 import { actualizarSelectAmigosDisplay, evaluarCamposDinamicosGasto } from './movimientos.js';
-import { cerrarMesesPendientes } from './cierreMensual.js';
+import { sincronizarPoolPesos } from './cierreMensual.js';
 
 export function registrarUsuario() {
     const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value;
@@ -47,15 +47,15 @@ export function cargarDatosDesdeNube(uid) {
             // acumulado. Si hay entradas viejas de S&P 500 en "inversiones",
             // las sumamos al pool nuevo y las sacamos de la lista de posiciones
             // (que ahora es solo para Plazo Fijo / Mercado Pago).
-            estadoApp.sp500 = estadoApp.sp500 || { nominales: 0 };
+            estadoApp.sp500 = data.sp500 || { nominales: 0 };
             let entradasSpViejas = estadoApp.inversiones.filter(inv => inv.instrumento === "S&P 500");
             if (entradasSpViejas.length > 0) {
                 entradasSpViejas.forEach(inv => { estadoApp.sp500.nominales += (inv.nominales || 0); });
                 estadoApp.inversiones = estadoApp.inversiones.filter(inv => inv.instrumento !== "S&P 500");
             }
-            estadoApp.historialInversiones = estadoApp.historialInversiones || [];
-            estadoApp.historialMensual = estadoApp.historialMensual || {};
-            estadoApp.mesesPesosCerrados = estadoApp.mesesPesosCerrados || [];
+            estadoApp.historialInversiones = data.historialInversiones || [];
+            estadoApp.historialMensual = data.historialMensual || {};
+            estadoApp.aportesPesosPorMes = data.aportesPesosPorMes || {};
         }
 
         document.getElementById('userNameDisplay').innerText = estadoApp.perfilUsuario.nombre;
@@ -70,9 +70,9 @@ export function cargarDatosDesdeNube(uid) {
 
         actualizarSelectAmigosDisplay();
         aplicarFiltrosDeModo();
-        // El cierre de meses pendientes puede sumar plata al pool de Pesos —
-        // si sumó algo, lo persistimos ya mismo en la nube.
-        if (cerrarMesesPendientes()) guardarDatosEnNube();
+        // Sincronizamos el pool de Pesos (incluye el mes en curso) — si sumó
+        // algo, lo persistimos ya mismo en la nube.
+        if (sincronizarPoolPesos()) guardarDatosEnNube();
         actualizarApp();
         ocultarLoaderInicial();
     });
@@ -81,7 +81,9 @@ export function cargarDatosDesdeNube(uid) {
 export function guardarDatosEnNube() {
     if(auth.currentUser) db.collection("usuarios").doc(auth.currentUser.uid).set({
         todosLosMovimientos: estadoApp.todosLosMovimientos, suscripciones: estadoApp.suscripciones,
-        patrimonio: estadoApp.patrimonio, inversiones: estadoApp.inversiones, listaAmigos: estadoApp.listaAmigos, perfilUsuario: estadoApp.perfilUsuario
+        patrimonio: estadoApp.patrimonio, inversiones: estadoApp.inversiones, listaAmigos: estadoApp.listaAmigos, perfilUsuario: estadoApp.perfilUsuario,
+        sp500: estadoApp.sp500, historialInversiones: estadoApp.historialInversiones,
+        historialMensual: estadoApp.historialMensual, aportesPesosPorMes: estadoApp.aportesPesosPorMes
     }, { merge: true });
 }
 
