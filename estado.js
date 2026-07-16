@@ -51,9 +51,12 @@ export const estadoApp = {
     // seguimos usando el valor de referencia por defecto porque no se pudo
     // conectar a nada (ver billetera.js). "spy_ars" es un valor CALCULADO
     // (spy_usd × dolarCCL), no se pide directo a ninguna API — así no
-    // depende del ratio del CEDEAR de SPY, que cambia sin aviso (BYMA lo
-    // ajustó de 20:1 a 60:1 en mayo/junio 2026, por ejemplo).
-    mercado: { spy_usd: 630, dolarCCL: 1550, spy_ars: 976500, actualizado: { usd: false, ccl: false } },
+    // depende del ratio del CEDEAR de SPY. "ratioCedear" es cuántos CEDEARs
+    // representan 1 acción real de SPY — este número lo fija BYMA y puede
+    // cambiar sin aviso (pasó de 20:1 a 60:1 en mayo/junio 2026), por eso es
+    // editable a mano en vez de venir de una API (no encontramos ninguna
+    // fuente gratuita que lo dé).
+    mercado: { spy_usd: 630, dolarCCL: 1550, spy_ars: 976500, ratioCedear: 60, actualizado: { usd: false, ccl: false, ratio: false } },
 
     miGrafico: null,
 

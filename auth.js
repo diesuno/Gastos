@@ -56,6 +56,10 @@ export function cargarDatosDesdeNube(uid) {
             estadoApp.historialInversiones = data.historialInversiones || [];
             estadoApp.historialMensual = data.historialMensual || {};
             estadoApp.aportesPesosPorMes = data.aportesPesosPorMes || {};
+            // El ratio del CEDEAR de SPY es editable a mano (ver billetera.js) —
+            // si ya lo habías ajustado antes, lo recuperamos; si no, se queda
+            // con el valor por defecto (60) definido en estado.js.
+            if (data.ratioCedear) estadoApp.mercado.ratioCedear = data.ratioCedear;
         }
 
         document.getElementById('userNameDisplay').innerText = estadoApp.perfilUsuario.nombre;
@@ -83,7 +87,8 @@ export function guardarDatosEnNube() {
         todosLosMovimientos: estadoApp.todosLosMovimientos, suscripciones: estadoApp.suscripciones,
         patrimonio: estadoApp.patrimonio, inversiones: estadoApp.inversiones, listaAmigos: estadoApp.listaAmigos, perfilUsuario: estadoApp.perfilUsuario,
         sp500: estadoApp.sp500, historialInversiones: estadoApp.historialInversiones,
-        historialMensual: estadoApp.historialMensual, aportesPesosPorMes: estadoApp.aportesPesosPorMes
+        historialMensual: estadoApp.historialMensual, aportesPesosPorMes: estadoApp.aportesPesosPorMes,
+        ratioCedear: estadoApp.mercado.ratioCedear
     }, { merge: true });
 }
 

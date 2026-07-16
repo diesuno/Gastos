@@ -44,3 +44,14 @@ export function ocultarLoaderInicial() {
     const loader = document.getElementById('loader-inicial');
     if (loader) loader.style.display = 'none';
 }
+
+// Precio real de "1 nominal" (1 CEDEAR) de S&P 500, aplicando el ratio del
+// CEDEAR (cuántos CEDEARs representan 1 acción real — ver estado.js). Se
+// centraliza acá para que, el día que haya que tocar esta cuenta de nuevo,
+// sea en un solo lugar y no en cada archivo por separado.
+export function precioNominalSp500Usd() {
+    return estadoApp.mercado.spy_usd / estadoApp.mercado.ratioCedear;
+}
+export function precioNominalSp500Ars() {
+    return estadoApp.mercado.spy_ars / estadoApp.mercado.ratioCedear;
+}

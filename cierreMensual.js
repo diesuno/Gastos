@@ -9,6 +9,7 @@
 // mes, y sin duplicar plata que ya se sumó antes.
 import { estadoApp } from './estado.js';
 import { calcularFlujoDeMes } from './flujoMensual.js';
+import { precioNominalSp500Usd } from './utilidades.js';
 
 // Devuelve true si sumó/restó algo (para saber si hay que guardar en la nube).
 export function sincronizarPoolPesos() {
@@ -48,6 +49,6 @@ export function registrarFotoMesActual() {
     let key = `${hoy.getFullYear()}-${(hoy.getMonth() + 1).toString().padStart(2, '0')}`;
     estadoApp.historialMensual[key] = {
         dolares: estadoApp.patrimonio.dolares,
-        sp500Usd: estadoApp.sp500.nominales * estadoApp.mercado.spy_usd,
+        sp500Usd: estadoApp.sp500.nominales * precioNominalSp500Usd(),
     };
 }

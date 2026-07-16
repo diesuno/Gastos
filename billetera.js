@@ -5,7 +5,7 @@
 // app (si en el futuro los volvemos a sumar, el patrón de "pool acumulado"
 // que usa S&P 500 acá es el punto de partida más simple).
 import { estadoApp } from './estado.js';
-import { generarId } from './utilidades.js';
+import { generarId, precioNominalSp500Usd, precioNominalSp500Ars } from './utilidades.js';
 import { mostrarAlerta, mostrarConfirmacion } from './modales.js';
 import { actualizarApp } from './render.js';
 import { guardarDatosEnNube } from './auth.js';
@@ -40,14 +40,59 @@ async function obtenerPrecioYahoo(simbolo) {
     return null;
 }
 
-// Trae la cotización real de SPY en dólares (Yahoo Finance, vía proxy CORS) y
-// el dólar CCL (dolarapi.com, API pública que no necesita proxy). El precio en
-// pesos de "1 nominal de S&P 500" se CALCULA como spy_usd × dolarCCL — no se
-// pide directo a ninguna fuente. Esto evita depender del ratio del CEDEAR de
-// SPY (cuántos CEDEARs representan 1 acción real), que cambia sin aviso: BYMA
-// lo ajustó de 20:1 a 60:1 en mayo/junio de 2026, por ejemplo. La cuenta
-// spy_usd × CCL da directamente "cuántos pesos cuesta 1 dólar de exposición a
-// SPY comprando dólares financieros", que es lo que a nosotros nos importa.
+// Intenta traer el precio REAL del CEDEAR de SPY (en pesos) desde BYMA, para
+// poder calcular el ratio automáticamente en vez de que lo cargues a mano.
+// Es un endpoint público sin login, pero no es una API oficial documentada:
+// puede no permitir pedidos desde el navegador (CORS), o cambiar el formato
+// de respuesta sin aviso. Por eso todo está en un try/catch bien amplio, y el
+// resultado se valida contra un rango razonable antes de aceptarlo — si algo
+// no cierra, devolvemos null y seguimos con el ratio manual sin romper nada.
+async function obtenerRatioCedearAutomatico() {
+    try {
+        let res = await fetch("https://open.bymadata.com.ar/vanoms-be-core/rest/api/bymadata/free/cedears", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ excludeZeroPxAndQty: true, T1: true, T0: false })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        let data = await res.json();
+        let lista = Array.isArray(data) ? data : (data.data || data.cedears || null);
+        if (!Array.isArray(lista)) throw new Error("Formato de respuesta inesperado");
+
+        let entradaSpy = lista.find(item => {
+            let simbolo = (item.symbol || item.ticker || item.especie || "").toUpperCase();
+            return simbolo === "SPY";
+        });
+        if (!entradaSpy) throw new Error("No se encontró SPY en la respuesta");
+
+        let precioCedearArs = entradaSpy.lastPrice ?? entradaSpy.closingPrice ?? entradaSpy.previousClosePrice
+            ?? entradaSpy.ultimoPrecio ?? entradaSpy.cierreAnterior ?? null;
+        if (!precioCedearArs || precioCedearArs <= 0) throw new Error("No se encontró un precio válido");
+
+        // El ratio implícito = (precio real de SPY en pesos) / (precio del CEDEAR).
+        let precioSpyArsSinRatio = estadoApp.mercado.spy_usd * estadoApp.mercado.dolarCCL;
+        let ratioCalculado = precioSpyArsSinRatio / precioCedearArs;
+
+        // Los ratios de CEDEARs conocidos van de 1:1 a unos pocos cientos —
+        // si da un número fuera de este rango, algo se leyó mal.
+        if (ratioCalculado < 1 || ratioCalculado > 500) throw new Error(`Ratio fuera de rango: ${ratioCalculado}`);
+
+        return Math.round(ratioCalculado);
+    } catch (e) {
+        console.warn("No se pudo detectar el ratio del CEDEAR de SPY automáticamente, se usa el valor manual:", e.message);
+        return null;
+    }
+}
+
+
+// Trae la cotización real de SPY en dólares (Yahoo Finance, vía proxy CORS), el
+// dólar CCL (dolarapi.com, API pública que no necesita proxy), y el ratio del
+// CEDEAR de SPY (intentando detectarlo automático desde BYMA; si no se puede,
+// se mantiene el valor cargado a mano). El precio en pesos de "1 nominal de
+// S&P 500" se CALCULA como spy_usd × dolarCCL — no se pide directo a ninguna
+// fuente. Esto evita depender ciegamente de una sola fuente para el ratio del
+// CEDEAR (cuántos CEDEARs representan 1 acción real), que cambia sin aviso:
+// BYMA lo ajustó de 20:1 a 60:1 en mayo/junio de 2026, por ejemplo.
 export async function inicializarMercado() {
     let precioUsd = await obtenerPrecioYahoo("SPY");
     if (precioUsd !== null) {
@@ -71,6 +116,14 @@ export async function inicializarMercado() {
 
     estadoApp.mercado.spy_ars = estadoApp.mercado.spy_usd * estadoApp.mercado.dolarCCL;
 
+    let ratioAutomatico = await obtenerRatioCedearAutomatico();
+    if (ratioAutomatico !== null) {
+        estadoApp.mercado.ratioCedear = ratioAutomatico;
+        estadoApp.mercado.actualizado.ratio = true;
+    } else {
+        estadoApp.mercado.actualizado.ratio = false;
+    }
+
     evaluarCamposInversion(); actualizarApp();
 }
 
@@ -81,16 +134,31 @@ export function toggleMovimientoInversion() {
     document.getElementById('seccionRetiro').style.display = mov === "RETIRO" ? "block" : "none";
 }
 
+// El ratio del CEDEAR de SPY (cuántos CEDEARs representan 1 acción real) lo
+// fija BYMA y puede cambiar sin aviso — no hay ninguna API gratuita que lo dé,
+// así que es editable a mano acá.
+export function actualizarRatioCedear() {
+    let nuevoRatio = parseFloat(document.getElementById('inputRatioCedear').value);
+    if (!nuevoRatio || nuevoRatio <= 0) return;
+    estadoApp.mercado.ratioCedear = nuevoRatio;
+    estadoApp.mercado.actualizado.ratio = false; // lo tocó la persona a mano, ya no es "automático"
+    evaluarCamposInversion();
+    actualizarApp();
+    guardarDatosEnNube();
+}
+
 // --- FORMULARIO: campos dinámicos de Inversión según instrumento ---
 export function evaluarCamposInversion() {
     let inst = document.getElementById('invInstrumentoNuevo').value;
     let boxOrigen = document.getElementById('boxInvOrigen');
     let boxCotizacion = document.getElementById('boxInvCotizacionDolar');
     let boxNominales = document.getElementById('boxInvNominales');
+    let boxRatio = document.getElementById('boxRatioCedear');
     let lblMonto = document.getElementById('lblInvMontoNuevo');
 
     boxCotizacion.style.display = 'none';
     boxNominales.style.display = 'none';
+    boxRatio.style.display = 'none';
 
     if (inst === "Dólares") {
         // Comprar dólares siempre sale del pool de Pesos.
@@ -104,9 +172,17 @@ export function evaluarCamposInversion() {
         lblMonto.innerText = origen === "PESOS" ? "Monto a Invertir (Pesos)" : "Monto a Invertir (Dólares)";
 
         boxNominales.style.display = 'block';
-        let precio = origen === "PESOS" ? estadoApp.mercado.spy_ars : estadoApp.mercado.spy_usd;
+        boxRatio.style.display = 'block';
+        let precio = origen === "PESOS" ? precioNominalSp500Ars() : precioNominalSp500Usd();
         let monto = parseFloat(document.getElementById('invMontoNuevo').value) || 0;
         document.getElementById('invNominalesNuevo').value = precio > 0 ? (monto / precio).toFixed(4) : '';
+
+        let inputRatio = document.getElementById('inputRatioCedear');
+        if (document.activeElement !== inputRatio) inputRatio.value = estadoApp.mercado.ratioCedear;
+        document.getElementById('lblEstadoRatio').innerText = estadoApp.mercado.actualizado.ratio
+            ? 'Detectado automáticamente'
+            : 'No se pudo detectar solo — verificá que sea el vigente';
+        document.getElementById('lblEstadoRatio').style.color = estadoApp.mercado.actualizado.ratio ? '#10b981' : '#d97706';
 
         let avisoViejo = document.getElementById('avisoCotizacionVieja');
         let cotizacionesOk = estadoApp.mercado.actualizado.usd && estadoApp.mercado.actualizado.ccl;
@@ -190,12 +266,12 @@ export function ejecutarRetiroNuevo() {
     } else {
         let montoUsdDeseado = parseFloat(document.getElementById('retMontoUsdSp').value);
         if (!montoUsdDeseado || montoUsdDeseado <= 0) return mostrarAlerta("Ingresá un monto válido");
-        nominalesARetirar = montoUsdDeseado / estadoApp.mercado.spy_usd;
+        nominalesARetirar = montoUsdDeseado / precioNominalSp500Usd();
     }
     if (estadoApp.sp500.nominales < nominalesARetirar) return mostrarAlerta("No tenés suficientes nominales de S&P 500.");
 
     estadoApp.sp500.nominales -= nominalesARetirar;
-    let valorUsd = nominalesARetirar * estadoApp.mercado.spy_usd;
+    let valorUsd = nominalesARetirar * precioNominalSp500Usd();
     registrarMovimientoInversion({ mov: "Retiro", nominalesRetirados: nominalesARetirar, instrumento: "S&P 500", monto: valorUsd, moneda: "USD", fecha: hoy });
 
     registrarFotoMesActual();
@@ -234,7 +310,7 @@ export async function revertirMovimientoInversion(id) {
         if (!nominales) {
             // Movimiento viejo sin nominales guardados: se recalcula con la
             // cotización actual (puede no coincidir con la de ese momento).
-            nominales = entrada.monto / estadoApp.mercado.spy_usd;
+            nominales = entrada.monto / precioNominalSp500Usd();
             esAproximado = true;
         }
         estadoApp.sp500.nominales += nominales;

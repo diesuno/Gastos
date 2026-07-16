@@ -2,7 +2,7 @@
 // 🖼️ RENDERIZADO PRINCIPAL (dashboard, pestañas y tablas)
 // ==========================================
 import { estadoApp, nombresMeses, fechaActual } from './estado.js';
-import { escapeHTML, agruparMovimientosPorGrupo } from './utilidades.js';
+import { escapeHTML, agruparMovimientosPorGrupo, precioNominalSp500Usd } from './utilidades.js';
 import { calcularFlujoDeMes } from './flujoMensual.js';
 import { sincronizarPoolPesos } from './cierreMensual.js';
 import { renderizarGrafico, seriesGrafico } from './grafico.js';
@@ -140,7 +140,7 @@ export function actualizarApp() {
 // Pinta toda la pestaña "Inversiones": cards resumen, checkboxes del gráfico
 // y tabla de Historial de Movimientos.
 function renderizarInversiones() {
-    let valorSp500Usd = estadoApp.sp500.nominales * estadoApp.mercado.spy_usd;
+    let valorSp500Usd = estadoApp.sp500.nominales * precioNominalSp500Usd();
 
     // --- Cards resumen (Pesos siempre; el resto solo si hay saldo) ---
     let cardsHtml = `<div class="card" style="background:#f8fafc;"><h3>Pesos</h3><p style="color:#1e3a8a;">$${estadoApp.patrimonio.pesos.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Disponible acumulado</span></div>`;

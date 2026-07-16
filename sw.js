@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v7.3.0'; // Cotización de S&P corregida: SPY real (Yahoo) + dólar CCL (dolarapi.com)
+const CACHE_NAME = 'finanzas-v7.5.0'; // Intento de detección automática del ratio CEDEAR vía BYMA (con fallback a manual)
 const urlsToCache = [
   './',
   './index.html',
