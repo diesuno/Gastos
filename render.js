@@ -192,7 +192,7 @@ function renderizarTablaDetalleInversiones() {
         let pesosInvTxt = h.pesosInvertidos ? `$${h.pesosInvertidos.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}` : '-';
         let montoTxt = `${simMonto}${h.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:4})}`;
         let colorMov = h.mov === 'Inversión' ? '#10b981' : '#ef4444';
-        tbody.innerHTML += `<tr><td style="color:${colorMov}; font-weight:bold;">${h.mov}</td><td>${pesosInvTxt}</td><td>${escapeHTML(h.instrumento)}</td><td>${montoTxt}</td><td>${ff}</td></tr>`;
+        tbody.innerHTML += `<tr><td style="color:${colorMov}; font-weight:bold;">${h.mov}</td><td>${pesosInvTxt}</td><td>${escapeHTML(h.instrumento)}</td><td>${montoTxt}</td><td>${ff}</td><td><button class="btn-borrar" onclick="revertirMovimientoInversion('${h.id}')">Revertir</button></td></tr>`;
     });
 }
 

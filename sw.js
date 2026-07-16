@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v7.1.0'; // Se saca Plazo Fijo/Mercado Pago; gráfico 6/12 meses
+const CACHE_NAME = 'finanzas-v7.2.0'; // Se agrega Revertir movimiento en Historial de Inversiones
 const urlsToCache = [
   './',
   './index.html',

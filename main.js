@@ -27,7 +27,8 @@ import {
 
 import {
     inicializarMercado, toggleMovimientoInversion, evaluarCamposInversion,
-    evaluarCamposRetiro, ejecutarInversionNueva, ejecutarRetiroNuevo
+    evaluarCamposRetiro, ejecutarInversionNueva, ejecutarRetiroNuevo,
+    revertirMovimientoInversion
 } from './billetera.js';
 
 import {
@@ -108,6 +109,7 @@ window.evaluarCamposInversion = evaluarCamposInversion;
 window.evaluarCamposRetiro = evaluarCamposRetiro;
 window.ejecutarInversionNueva = ejecutarInversionNueva;
 window.ejecutarRetiroNuevo = ejecutarRetiroNuevo;
+window.revertirMovimientoInversion = revertirMovimientoInversion;
 window.toggleSerieGrafico = toggleSerieGrafico;
 window.setMesesAMostrar = setMesesAMostrar;
 window.actualizarFiltrosDetalle = actualizarFiltrosDetalle;

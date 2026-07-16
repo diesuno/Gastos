@@ -6,7 +6,7 @@
 // que usa S&P 500 acá es el punto de partida más simple).
 import { estadoApp } from './estado.js';
 import { generarId } from './utilidades.js';
-import { mostrarAlerta } from './modales.js';
+import { mostrarAlerta, mostrarConfirmacion } from './modales.js';
 import { actualizarApp } from './render.js';
 import { guardarDatosEnNube } from './auth.js';
 import { registrarFotoMesActual } from './cierreMensual.js';
@@ -108,10 +108,17 @@ export function evaluarCamposRetiro() {
 }
 
 // Registra un movimiento (Inversión o Retiro) en el historial que alimenta la
-// tabla "Historial de Movimientos". "pesosInvertidos" queda null cuando el
-// origen no fue Pesos (ej: comprar S&P con dólares) o cuando es un retiro.
-function registrarMovimientoInversion({ mov, pesosInvertidos, instrumento, monto, moneda, fecha }) {
-    estadoApp.historialInversiones.push({ id: generarId(), mov, pesosInvertidos: pesosInvertidos || null, instrumento, monto, moneda, fecha });
+// tabla "Historial de Movimientos". "pesosInvertidos"/"dolaresInvertidos"
+// guardan de qué pool salió la plata (el que no aplica queda null) — esto es
+// lo que permite después revertir el movimiento con precisión.
+function registrarMovimientoInversion({ mov, pesosInvertidos, dolaresInvertidos, nominalesRetirados, instrumento, monto, moneda, fecha }) {
+    estadoApp.historialInversiones.push({
+        id: generarId(), mov,
+        pesosInvertidos: pesosInvertidos || null,
+        dolaresInvertidos: dolaresInvertidos || null,
+        nominalesRetirados: nominalesRetirados || null,
+        instrumento, monto, moneda, fecha
+    });
 }
 
 export function ejecutarInversionNueva() {
@@ -140,7 +147,12 @@ export function ejecutarInversionNueva() {
         if (!nominales || nominales <= 0) return mostrarAlerta("Completá los nominales");
         if (origen === "PESOS") estadoApp.patrimonio.pesos -= monto; else estadoApp.patrimonio.dolares -= monto;
         estadoApp.sp500.nominales += nominales;
-        registrarMovimientoInversion({ mov: "Inversión", pesosInvertidos: origen === "PESOS" ? monto : null, instrumento: "S&P 500", monto: nominales, moneda: "Nominales", fecha });
+        registrarMovimientoInversion({
+            mov: "Inversión",
+            pesosInvertidos: origen === "PESOS" ? monto : null,
+            dolaresInvertidos: origen === "DOLARES" ? monto : null,
+            instrumento: "S&P 500", monto: nominales, moneda: "Nominales", fecha
+        });
         registrarFotoMesActual();
     }
 
@@ -167,8 +179,53 @@ export function ejecutarRetiroNuevo() {
 
     estadoApp.sp500.nominales -= nominalesARetirar;
     let valorUsd = nominalesARetirar * estadoApp.mercado.spy_usd;
-    registrarMovimientoInversion({ mov: "Retiro", pesosInvertidos: null, instrumento: "S&P 500", monto: valorUsd, moneda: "USD", fecha: hoy });
+    registrarMovimientoInversion({ mov: "Retiro", nominalesRetirados: nominalesARetirar, instrumento: "S&P 500", monto: valorUsd, moneda: "USD", fecha: hoy });
 
     registrarFotoMesActual();
     actualizarApp(); guardarDatosEnNube();
+}
+
+// Deshace un movimiento del Historial: le devuelve al pool correspondiente
+// exactamente lo que ese movimiento le sacó (o viceversa), y lo borra del
+// historial. Para movimientos viejos que no tengan guardados los campos
+// nuevos (dolaresInvertidos / nominalesRetirados), hace lo mejor posible y
+// avisa que la reversión es aproximada.
+export async function revertirMovimientoInversion(id) {
+    let entrada = estadoApp.historialInversiones.find(h => h.id === id);
+    if (!entrada) return;
+
+    let esAproximado = false;
+
+    if (!(await mostrarConfirmacion(`¿Revertir este movimiento?\n\n${entrada.mov}: ${entrada.instrumento}`, {peligroso: true}))) return;
+
+    if (entrada.mov === "Inversión" && entrada.instrumento === "Dólares") {
+        // Se gastaron pesos y se obtuvieron dólares: se revierte 1 a 1.
+        estadoApp.patrimonio.pesos += entrada.pesosInvertidos || 0;
+        estadoApp.patrimonio.dolares -= entrada.monto;
+    } else if (entrada.mov === "Inversión" && entrada.instrumento === "S&P 500") {
+        estadoApp.sp500.nominales -= entrada.monto;
+        if (entrada.pesosInvertidos) estadoApp.patrimonio.pesos += entrada.pesosInvertidos;
+        else if (entrada.dolaresInvertidos) estadoApp.patrimonio.dolares += entrada.dolaresInvertidos;
+        else if (entrada.pesosInvertidos === null && entrada.dolaresInvertidos === null) {
+            // Movimiento viejo, de antes de guardar de dónde salió la plata
+            // cuando el origen era Dólares — no podemos saber cuántos dólares
+            // devolver, así que solo se revierten los nominales.
+            esAproximado = true;
+        }
+    } else if (entrada.mov === "Retiro" && entrada.instrumento === "S&P 500") {
+        let nominales = entrada.nominalesRetirados;
+        if (!nominales) {
+            // Movimiento viejo sin nominales guardados: se recalcula con la
+            // cotización actual (puede no coincidir con la de ese momento).
+            nominales = entrada.monto / estadoApp.mercado.spy_usd;
+            esAproximado = true;
+        }
+        estadoApp.sp500.nominales += nominales;
+    }
+
+    estadoApp.historialInversiones = estadoApp.historialInversiones.filter(h => h.id !== id);
+    registrarFotoMesActual();
+    actualizarApp(); guardarDatosEnNube();
+
+    if (esAproximado) mostrarAlerta("Este movimiento es de antes de guardar todos los detalles, así que se revirtió de forma aproximada.");
 }
