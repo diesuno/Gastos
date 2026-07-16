@@ -40,16 +40,15 @@ async function obtenerPrecioYahoo(simbolo) {
     return null;
 }
 
+// Trae la cotización real de SPY en dólares (Yahoo Finance, vía proxy CORS) y
+// el dólar CCL (dolarapi.com, API pública que no necesita proxy). El precio en
+// pesos de "1 nominal de S&P 500" se CALCULA como spy_usd × dolarCCL — no se
+// pide directo a ninguna fuente. Esto evita depender del ratio del CEDEAR de
+// SPY (cuántos CEDEARs representan 1 acción real), que cambia sin aviso: BYMA
+// lo ajustó de 20:1 a 60:1 en mayo/junio de 2026, por ejemplo. La cuenta
+// spy_usd × CCL da directamente "cuántos pesos cuesta 1 dólar de exposición a
+// SPY comprando dólares financieros", que es lo que a nosotros nos importa.
 export async function inicializarMercado() {
-    let precioArs = await obtenerPrecioYahoo("SPY.BA");
-    if (precioArs !== null) {
-        if (precioArs > 100000) precioArs /= 10;
-        estadoApp.mercado.spy_ars = precioArs;
-        estadoApp.mercado.actualizado.ars = true;
-    } else {
-        console.warn("No se pudo obtener la cotización de SPY.BA en ningún proxy, se usa valor de referencia.");
-    }
-
     let precioUsd = await obtenerPrecioYahoo("SPY");
     if (precioUsd !== null) {
         estadoApp.mercado.spy_usd = precioUsd;
@@ -57,6 +56,20 @@ export async function inicializarMercado() {
     } else {
         console.warn("No se pudo obtener la cotización de SPY en ningún proxy, se usa valor de referencia.");
     }
+
+    try {
+        let res = await fetch("https://dolarapi.com/v1/dolares/contadoconliqui");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        let data = await res.json();
+        if (data && data.venta) {
+            estadoApp.mercado.dolarCCL = data.venta;
+            estadoApp.mercado.actualizado.ccl = true;
+        }
+    } catch (e) {
+        console.warn("No se pudo obtener el dólar CCL de dolarapi.com, se usa valor de referencia:", e.message);
+    }
+
+    estadoApp.mercado.spy_ars = estadoApp.mercado.spy_usd * estadoApp.mercado.dolarCCL;
 
     evaluarCamposInversion(); actualizarApp();
 }
@@ -94,6 +107,10 @@ export function evaluarCamposInversion() {
         let precio = origen === "PESOS" ? estadoApp.mercado.spy_ars : estadoApp.mercado.spy_usd;
         let monto = parseFloat(document.getElementById('invMontoNuevo').value) || 0;
         document.getElementById('invNominalesNuevo').value = precio > 0 ? (monto / precio).toFixed(4) : '';
+
+        let avisoViejo = document.getElementById('avisoCotizacionVieja');
+        let cotizacionesOk = estadoApp.mercado.actualizado.usd && estadoApp.mercado.actualizado.ccl;
+        avisoViejo.style.display = cotizacionesOk ? 'none' : 'block';
     }
 }
 

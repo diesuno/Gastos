@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v7.2.0'; // Se agrega Revertir movimiento en Historial de Inversiones
+const CACHE_NAME = 'finanzas-v7.3.0'; // Cotización de S&P corregida: SPY real (Yahoo) + dólar CCL (dolarapi.com)
 const urlsToCache = [
   './',
   './index.html',

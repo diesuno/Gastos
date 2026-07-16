@@ -49,8 +49,11 @@ export const estadoApp = {
 
     // "actualizado" indica si cada valor vino de una API real hoy, o si
     // seguimos usando el valor de referencia por defecto porque no se pudo
-    // conectar a nada (ver billetera.js).
-    mercado: { spy_ars: 17000, spy_usd: 540, actualizado: { ars: false, usd: false } },
+    // conectar a nada (ver billetera.js). "spy_ars" es un valor CALCULADO
+    // (spy_usd × dolarCCL), no se pide directo a ninguna API — así no
+    // depende del ratio del CEDEAR de SPY, que cambia sin aviso (BYMA lo
+    // ajustó de 20:1 a 60:1 en mayo/junio 2026, por ejemplo).
+    mercado: { spy_usd: 630, dolarCCL: 1550, spy_ars: 976500, actualizado: { usd: false, ccl: false } },
 
     miGrafico: null,
 
