@@ -1,9 +1,12 @@
 // ==========================================
 // 💹 BILLETERA: cotizaciones de mercado, inversiones y retiros
 // ==========================================
+// Solo maneja Dólares y S&P 500. Plazo Fijo y Mercado Pago se sacaron de la
+// app (si en el futuro los volvemos a sumar, el patrón de "pool acumulado"
+// que usa S&P 500 acá es el punto de partida más simple).
 import { estadoApp } from './estado.js';
 import { generarId } from './utilidades.js';
-import { mostrarAlerta, mostrarPrompt } from './modales.js';
+import { mostrarAlerta } from './modales.js';
 import { actualizarApp } from './render.js';
 import { guardarDatosEnNube } from './auth.js';
 import { registrarFotoMesActual } from './cierreMensual.js';
@@ -38,13 +41,6 @@ async function obtenerPrecioYahoo(simbolo) {
 }
 
 export async function inicializarMercado() {
-    try {
-        let res = await fetch("https://api.argentinadatos.com/v1/finanzas/rendimientos/fci");
-        let data = await res.json();
-        let mp = data.find(f => f.fondo.toLowerCase().includes("mercado"));
-        if (mp && mp.tna) { estadoApp.mercado.mpTna = (mp.tna * 100).toFixed(1); estadoApp.mercado.actualizado.mpTna = true; }
-    } catch(e) { console.warn("No se pudo obtener la TNA de Mercado Pago, se usa valor de referencia:", e.message); }
-
     let precioArs = await obtenerPrecioYahoo("SPY.BA");
     if (precioArs !== null) {
         if (precioArs > 100000) precioArs /= 10;
@@ -78,12 +74,10 @@ export function evaluarCamposInversion() {
     let boxOrigen = document.getElementById('boxInvOrigen');
     let boxCotizacion = document.getElementById('boxInvCotizacionDolar');
     let boxNominales = document.getElementById('boxInvNominales');
-    let boxInteres = document.getElementById('boxInvInteres');
     let lblMonto = document.getElementById('lblInvMontoNuevo');
 
     boxCotizacion.style.display = 'none';
     boxNominales.style.display = 'none';
-    boxInteres.style.display = 'none';
 
     if (inst === "Dólares") {
         // Comprar dólares siempre sale del pool de Pesos.
@@ -91,27 +85,21 @@ export function evaluarCamposInversion() {
         boxCotizacion.style.display = 'block';
         lblMonto.innerText = 'Monto a Invertir (Pesos)';
     } else {
+        // S&P 500
         boxOrigen.style.display = 'block';
         let origen = document.getElementById('invOrigen').value;
         lblMonto.innerText = origen === "PESOS" ? "Monto a Invertir (Pesos)" : "Monto a Invertir (Dólares)";
 
-        if (inst === "S&P 500") {
-            boxNominales.style.display = 'block';
-            let precio = origen === "PESOS" ? estadoApp.mercado.spy_ars : estadoApp.mercado.spy_usd;
-            let monto = parseFloat(document.getElementById('invMontoNuevo').value) || 0;
-            document.getElementById('invNominalesNuevo').value = precio > 0 ? (monto / precio).toFixed(4) : '';
-        } else {
-            // Plazo Fijo / Mercado Pago
-            boxInteres.style.display = 'block';
-            if (inst === "Mercado Pago") document.getElementById('invInteresNuevo').value = estadoApp.mercado.mpTna;
-            else document.getElementById('invInteresNuevo').value = '';
-        }
+        boxNominales.style.display = 'block';
+        let precio = origen === "PESOS" ? estadoApp.mercado.spy_ars : estadoApp.mercado.spy_usd;
+        let monto = parseFloat(document.getElementById('invMontoNuevo').value) || 0;
+        document.getElementById('invNominalesNuevo').value = precio > 0 ? (monto / precio).toFixed(4) : '';
     }
 }
 
 // --- FORMULARIO: campos dinámicos de Retiro ---
 // Los dólares no se pueden retirar (son capital para invertir en S&P 500),
-// así que Retiro hoy es solo para S&P 500 — el único toggle que queda es
+// así que Retiro es solo para S&P 500 — el único toggle que queda es
 // "cargar nominales exactos" vs. "valor en dólares deseado".
 export function evaluarCamposRetiro() {
     let cargarNominales = document.getElementById('retCargarNominales').checked;
@@ -120,8 +108,8 @@ export function evaluarCamposRetiro() {
 }
 
 // Registra un movimiento (Inversión o Retiro) en el historial que alimenta la
-// tabla "Detalle". "pesosInvertidos" queda null cuando el origen no fue Pesos
-// (ej: comprar S&P con dólares) o cuando es un retiro.
+// tabla "Historial de Movimientos". "pesosInvertidos" queda null cuando el
+// origen no fue Pesos (ej: comprar S&P con dólares) o cuando es un retiro.
 function registrarMovimientoInversion({ mov, pesosInvertidos, instrumento, monto, moneda, fecha }) {
     estadoApp.historialInversiones.push({ id: generarId(), mov, pesosInvertidos: pesosInvertidos || null, instrumento, monto, moneda, fecha });
 }
@@ -143,25 +131,17 @@ export function ejecutarInversionNueva() {
         registrarMovimientoInversion({ mov: "Inversión", pesosInvertidos: monto, instrumento: "Dólares", monto: dolaresComprados, moneda: "USD", fecha });
         registrarFotoMesActual();
     } else {
+        // S&P 500
         let origen = document.getElementById('invOrigen').value; // "PESOS" | "DOLARES"
         let poolDisponible = origen === "PESOS" ? estadoApp.patrimonio.pesos : estadoApp.patrimonio.dolares;
         if (poolDisponible < monto) return mostrarAlerta(`${origen === "PESOS" ? "Pesos" : "Dólares"} insuficientes en la billetera.`);
 
-        if (inst === "S&P 500") {
-            let nominales = parseFloat(document.getElementById('invNominalesNuevo').value);
-            if (!nominales || nominales <= 0) return mostrarAlerta("Completá los nominales");
-            if (origen === "PESOS") estadoApp.patrimonio.pesos -= monto; else estadoApp.patrimonio.dolares -= monto;
-            estadoApp.sp500.nominales += nominales;
-            registrarMovimientoInversion({ mov: "Inversión", pesosInvertidos: origen === "PESOS" ? monto : null, instrumento: "S&P 500", monto: nominales, moneda: "Nominales", fecha });
-            registrarFotoMesActual();
-        } else {
-            // Plazo Fijo / Mercado Pago: se mantienen como posiciones individuales.
-            let interes = parseFloat(document.getElementById('invInteresNuevo').value) || (inst === "Mercado Pago" ? estadoApp.mercado.mpTna : 0);
-            if (origen === "PESOS") estadoApp.patrimonio.pesos -= monto; else estadoApp.patrimonio.dolares -= monto;
-            let monedaPos = origen === "PESOS" ? "ARS" : "USD";
-            estadoApp.inversiones.push({ monto, moneda: monedaPos, instrumento: inst, fecha, nominales: 0, interes });
-            registrarMovimientoInversion({ mov: "Inversión", pesosInvertidos: origen === "PESOS" ? monto : null, instrumento: inst, monto, moneda: monedaPos, fecha });
-        }
+        let nominales = parseFloat(document.getElementById('invNominalesNuevo').value);
+        if (!nominales || nominales <= 0) return mostrarAlerta("Completá los nominales");
+        if (origen === "PESOS") estadoApp.patrimonio.pesos -= monto; else estadoApp.patrimonio.dolares -= monto;
+        estadoApp.sp500.nominales += nominales;
+        registrarMovimientoInversion({ mov: "Inversión", pesosInvertidos: origen === "PESOS" ? monto : null, instrumento: "S&P 500", monto: nominales, moneda: "Nominales", fecha });
+        registrarFotoMesActual();
     }
 
     document.getElementById('invMontoNuevo').value = "";
@@ -169,7 +149,7 @@ export function ejecutarInversionNueva() {
 }
 
 // Los dólares no se retiran (son capital para invertir en S&P 500) — Retiro
-// hoy es exclusivamente para el pool de S&P 500.
+// es exclusivamente para el pool de S&P 500.
 export function ejecutarRetiroNuevo() {
     let hoy = new Date().toISOString().split('T')[0];
     let cargarNominales = document.getElementById('retCargarNominales').checked;
@@ -191,18 +171,4 @@ export function ejecutarRetiroNuevo() {
 
     registrarFotoMesActual();
     actualizarApp(); guardarDatosEnNube();
-}
-
-// Liquidar una posición puntual de Plazo Fijo / Mercado Pago (estas siguen
-// siendo posiciones individuales, no un pool, porque cada una tiene su propia
-// fecha de inicio y tasa).
-export async function retirarInversionPosicion(idx, valorSugerido) {
-    let i = estadoApp.inversiones[idx];
-    let nInput = await mostrarPrompt(`Liquidando inversión.\n\nEl sistema estima un valor de: $${Math.floor(valorSugerido)}\n\nIngresá importe EXACTO devuelto a tu caja:`, Math.floor(valorSugerido));
-    if(!nInput) return; let n = parseFloat(nInput);
-    if(i.moneda === "ARS") estadoApp.patrimonio.pesos += n; else estadoApp.patrimonio.dolares += n;
-
-    let hoy = new Date().toISOString().split('T')[0];
-    registrarMovimientoInversion({ mov: "Retiro", pesosInvertidos: null, instrumento: i.instrumento, monto: n, moneda: i.moneda, fecha: hoy });
-    estadoApp.inversiones.splice(idx, 1); actualizarApp(); guardarDatosEnNube();
 }

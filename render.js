@@ -137,25 +137,9 @@ export function actualizarApp() {
     actualizarPestañaCuentasCobrar(esAvanzado);
 }
 
-// Calcula el valor actualizado de una posición de Plazo Fijo / Mercado Pago
-// (capital + interés devengado según los días transcurridos desde la fecha
-// de alta). Se usa tanto para el total de las cards como para la tabla de
-// posiciones activas.
-function valorActualPosicionPFMP(inv) {
-    let hoyLimpiada = new Date(); hoyLimpiada.setHours(0,0,0,0);
-    let fDate = new Date(inv.fecha + 'T00:00:00');
-    let dias = Math.max(0, Math.round((hoyLimpiada - fDate) / (1000 * 60 * 60 * 24)));
-    let tna = inv.interes || 0;
-    return inv.monto + (inv.monto * (tna / 100) * (dias / 365));
-}
-
-// Pinta toda la pestaña "Inversiones": cards resumen, checkboxes del gráfico,
-// tabla de posiciones activas (Plazo Fijo / Mercado Pago) y tabla Detalle.
+// Pinta toda la pestaña "Inversiones": cards resumen, checkboxes del gráfico
+// y tabla de Historial de Movimientos.
 function renderizarInversiones() {
-    let posicionesPF = estadoApp.inversiones.filter(i => i.instrumento === "Plazo Fijo");
-    let posicionesMP = estadoApp.inversiones.filter(i => i.instrumento === "Mercado Pago");
-    let totalPF = posicionesPF.reduce((acc, i) => acc + valorActualPosicionPFMP(i), 0);
-    let totalMP = posicionesMP.reduce((acc, i) => acc + valorActualPosicionPFMP(i), 0);
     let valorSp500Usd = estadoApp.sp500.nominales * estadoApp.mercado.spy_usd;
 
     // --- Cards resumen (Pesos siempre; el resto solo si hay saldo) ---
@@ -165,12 +149,6 @@ function renderizarInversiones() {
     }
     if (estadoApp.sp500.nominales > 0) {
         cardsHtml += `<div class="card" style="background:#fffbeb;"><h3>S&P 500</h3><p style="color:#f59e0b;">${estadoApp.sp500.nominales.toFixed(4)} Nom.</p><span class="porcentaje">US$ ${valorSp500Usd.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;
-    }
-    if (totalPF > 0) {
-        cardsHtml += `<div class="card" style="background:#eef2ff;"><h3>Plazo Fijo</h3><p style="color:#4338ca;">$${totalPF.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>`;
-    }
-    if (totalMP > 0) {
-        cardsHtml += `<div class="card" style="background:#eef2ff;"><h3>Mercado Pago</h3><p style="color:#4338ca;">$${totalMP.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>`;
     }
     document.getElementById('dashboard-inversiones').innerHTML = cardsHtml;
 
@@ -184,16 +162,6 @@ function renderizarInversiones() {
     }
     document.getElementById('chkSeriesGrafico').innerHTML = chkHtml;
     renderizarGrafico();
-
-    // --- Tabla de posiciones activas (Plazo Fijo / Mercado Pago) ---
-    let tablaInv = document.getElementById('tablaInversiones'); tablaInv.innerHTML = '';
-    estadoApp.inversiones.forEach((inv, index) => {
-        let valorAct = valorActualPosicionPFMP(inv);
-        let sim = inv.moneda === "ARS" ? "$" : "US$";
-        let fDate = new Date(inv.fecha + 'T00:00:00'); let ff = `${fDate.getDate().toString().padStart(2,'0')}/${(fDate.getMonth()+1).toString().padStart(2,'0')}/${fDate.getFullYear()}`;
-        let colorValor = valorAct >= inv.monto ? "#10b981" : "#ef4444";
-        tablaInv.innerHTML += `<tr><td>${ff}</td><td><strong>${inv.instrumento}</strong></td><td>${sim}${inv.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:${colorValor}; font-weight:bold;">${sim}${valorAct.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${inv.interes}% TNA</td><td><button class="btn-naranja" onclick="retirarInversionPosicion(${index}, ${valorAct})">Liquidar</button></td></tr>`;
-    });
 
     renderizarTablaDetalleInversiones();
 }

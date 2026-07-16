@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v7.0.0'; // Rediseño de Inversiones: pools de Dólares/S&P, Pesos automático
+const CACHE_NAME = 'finanzas-v7.1.0'; // Se saca Plazo Fijo/Mercado Pago; gráfico 6/12 meses
 const urlsToCache = [
   './',
   './index.html',

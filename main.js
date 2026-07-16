@@ -27,8 +27,7 @@ import {
 
 import {
     inicializarMercado, toggleMovimientoInversion, evaluarCamposInversion,
-    evaluarCamposRetiro, ejecutarInversionNueva, ejecutarRetiroNuevo,
-    retirarInversionPosicion
+    evaluarCamposRetiro, ejecutarInversionNueva, ejecutarRetiroNuevo
 } from './billetera.js';
 
 import {
@@ -36,7 +35,7 @@ import {
     borrarMovimientoReal, darDeBajaServicio, editarMontoServicio
 } from './deudas.js';
 
-import { toggleSerieGrafico } from './grafico.js';
+import { toggleSerieGrafico, setMesesAMostrar } from './grafico.js';
 
 import { inicializarSelectorHistorico, cambiarPestaña, actualizarApp, actualizarFiltrosDetalle } from './render.js';
 
@@ -109,6 +108,6 @@ window.evaluarCamposInversion = evaluarCamposInversion;
 window.evaluarCamposRetiro = evaluarCamposRetiro;
 window.ejecutarInversionNueva = ejecutarInversionNueva;
 window.ejecutarRetiroNuevo = ejecutarRetiroNuevo;
-window.retirarInversionPosicion = retirarInversionPosicion;
 window.toggleSerieGrafico = toggleSerieGrafico;
+window.setMesesAMostrar = setMesesAMostrar;
 window.actualizarFiltrosDetalle = actualizarFiltrosDetalle;

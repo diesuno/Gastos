@@ -1,39 +1,62 @@
 // ==========================================
-// 📈 GRÁFICO DE EVOLUCIÓN (últimos 6 meses, Dólares y S&P 500 en USD)
+// 📈 GRÁFICO DE EVOLUCIÓN (6 o 12 meses, Dólares y S&P 500 en USD)
 // ==========================================
 import { estadoApp, nombresMeses } from './estado.js';
 
 const COLOR_DOLARES = '#10b981';
 const COLOR_SP500 = '#f59e0b';
 
-// Qué series están tildadas — es una preferencia de esta sesión nada más,
-// no se guarda en la nube (por eso vive acá y no en estadoApp).
+// Qué series están tildadas y cuántos meses se piden ver — son preferencias
+// de esta sesión nada más, no se guardan en la nube (por eso viven acá y no
+// en estadoApp).
 export const seriesGrafico = { dolares: true, sp500: true };
+export let mesesAMostrar = 6;
 
 export function toggleSerieGrafico(serie) {
     seriesGrafico[serie] = !seriesGrafico[serie];
     renderizarGrafico();
 }
 
-// Devuelve los últimos 6 meses (incluyendo el actual), del más viejo al más
-// nuevo, con su clave "YYYY-MM" y una etiqueta linda para el eje X.
-function obtenerUltimos6Meses() {
+export function setMesesAMostrar(n, boton) {
+    mesesAMostrar = n;
+    document.querySelectorAll('.btn-periodo-grafico').forEach(b => b.classList.remove('activo'));
+    if (boton) boton.classList.add('activo');
+    renderizarGrafico();
+}
+
+// Arma la lista de meses a graficar: arranca en "mesesAMostrar" meses atrás,
+// PERO si la primera foto real que existe es más reciente que eso, arranca
+// ahí directamente (no tiene sentido mostrar meses vacíos antes de la primera
+// inversión). Si todavía no hay ninguna foto guardada, devuelve una lista
+// vacía — no hay nada que graficar todavía.
+function obtenerMesesARenderizar() {
+    let claves = Object.keys(estadoApp.historialMensual);
+    if (claves.length === 0) return [];
+
+    let primeraClave = claves.sort()[0]; // "YYYY-MM" ordena bien como texto
+    let [pA, pM] = primeraClave.split('-').map(Number);
+    let fechaPrimera = new Date(pA, pM - 1, 1);
+
     let hoy = new Date();
+    let fechaLimite = new Date(hoy.getFullYear(), hoy.getMonth() - (mesesAMostrar - 1), 1);
+    let fechaInicio = fechaPrimera > fechaLimite ? fechaPrimera : fechaLimite;
+
     let meses = [];
-    for (let i = 5; i >= 0; i--) {
-        let f = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+    let cursor = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), 1);
+    let fin = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    while (cursor <= fin) {
         meses.push({
-            key: `${f.getFullYear()}-${(f.getMonth() + 1).toString().padStart(2, '0')}`,
-            label: `${nombresMeses[f.getMonth()]} ${f.getFullYear()}`
+            key: `${cursor.getFullYear()}-${(cursor.getMonth() + 1).toString().padStart(2, '0')}`,
+            label: `${nombresMeses[cursor.getMonth()]} ${cursor.getFullYear()}`
         });
+        cursor.setMonth(cursor.getMonth() + 1);
     }
     return meses;
 }
 
 // Arma la serie de datos "arrastrando" el último valor conocido: si un mes no
 // tiene foto guardada (no hubo movimientos ese mes), repite el valor del mes
-// anterior en vez de dejar un hueco — hasta que aparece la primera foto real,
-// donde no hay nada que mostrar (queda null).
+// anterior en vez de dejar un hueco.
 function serieConArrastre(meses, extraerValor) {
     let ultimoValor = null;
     return meses.map(m => {
@@ -45,11 +68,22 @@ function serieConArrastre(meses, extraerValor) {
 
 export function renderizarGrafico() {
     let canvas = document.getElementById('patrimonioChart');
+    let elSinDatos = document.getElementById('graficoSinDatos');
     if (!canvas) return;
-    let ctx = canvas.getContext('2d');
-    if (estadoApp.miGrafico) estadoApp.miGrafico.destroy();
 
-    let meses = obtenerUltimos6Meses();
+    if (estadoApp.miGrafico) { estadoApp.miGrafico.destroy(); estadoApp.miGrafico = null; }
+
+    let meses = obtenerMesesARenderizar();
+
+    if (meses.length === 0) {
+        canvas.style.display = 'none';
+        if (elSinDatos) elSinDatos.style.display = 'block';
+        return;
+    }
+    canvas.style.display = 'block';
+    if (elSinDatos) elSinDatos.style.display = 'none';
+
+    let ctx = canvas.getContext('2d');
     let labels = meses.map(m => m.label);
     let datasets = [];
 

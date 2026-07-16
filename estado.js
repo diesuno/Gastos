@@ -15,23 +15,25 @@
 export const estadoApp = {
     todosLosMovimientos: [],
     suscripciones: [],
-    // "pesos" ahora se alimenta solo (ver cierreMensual.js): cuando un mes de
-    // Flujo Mensual queda en el pasado, su Disponible se suma acá una única vez.
-    // "dolares" es el pool de dólares comprados (ver billetera.js).
+    // "pesos" se mantiene sincronizado en vivo con el Disponible de cada mes,
+    // incluido el mes en curso (ver cierreMensual.js). "dolares" es el pool de
+    // dólares comprados (ver billetera.js) — son el capital para invertir en
+    // S&P 500, no se retiran directamente.
     patrimonio: { pesos: 0, dolares: 0 },
-    // Posiciones de Plazo Fijo / Mercado Pago únicamente (cada una con su fecha
-    // y tasa, igual que antes). Dólares y S&P 500 ya NO viven acá: son pools
-    // simples (ver "patrimonio.dolares" y "sp500" más abajo).
+    // Posiciones de Plazo Fijo / Mercado Pago de una versión anterior de la
+    // app (esos instrumentos ya no existen). Se deja el campo para no perder
+    // datos viejos de usuarios que los tenían, pero no se crean entradas
+    // nuevas ni se muestra nada de esto en la UI.
     inversiones: [],
     // Pool acumulado de nominales de S&P 500 (sin trackear de qué compra vino).
     sp500: { nominales: 0 },
-    // Historial de movimientos de Inversión/Retiro para la tabla "Detalle"
-    // (incluye los 4 instrumentos). Cada entrada: { id, mov, pesosInvertidos,
+    // Historial de movimientos de Inversión/Retiro para la tabla "Historial de
+    // Movimientos" (Dólares y S&P 500). Cada entrada: { id, mov, pesosInvertidos,
     // instrumento, monto, moneda, fecha }.
     historialInversiones: [],
     // Fotos mensuales del valor en dólares de "dolares" y "sp500", para poder
-    // graficar la evolución real de los últimos 6 meses (ver cierreMensual.js
-    // y grafico.js). Clave "YYYY-MM" -> { dolares, sp500Usd }.
+    // graficar la evolución real (ver cierreMensual.js y grafico.js). Clave
+    // "YYYY-MM" -> { dolares, sp500Usd }.
     historialMensual: {},
     // Cuánto del Disponible de cada mes (clave "YYYY-MM") ya se sumó al pool
     // de Pesos. Incluye el mes en curso: se recalcula todo el tiempo (ver
@@ -48,7 +50,7 @@ export const estadoApp = {
     // "actualizado" indica si cada valor vino de una API real hoy, o si
     // seguimos usando el valor de referencia por defecto porque no se pudo
     // conectar a nada (ver billetera.js).
-    mercado: { spy_ars: 17000, spy_usd: 540, mpTna: 17.5, actualizado: { ars: false, usd: false, mpTna: false } },
+    mercado: { spy_ars: 17000, spy_usd: 540, actualizado: { ars: false, usd: false } },
 
     miGrafico: null,
 

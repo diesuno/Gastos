@@ -183,11 +183,6 @@
             </div>
         </div>
 
-        <div class="form-section" style="background: #e0f2fe; border: none;">
-            <h3 style="margin-top:0; color:#0369a1;">ℹ️ Pesos en Billetera</h3>
-            <p style="font-size: 0.85em; margin-top:-5px; color:#0c4a6e;">El Disponible de cada mes se suma solo al pool de Pesos de la pestaña "Inversiones" cuando ese mes ya pasó — no hace falta enviarlo a mano.</p>
-        </div>
-
         <h2>Detalle de Movimientos del Mes</h2>
         <table>
             <thead id="headTablaMovimientos">
@@ -223,13 +218,22 @@
         <!-- CARDS RESUMEN: Pesos siempre, el resto solo si hay saldo -->
         <div class="dashboard-grid" id="dashboard-inversiones"></div>
 
-        <!-- GRÁFICO: últimos 6 meses, con checks de qué series ver -->
+        <!-- GRÁFICO: 6 o 12 meses, con checks de qué series ver -->
         <div class="form-section" style="background:#f8fafc;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:10px;">
-                <h3 style="margin:0;">📈 Evolución (últimos 6 meses)</h3>
-                <div id="chkSeriesGrafico" style="display:flex; gap:20px; flex-wrap:wrap;"></div>
+                <h3 style="margin:0;">📈 Evolución</h3>
+                <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
+                    <div id="chkSeriesGrafico" style="display:flex; gap:20px; flex-wrap:wrap;"></div>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn-panel btn-periodo-grafico activo" onclick="setMesesAMostrar(6, this)">6 meses</button>
+                        <button type="button" class="btn-panel btn-periodo-grafico" onclick="setMesesAMostrar(12, this)">12 meses</button>
+                    </div>
+                </div>
             </div>
-            <div class="chart-container" style="height:320px;"><canvas id="patrimonioChart"></canvas></div>
+            <div class="chart-container" style="height:320px;">
+                <canvas id="patrimonioChart"></canvas>
+                <p id="graficoSinDatos" style="display:none; text-align:center; color:#94a3b8; padding-top:60px;">Todavía no hay movimientos de Dólares o S&P 500 para graficar.</p>
+            </div>
         </div>
 
         <!-- MOVIMIENTO: Inversión o Retiro -->
@@ -256,8 +260,6 @@
                         <select id="invInstrumentoNuevo" onchange="evaluarCamposInversion()">
                             <option value="Dólares">Dólares</option>
                             <option value="S&P 500">S&P 500</option>
-                            <option value="Plazo Fijo">Plazo Fijo Bancario</option>
-                            <option value="Mercado Pago">FCI Mercado Pago</option>
                         </select>
                     </div>
                     <div class="form-group"><label id="lblInvMontoNuevo" for="invMontoNuevo">Monto a Invertir (Pesos)</label><input type="number" step="any" id="invMontoNuevo" oninput="evaluarCamposInversion()"></div>
@@ -265,8 +267,6 @@
                     <div class="form-group" id="boxInvCotizacionDolar" style="display:none;"><label for="invCotizacionDolar">Cotización de Compra ($ por USD)</label><input type="number" step="any" id="invCotizacionDolar" placeholder="$ por USD"></div>
 
                     <div class="form-group" id="boxInvNominales" style="display:none;"><label for="invNominalesNuevo">Nominales</label><input type="number" step="any" id="invNominalesNuevo"><span class="porcentaje">Cuántas unidades de S&P comprás</span></div>
-
-                    <div class="form-group" id="boxInvInteres" style="display:none;"><label for="invInteresNuevo">Tasa Int. Anual (%)</label><input type="number" step="any" id="invInteresNuevo" placeholder="TNA"></div>
 
                     <div class="form-group"><label for="invFechaNueva">Fecha</label><input type="date" id="invFechaNueva"></div>
                     <button style="background-color: #f59e0b; color: white; height:46px;" onclick="ejecutarInversionNueva()">Invertir</button>
@@ -291,12 +291,6 @@
             </div>
         </div>
 
-        <h2>Posiciones Activas (Plazo Fijo / Mercado Pago)</h2>
-        <table>
-            <thead><tr><th>Fecha Alta</th><th>Instrumento</th><th>Capital Inicial</th><th style="color:#1e3a8a;">Valor Actualizado</th><th>Tasa</th><th>Acción</th></tr></thead>
-            <tbody id="tablaInversiones"></tbody>
-        </table>
-
         <h2>Historial de Movimientos</h2>
         <div class="historico-selector" style="background:#f1f5f9; color:#1e3a8a;">
             <label style="margin:0;">Instrumento:</label>
@@ -304,8 +298,6 @@
                 <option value="TODOS">Todos</option>
                 <option value="Dólares">Dólares</option>
                 <option value="S&P 500">S&P 500</option>
-                <option value="Plazo Fijo">Plazo Fijo</option>
-                <option value="Mercado Pago">Mercado Pago</option>
             </select>
             <label style="margin:0;">Año:</label>
             <select id="filtroDetalleAnio" onchange="actualizarFiltrosDetalle()"></select>
