@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.0.0'; // Gráfico con fechas reales, Retiro S&P con destino, Extracción, toggle Dólares, % ingresos, básico sin Cuentas x Cobrar
+const CACHE_NAME = 'finanzas-v8.0.1'; // Ajuste visual: textos de ayuda más cortos para no desalinear los formularios
 const urlsToCache = [
   './',
   './index.html',
