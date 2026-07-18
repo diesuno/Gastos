@@ -1,15 +1,15 @@
 // ==========================================
-// 💹 BILLETERA: cotizaciones de mercado, inversiones y retiros
+// 💹 BILLETERA: cotizaciones de mercado, inversiones, retiros y extracciones
 // ==========================================
 // Solo maneja Dólares y S&P 500. Plazo Fijo y Mercado Pago se sacaron de la
 // app (si en el futuro los volvemos a sumar, el patrón de "pool acumulado"
 // que usa S&P 500 acá es el punto de partida más simple).
 import { estadoApp } from './estado.js';
-import { generarId, precioNominalSp500Usd, precioNominalSp500Ars } from './utilidades.js';
+import { generarId, precioNominalSp500Usd, precioNominalSp500Ars, normalizarMovimientoInversion } from './utilidades.js';
 import { mostrarAlerta, mostrarConfirmacion } from './modales.js';
 import { actualizarApp } from './render.js';
 import { guardarDatosEnNube } from './auth.js';
-import { registrarFotoMesActual } from './cierreMensual.js';
+import { reconstruirHistorialMensual } from './cierreMensual.js';
 
 // Lista de proxies CORS públicos usados para poder leer Yahoo Finance desde el
 // navegador (Yahoo no permite pedidos directos desde otro dominio). Son servicios
@@ -21,7 +21,7 @@ const PROXIES_CORS = [
     url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
 ];
 
-// Intenta traer el precio de mercado de un símbolo (ej: "SPY", "SPY.BA") probando
+// Intenta traer el precio de mercado actual de un símbolo (ej: "SPY") probando
 // cada proxy de la lista en orden. Devuelve el precio, o null si ninguno funcionó.
 async function obtenerPrecioYahoo(simbolo) {
     const urlYahoo = `https://query1.finance.yahoo.com/v8/finance/chart/${simbolo}`;
@@ -38,6 +38,40 @@ async function obtenerPrecioYahoo(simbolo) {
         }
     }
     return null;
+}
+
+// Intenta traer precios de cierre MENSUALES de SPY de los últimos 13 meses,
+// para poder valuar el gráfico con el precio real de cada mes en vez de
+// siempre el de hoy. Es una API de Yahoo que no está pensada para esto
+// puntual (le pedimos un rango/intervalo distinto al de la cotización normal)
+// — puede fallar o venir en un formato distinto al esperado. Si eso pasa,
+// devuelve un objeto vacío y todo el resto de la app sigue funcionando
+// (el gráfico cae de vuelta al precio de hoy para los meses sin dato).
+async function obtenerPreciosHistoricosSpy() {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=13mo&interval=1mo`;
+    for (const construirUrlProxy of PROXIES_CORS) {
+        try {
+            let res = await fetch(construirUrlProxy(url));
+            if (!res.ok) continue;
+            let data = await res.json();
+            let result = data && data.chart && data.chart.result && data.chart.result[0];
+            let timestamps = result && result.timestamp;
+            let closes = result && result.indicators && result.indicators.quote && result.indicators.quote[0] && result.indicators.quote[0].close;
+            if (!timestamps || !closes) continue;
+
+            let mapa = {};
+            timestamps.forEach((ts, i) => {
+                if (closes[i] === null || closes[i] === undefined) return;
+                let d = new Date(ts * 1000);
+                let key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                mapa[key] = closes[i];
+            });
+            return mapa;
+        } catch (e) {
+            console.warn("Proxy CORS falló consultando el histórico de SPY:", e.message);
+        }
+    }
+    return {};
 }
 
 // Intenta traer el precio REAL del CEDEAR de SPY (en pesos) desde BYMA, para
@@ -84,15 +118,12 @@ async function obtenerRatioCedearAutomatico() {
     }
 }
 
-
 // Trae la cotización real de SPY en dólares (Yahoo Finance, vía proxy CORS), el
-// dólar CCL (dolarapi.com, API pública que no necesita proxy), y el ratio del
-// CEDEAR de SPY (intentando detectarlo automático desde BYMA; si no se puede,
-// se mantiene el valor cargado a mano). El precio en pesos de "1 nominal de
-// S&P 500" se CALCULA como spy_usd × dolarCCL — no se pide directo a ninguna
-// fuente. Esto evita depender ciegamente de una sola fuente para el ratio del
-// CEDEAR (cuántos CEDEARs representan 1 acción real), que cambia sin aviso:
-// BYMA lo ajustó de 20:1 a 60:1 en mayo/junio de 2026, por ejemplo.
+// dólar CCL (dolarapi.com, API pública que no necesita proxy), el histórico
+// mensual de SPY (para el gráfico), y el ratio del CEDEAR (intentando
+// detectarlo automático desde BYMA; si no se puede, se mantiene el valor
+// cargado a mano). El precio en pesos de "1 nominal de S&P 500" se CALCULA
+// como spy_usd × dolarCCL — no se pide directo a ninguna fuente.
 export async function inicializarMercado() {
     let precioUsd = await obtenerPrecioYahoo("SPY");
     if (precioUsd !== null) {
@@ -124,47 +155,62 @@ export async function inicializarMercado() {
         estadoApp.mercado.actualizado.ratio = false;
     }
 
+    estadoApp.mercado.historicoSpyUsd = await obtenerPreciosHistoricosSpy();
+
+    reconstruirHistorialMensual();
     evaluarCamposInversion(); actualizarApp();
 }
 
-// --- FORMULARIO: mostrar Inversión o Retiro ---
+// --- FORMULARIO: mostrar Inversión, Retiro o Extracción ---
 export function toggleMovimientoInversion() {
     let mov = document.getElementById('invMovimiento').value;
     document.getElementById('seccionInversion').style.display = mov === "INVERSION" ? "block" : "none";
     document.getElementById('seccionRetiro').style.display = mov === "RETIRO" ? "block" : "none";
+    document.getElementById('seccionExtraccion').style.display = mov === "EXTRACCION" ? "block" : "none";
 }
 
 // El ratio del CEDEAR de SPY (cuántos CEDEARs representan 1 acción real) lo
-// fija BYMA y puede cambiar sin aviso — no hay ninguna API gratuita que lo dé,
-// así que es editable a mano acá.
+// fija BYMA y puede cambiar sin aviso — no hay ninguna API gratuita 100%
+// confiable que lo dé, así que también es editable a mano acá.
 export function actualizarRatioCedear() {
     let nuevoRatio = parseFloat(document.getElementById('inputRatioCedear').value);
     if (!nuevoRatio || nuevoRatio <= 0) return;
     estadoApp.mercado.ratioCedear = nuevoRatio;
     estadoApp.mercado.actualizado.ratio = false; // lo tocó la persona a mano, ya no es "automático"
     evaluarCamposInversion();
+    reconstruirHistorialMensual();
     actualizarApp();
     guardarDatosEnNube();
+}
+
+// --- FORMULARIO: mostrar Cotización o Cantidad al comprar Dólares ---
+export function toggleModoDolar() {
+    let modo = document.getElementById('invModoDolar').value; // "COTIZACION" | "CANTIDAD"
+    document.getElementById('boxInvCotizacionDolar').style.display = modo === "COTIZACION" ? 'block' : 'none';
+    document.getElementById('boxInvCantidadDolares').style.display = modo === "CANTIDAD" ? 'block' : 'none';
 }
 
 // --- FORMULARIO: campos dinámicos de Inversión según instrumento ---
 export function evaluarCamposInversion() {
     let inst = document.getElementById('invInstrumentoNuevo').value;
     let boxOrigen = document.getElementById('boxInvOrigen');
-    let boxCotizacion = document.getElementById('boxInvCotizacionDolar');
+    let boxModoDolar = document.getElementById('boxModoDolar');
     let boxNominales = document.getElementById('boxInvNominales');
     let boxRatio = document.getElementById('boxRatioCedear');
     let lblMonto = document.getElementById('lblInvMontoNuevo');
 
-    boxCotizacion.style.display = 'none';
+    boxModoDolar.style.display = 'none';
+    document.getElementById('boxInvCotizacionDolar').style.display = 'none';
+    document.getElementById('boxInvCantidadDolares').style.display = 'none';
     boxNominales.style.display = 'none';
     boxRatio.style.display = 'none';
 
     if (inst === "Dólares") {
         // Comprar dólares siempre sale del pool de Pesos.
         boxOrigen.style.display = 'none';
-        boxCotizacion.style.display = 'block';
         lblMonto.innerText = 'Monto a Invertir (Pesos)';
+        boxModoDolar.style.display = 'block';
+        toggleModoDolar();
     } else {
         // S&P 500
         boxOrigen.style.display = 'block';
@@ -190,49 +236,72 @@ export function evaluarCamposInversion() {
     }
 }
 
-// --- FORMULARIO: campos dinámicos de Retiro ---
-// Los dólares no se pueden retirar (son capital para invertir en S&P 500),
-// así que Retiro es solo para S&P 500 — el único toggle que queda es
-// "cargar nominales exactos" vs. "valor en dólares deseado".
+// --- FORMULARIO: campos dinámicos de Retiro de S&P 500 ---
 export function evaluarCamposRetiro() {
+    let destino = document.getElementById('retDestino').value; // "PESOS" | "DOLARES"
     let cargarNominales = document.getElementById('retCargarNominales').checked;
-    document.getElementById('boxRetMontoUsdSp').style.display = cargarNominales ? 'none' : 'block';
+    document.getElementById('boxRetMontoDeseado').style.display = cargarNominales ? 'none' : 'block';
     document.getElementById('boxRetNominalesExactos').style.display = cargarNominales ? 'block' : 'none';
+    document.getElementById('lblRetMontoDeseado').innerText = destino === "PESOS" ? "Valor en Pesos a Retirar" : "Valor en US$ a Retirar";
+
+    let inputCotiz = document.getElementById('retCotizacion');
+    if (document.activeElement !== inputCotiz) {
+        let cotizacionSugerida = destino === "PESOS" ? precioNominalSp500Ars() : precioNominalSp500Usd();
+        inputCotiz.value = cotizacionSugerida.toFixed(2);
+    }
 }
 
-// Registra un movimiento (Inversión o Retiro) en el historial que alimenta la
-// tabla "Historial de Movimientos". "pesosInvertidos"/"dolaresInvertidos"
-// guardan de qué pool salió la plata (el que no aplica queda null) — esto es
-// lo que permite después revertir el movimiento con precisión.
-function registrarMovimientoInversion({ mov, pesosInvertidos, dolaresInvertidos, nominalesRetirados, instrumento, monto, moneda, fecha }) {
+// Registra un movimiento (Inversión, Retiro o Extracción) en el historial que
+// alimenta la tabla "Historial de Movimientos" y el gráfico. "origen"/"destino"
+// describen de dónde a dónde fue la plata (PESOS, DOLARES, "S&P 500", o FUERA
+// para una Extracción) — esto es lo que permite después revertir el
+// movimiento con precisión y mostrar un detalle claro en la tabla, sea cual
+// sea el tipo de operación.
+function registrarMovimientoInversion({ mov, instrumento, origen, destino, montoOrigen, montoDestino, monedaDestino, precioCompraUsd, motivo, fecha }) {
     estadoApp.historialInversiones.push({
-        id: generarId(), mov,
-        pesosInvertidos: pesosInvertidos || null,
-        dolaresInvertidos: dolaresInvertidos || null,
-        nominalesRetirados: nominalesRetirados || null,
-        instrumento, monto, moneda, fecha
+        id: generarId(), mov, instrumento,
+        origen: origen || null, destino: destino || null,
+        montoOrigen: montoOrigen || null, montoDestino: montoDestino || null,
+        monedaDestino: monedaDestino || null,
+        precioCompraUsd: precioCompraUsd || null,
+        motivo: motivo || null,
+        fecha
     });
 }
 
 export function ejecutarInversionNueva() {
     let inst = document.getElementById('invInstrumentoNuevo').value;
     let fecha = document.getElementById('invFechaNueva').value;
-    let monto = parseFloat(document.getElementById('invMontoNuevo').value);
-    if (!monto || monto <= 0 || !fecha) return mostrarAlerta("Completá los campos obligatorios");
+    if (!fecha) return mostrarAlerta("Completá la fecha");
 
     if (inst === "Dólares") {
-        let cotizacion = parseFloat(document.getElementById('invCotizacionDolar').value);
-        if (!cotizacion || cotizacion <= 0) return mostrarAlerta("Ingresá la cotización de compra");
-        if (estadoApp.patrimonio.pesos < monto) return mostrarAlerta("Pesos insuficientes en la billetera.");
+        let modo = document.getElementById('invModoDolar').value; // "COTIZACION" | "CANTIDAD"
+        let montoPesos = parseFloat(document.getElementById('invMontoNuevo').value);
+        if (!montoPesos || montoPesos <= 0) return mostrarAlerta("Completá el monto en pesos");
+        if (estadoApp.patrimonio.pesos < montoPesos) return mostrarAlerta("Pesos insuficientes en la billetera.");
 
-        let dolaresComprados = monto / cotizacion;
-        estadoApp.patrimonio.pesos -= monto;
+        let dolaresComprados;
+        if (modo === "CANTIDAD") {
+            dolaresComprados = parseFloat(document.getElementById('invCantidadDolares').value);
+            if (!dolaresComprados || dolaresComprados <= 0) return mostrarAlerta("Completá la cantidad de dólares comprados");
+        } else {
+            let cotizacion = parseFloat(document.getElementById('invCotizacionDolar').value);
+            if (!cotizacion || cotizacion <= 0) return mostrarAlerta("Ingresá la cotización de compra");
+            dolaresComprados = montoPesos / cotizacion;
+        }
+
+        estadoApp.patrimonio.pesos -= montoPesos;
         estadoApp.patrimonio.dolares += dolaresComprados;
-        registrarMovimientoInversion({ mov: "Inversión", pesosInvertidos: monto, instrumento: "Dólares", monto: dolaresComprados, moneda: "USD", fecha });
-        registrarFotoMesActual();
+        registrarMovimientoInversion({
+            mov: "Inversión", instrumento: "Dólares",
+            origen: "PESOS", destino: "DOLARES", montoOrigen: montoPesos, montoDestino: dolaresComprados, monedaDestino: "USD",
+            fecha
+        });
     } else {
         // S&P 500
         let origen = document.getElementById('invOrigen').value; // "PESOS" | "DOLARES"
+        let monto = parseFloat(document.getElementById('invMontoNuevo').value);
+        if (!monto || monto <= 0) return mostrarAlerta("Completá el monto a invertir");
         let poolDisponible = origen === "PESOS" ? estadoApp.patrimonio.pesos : estadoApp.patrimonio.dolares;
         if (poolDisponible < monto) return mostrarAlerta(`${origen === "PESOS" ? "Pesos" : "Dólares"} insuficientes en la billetera.`);
 
@@ -241,22 +310,26 @@ export function ejecutarInversionNueva() {
         if (origen === "PESOS") estadoApp.patrimonio.pesos -= monto; else estadoApp.patrimonio.dolares -= monto;
         estadoApp.sp500.nominales += nominales;
         registrarMovimientoInversion({
-            mov: "Inversión",
-            pesosInvertidos: origen === "PESOS" ? monto : null,
-            dolaresInvertidos: origen === "DOLARES" ? monto : null,
-            instrumento: "S&P 500", monto: nominales, moneda: "Nominales", fecha
+            mov: "Inversión", instrumento: "S&P 500",
+            origen, destino: "S&P 500", montoOrigen: monto, montoDestino: nominales, monedaDestino: "Nominales",
+            precioCompraUsd: precioNominalSp500Usd(),
+            fecha
         });
-        registrarFotoMesActual();
     }
 
     document.getElementById('invMontoNuevo').value = "";
+    reconstruirHistorialMensual();
     actualizarApp(); guardarDatosEnNube();
 }
 
-// Los dólares no se retiran (son capital para invertir en S&P 500) — Retiro
-// es exclusivamente para el pool de S&P 500.
+// Retiro de S&P 500: convierte nominales a Pesos o Dólares (a elección), con
+// una cotización autocompletada pero editable por si preferís cargar la tuya.
 export function ejecutarRetiroNuevo() {
     let hoy = new Date().toISOString().split('T')[0];
+    let destino = document.getElementById('retDestino').value; // "PESOS" | "DOLARES"
+    let cotizacion = parseFloat(document.getElementById('retCotizacion').value);
+    if (!cotizacion || cotizacion <= 0) return mostrarAlerta("Ingresá la cotización a usar");
+
     let cargarNominales = document.getElementById('retCargarNominales').checked;
     let nominalesARetirar;
 
@@ -264,61 +337,76 @@ export function ejecutarRetiroNuevo() {
         nominalesARetirar = parseFloat(document.getElementById('retNominalesExactos').value);
         if (!nominalesARetirar || nominalesARetirar <= 0) return mostrarAlerta("Ingresá los nominales a retirar");
     } else {
-        let montoUsdDeseado = parseFloat(document.getElementById('retMontoUsdSp').value);
-        if (!montoUsdDeseado || montoUsdDeseado <= 0) return mostrarAlerta("Ingresá un monto válido");
-        nominalesARetirar = montoUsdDeseado / precioNominalSp500Usd();
+        let montoDeseado = parseFloat(document.getElementById('retMontoDeseado').value);
+        if (!montoDeseado || montoDeseado <= 0) return mostrarAlerta("Ingresá un monto válido");
+        nominalesARetirar = montoDeseado / cotizacion;
     }
     if (estadoApp.sp500.nominales < nominalesARetirar) return mostrarAlerta("No tenés suficientes nominales de S&P 500.");
 
     estadoApp.sp500.nominales -= nominalesARetirar;
-    let valorUsd = nominalesARetirar * precioNominalSp500Usd();
-    registrarMovimientoInversion({ mov: "Retiro", nominalesRetirados: nominalesARetirar, instrumento: "S&P 500", monto: valorUsd, moneda: "USD", fecha: hoy });
+    let valorDestino = nominalesARetirar * cotizacion;
+    if (destino === "PESOS") estadoApp.patrimonio.pesos += valorDestino; else estadoApp.patrimonio.dolares += valorDestino;
 
-    registrarFotoMesActual();
+    registrarMovimientoInversion({
+        mov: "Retiro", instrumento: "S&P 500",
+        origen: "S&P 500", destino, montoOrigen: nominalesARetirar, montoDestino: valorDestino,
+        monedaDestino: destino === "PESOS" ? "ARS" : "USD",
+        fecha: hoy
+    });
+
+    reconstruirHistorialMensual();
     actualizarApp(); guardarDatosEnNube();
 }
 
-// Deshace un movimiento del Historial: le devuelve al pool correspondiente
-// exactamente lo que ese movimiento le sacó (o viceversa), y lo borra del
-// historial. Para movimientos viejos que no tengan guardados los campos
-// nuevos (dolaresInvertidos / nominalesRetirados), hace lo mejor posible y
-// avisa que la reversión es aproximada.
-export async function revertirMovimientoInversion(id) {
-    let entrada = estadoApp.historialInversiones.find(h => h.id === id);
-    if (!entrada) return;
+// Extracción: saca Dólares de la app definitivamente (por ejemplo, porque los
+// gastaste o vendiste fuera del sistema). Queda registrada con un motivo para
+// tener el detalle a mano después.
+export function ejecutarExtraccion() {
+    let hoy = new Date().toISOString().split('T')[0];
+    let monto = parseFloat(document.getElementById('extMontoDolares').value);
+    let motivo = document.getElementById('extMotivo').value.trim();
+    if (!monto || monto <= 0) return mostrarAlerta("Ingresá un monto válido");
+    if (!motivo) return mostrarAlerta("Ingresá un motivo");
+    if (estadoApp.patrimonio.dolares < monto) return mostrarAlerta("No tenés suficientes dólares.");
 
-    let esAproximado = false;
+    estadoApp.patrimonio.dolares -= monto;
+    registrarMovimientoInversion({
+        mov: "Extracción", instrumento: "Dólares",
+        origen: "DOLARES", destino: "FUERA", montoOrigen: monto, montoDestino: null, monedaDestino: null,
+        motivo, fecha: hoy
+    });
+
+    document.getElementById('extMontoDolares').value = "";
+    document.getElementById('extMotivo').value = "";
+    reconstruirHistorialMensual();
+    actualizarApp(); guardarDatosEnNube();
+}
+
+// Deshace un movimiento del Historial: le devuelve al pool de origen lo que
+// salió, y le saca al pool de destino lo que entró — funciona igual para
+// Inversión, Retiro o Extracción porque todos comparten el mismo esquema
+// (origen/destino/montoOrigen/montoDestino). Para movimientos guardados antes
+// de este esquema, normalizarMovimientoInversion() los traduce al vuelo.
+export async function revertirMovimientoInversion(id) {
+    let entradaOriginal = estadoApp.historialInversiones.find(h => h.id === id);
+    if (!entradaOriginal) return;
+    let entrada = normalizarMovimientoInversion(entradaOriginal);
 
     if (!(await mostrarConfirmacion(`¿Revertir este movimiento?\n\n${entrada.mov}: ${entrada.instrumento}`, {peligroso: true}))) return;
 
-    if (entrada.mov === "Inversión" && entrada.instrumento === "Dólares") {
-        // Se gastaron pesos y se obtuvieron dólares: se revierte 1 a 1.
-        estadoApp.patrimonio.pesos += entrada.pesosInvertidos || 0;
-        estadoApp.patrimonio.dolares -= entrada.monto;
-    } else if (entrada.mov === "Inversión" && entrada.instrumento === "S&P 500") {
-        estadoApp.sp500.nominales -= entrada.monto;
-        if (entrada.pesosInvertidos) estadoApp.patrimonio.pesos += entrada.pesosInvertidos;
-        else if (entrada.dolaresInvertidos) estadoApp.patrimonio.dolares += entrada.dolaresInvertidos;
-        else if (entrada.pesosInvertidos === null && entrada.dolaresInvertidos === null) {
-            // Movimiento viejo, de antes de guardar de dónde salió la plata
-            // cuando el origen era Dólares — no podemos saber cuántos dólares
-            // devolver, así que solo se revierten los nominales.
-            esAproximado = true;
-        }
-    } else if (entrada.mov === "Retiro" && entrada.instrumento === "S&P 500") {
-        let nominales = entrada.nominalesRetirados;
-        if (!nominales) {
-            // Movimiento viejo sin nominales guardados: se recalcula con la
-            // cotización actual (puede no coincidir con la de ese momento).
-            nominales = entrada.monto / precioNominalSp500Usd();
-            esAproximado = true;
-        }
-        estadoApp.sp500.nominales += nominales;
-    }
+    if (entrada.destino === "DOLARES" && entrada.montoDestino) estadoApp.patrimonio.dolares -= entrada.montoDestino;
+    if (entrada.destino === "PESOS" && entrada.montoDestino) estadoApp.patrimonio.pesos -= entrada.montoDestino;
+    if (entrada.destino === "S&P 500" && entrada.montoDestino) estadoApp.sp500.nominales -= entrada.montoDestino;
+
+    if (entrada.origen === "PESOS" && entrada.montoOrigen) estadoApp.patrimonio.pesos += entrada.montoOrigen;
+    if (entrada.origen === "DOLARES" && entrada.montoOrigen) estadoApp.patrimonio.dolares += entrada.montoOrigen;
+    if (entrada.origen === "S&P 500" && entrada.montoOrigen) estadoApp.sp500.nominales += entrada.montoOrigen;
 
     estadoApp.historialInversiones = estadoApp.historialInversiones.filter(h => h.id !== id);
-    registrarFotoMesActual();
+    reconstruirHistorialMensual();
     actualizarApp(); guardarDatosEnNube();
 
-    if (esAproximado) mostrarAlerta("Este movimiento es de antes de guardar todos los detalles, así que se revirtió de forma aproximada.");
+    if (entradaOriginal.origen === undefined) {
+        mostrarAlerta("Este movimiento es de antes de guardar todos los detalles, así que se revirtió con la mejor información disponible.");
+    }
 }

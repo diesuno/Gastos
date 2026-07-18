@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v7.5.0'; // Intento de detección automática del ratio CEDEAR vía BYMA (con fallback a manual)
+const CACHE_NAME = 'finanzas-v8.0.0'; // Gráfico con fechas reales, Retiro S&P con destino, Extracción, toggle Dólares, % ingresos, básico sin Cuentas x Cobrar
 const urlsToCache = [
   './',
   './index.html',

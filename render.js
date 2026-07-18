@@ -2,7 +2,7 @@
 // 🖼️ RENDERIZADO PRINCIPAL (dashboard, pestañas y tablas)
 // ==========================================
 import { estadoApp, nombresMeses, fechaActual } from './estado.js';
-import { escapeHTML, agruparMovimientosPorGrupo, precioNominalSp500Usd } from './utilidades.js';
+import { escapeHTML, agruparMovimientosPorGrupo, precioNominalSp500Usd, describirMovimientoInversion, obtenerMontoYSimboloParaMostrar } from './utilidades.js';
 import { calcularFlujoDeMes } from './flujoMensual.js';
 import { sincronizarPoolPesos } from './cierreMensual.js';
 import { renderizarGrafico, seriesGrafico } from './grafico.js';
@@ -58,10 +58,12 @@ export function actualizarApp() {
         `;
     } else {
         let dispBasic = ing - (gastosFijosBasic + gastosVariablesBasic);
+        let pctFijos = ing > 0 ? ((gastosFijosBasic / ing) * 100).toFixed(1) : '0.0';
+        let pctVariables = ing > 0 ? ((gastosVariablesBasic / ing) * 100).toFixed(1) : '0.0';
         dashUI.innerHTML = `
             <div class="card ingreso"><h3>Ingresos</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-            <div class="card gasto"><h3>Gastos Fijos</h3><p>$${gastosFijosBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-            <div class="card gasto"><h3>Gastos Variables</h3><p>$${gastosVariablesBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
+            <div class="card gasto"><h3>Gastos Fijos</h3><p>$${gastosFijosBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">${pctFijos}% de tus ingresos</span></div>
+            <div class="card gasto"><h3>Gastos Variables</h3><p>$${gastosVariablesBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">${pctVariables}% de tus ingresos</span></div>
             <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${dispBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Lo que te queda en el mes.</span></div>
         `;
     }
@@ -176,6 +178,8 @@ function poblarFiltroAnioDetalle() {
     if ([...sel.options].some(o => o.value === valorPrevio)) sel.value = valorPrevio;
 }
 
+const COLOR_MOV = { 'Inversión': '#10b981', 'Retiro': '#3b82f6', 'Extracción': '#ef4444' };
+
 function renderizarTablaDetalleInversiones() {
     poblarFiltroAnioDetalle();
     let filtroInst = document.getElementById('filtroDetalleInstrumento').value;
@@ -188,11 +192,10 @@ function renderizarTablaDetalleInversiones() {
         return true;
     }).forEach(h => {
         let f = new Date(h.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-        let simMonto = h.moneda === 'USD' ? 'US$' : (h.moneda === 'Nominales' ? '' : '$');
-        let pesosInvTxt = h.pesosInvertidos ? `$${h.pesosInvertidos.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}` : '-';
-        let montoTxt = `${simMonto}${h.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:4})}`;
-        let colorMov = h.mov === 'Inversión' ? '#10b981' : '#ef4444';
-        tbody.innerHTML += `<tr><td style="color:${colorMov}; font-weight:bold;">${h.mov}</td><td>${pesosInvTxt}</td><td>${escapeHTML(h.instrumento)}</td><td>${montoTxt}</td><td>${ff}</td><td><button class="btn-borrar" onclick="revertirMovimientoInversion('${h.id}')">Revertir</button></td></tr>`;
+        let { monto, simbolo } = obtenerMontoYSimboloParaMostrar(h);
+        let montoTxt = `${simbolo}${monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:4})}`;
+        let colorMov = COLOR_MOV[h.mov] || '#64748b';
+        tbody.innerHTML += `<tr><td style="color:${colorMov}; font-weight:bold;">${h.mov}</td><td>${escapeHTML(describirMovimientoInversion(h))}</td><td>${escapeHTML(h.instrumento)}</td><td>${montoTxt}</td><td>${ff}</td><td><button class="btn-borrar" onclick="revertirMovimientoInversion('${h.id}')">Revertir</button></td></tr>`;
     });
 }
 

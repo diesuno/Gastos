@@ -56,7 +56,12 @@ export const estadoApp = {
     // cambiar sin aviso (pasó de 20:1 a 60:1 en mayo/junio 2026), por eso es
     // editable a mano en vez de venir de una API (no encontramos ninguna
     // fuente gratuita que lo dé).
-    mercado: { spy_usd: 630, dolarCCL: 1550, spy_ars: 976500, ratioCedear: 60, actualizado: { usd: false, ccl: false, ratio: false } },
+    // "historicoSpyUsd" es un cache de precios mensuales pasados de SPY (clave
+    // "YYYY-MM" -> precio en USD), usado para valuar el gráfico con el precio
+    // real de cada mes en vez de siempre el de hoy. Se llena en billetera.js
+    // al abrir la app; si la fuente falla, queda vacío y todo cae de vuelta al
+    // precio actual (ver cierreMensual.js).
+    mercado: { spy_usd: 630, dolarCCL: 1550, spy_ars: 976500, ratioCedear: 60, historicoSpyUsd: {}, actualizado: { usd: false, ccl: false, ratio: false } },
 
     miGrafico: null,
 
