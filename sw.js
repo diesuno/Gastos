@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.1.2'; // Zona de Peligro más discreta, sin título ni símbolo de advertencia
+const CACHE_NAME = 'finanzas-v8.2.0'; // Perfil vuelve a estar arriba (menú desplegable + modal), ojo de contraseña con SVG, recuperar contraseña en pantalla aparte
 const urlsToCache = [
   './',
   './index.html',

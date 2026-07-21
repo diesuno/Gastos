@@ -45,6 +45,48 @@
     </div>
 </div>
 
+<!-- MODAL MI PERFIL -->
+<div id="modal-perfil" class="modal-overlay" style="display:none;">
+    <div class="modal-box" style="max-width:520px; text-align:left;">
+        <h2 style="margin-top:0; text-align:center;">👤 Mi Perfil</h2>
+
+        <div class="form-section">
+            <h3 style="margin-top:0; color:#334155;">Datos Personales</h3>
+            <div class="form-grid">
+                <div class="form-group"><label for="profileNameInput">Mi Nombre</label><input type="text" id="profileNameInput"></div>
+                <div class="form-group">
+                    <label for="profileModoInput">Modo de Plataforma</label>
+                    <select id="profileModoInput">
+                        <option value="BASICO">🌱 Básico (Simple)</option>
+                        <option value="AVANZADO">🚀 Avanzado (Profesional)</option>
+                    </select>
+                </div>
+                <button class="btn-verde" onclick="guardarCambiosDesdePerfil()">Guardar Cambios</button>
+            </div>
+        </div>
+
+        <div class="form-section" style="background:#eff6ff; border:none;">
+            <h3 style="margin-top:0; color:#1e3a8a;">🔒 Seguridad</h3>
+            <div class="form-grid">
+                <div class="form-group"><label for="profilePasswordInput">Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
+                <button style="background-color: #0ea5e9;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
+            </div>
+        </div>
+
+        <div style="margin-top:30px; padding-top:16px; border-top:1px solid #e2e8f0;">
+            <p style="font-size:0.78em; color:#94a3b8; margin:0 0 10px 0;">Estas acciones son irreversibles.</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button style="background-color:#f1f5f9; color:#94a3b8; font-size:0.8em; padding:8px 14px; box-shadow:none;" onclick="resetearApp()">Blanquear todos mis datos</button>
+                <button style="background-color:#f1f5f9; color:#94a3b8; font-size:0.8em; padding:8px 14px; box-shadow:none;" onclick="eliminarCuenta()">Eliminar mi cuenta</button>
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-top:20px;">
+            <button class="btn-secundario" onclick="cerrarModalPerfil()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL GENÉRICO (reemplaza alert/confirm/prompt nativos) -->
 <div id="modal-generico" class="modal-overlay" style="display:none;">
     <div class="modal-box">
@@ -69,34 +111,63 @@
 
 <!-- LOGIN -->
 <div id="auth-section" style="display:none;">
-    <div class="auth-logo">💰</div>
-    <h2 style="margin-bottom:2px;">Bienvenido de nuevo</h2>
-    <p class="auth-subtitle">Ingresá para ver tus finanzas</p>
+    <div id="auth-login-view">
+        <div class="auth-logo">💰</div>
+        <h2 style="margin-bottom:2px;">Bienvenido de nuevo</h2>
+        <p class="auth-subtitle">Ingresá para ver tus finanzas</p>
 
-    <div class="auth-group">
-        <label for="authEmail">Correo Electrónico</label>
-        <input type="email" id="authEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') loginUsuario()">
-    </div>
-    <div class="auth-group">
-        <label for="authPassword">Contraseña</label>
-        <div class="auth-password-wrapper">
-            <input type="password" id="authPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginUsuario()">
-            <button type="button" id="btnMostrarPassword" class="auth-toggle-password" onclick="toggleMostrarPassword()">👁️</button>
+        <div class="auth-group">
+            <label for="authEmail">Correo Electrónico</label>
+            <input type="email" id="authEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') loginUsuario()">
         </div>
-        <a href="#" class="auth-forgot-link" onclick="restablecerPassword(); return false;">¿Olvidaste tu contraseña?</a>
+        <div class="auth-group">
+            <label for="authPassword">Contraseña</label>
+            <div class="auth-password-wrapper">
+                <input type="password" id="authPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginUsuario()">
+                <button type="button" id="btnMostrarPassword" class="auth-toggle-password" onclick="toggleMostrarPassword()" aria-label="Mostrar contraseña"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+            <a href="#" class="auth-forgot-link" onclick="mostrarVistaRecuperar(); return false;">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <div class="auth-btn-container">
+            <button onclick="loginUsuario()">Iniciar Sesión</button>
+        </div>
+        <p class="auth-register-link">¿No tenés cuenta? <a href="#" onclick="registrarUsuario(); return false;">Registrate</a></p>
     </div>
 
-    <div class="auth-btn-container">
-        <button onclick="loginUsuario()">Iniciar Sesión</button>
+    <div id="auth-recover-view" style="display:none;">
+        <div class="auth-logo">🔑</div>
+        <h2 style="margin-bottom:2px;">Restablecer contraseña</h2>
+        <p class="auth-subtitle">Te vamos a mandar un correo para que la cambies</p>
+
+        <div id="auth-recover-form">
+            <div class="auth-group">
+                <label for="recoverEmail">Correo Electrónico</label>
+                <input type="email" id="recoverEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') enviarRecuperacionPassword()">
+            </div>
+            <div class="auth-btn-container">
+                <button onclick="enviarRecuperacionPassword()">Enviar</button>
+            </div>
+        </div>
+
+        <div id="auth-recover-exito" style="display:none; text-align:center;">
+            <p style="color:#10b981; font-weight:600; font-size:1.05em;">✅ En breve te llegará un correo para restablecer tu contraseña.</p>
+        </div>
+
+        <p class="auth-register-link"><a href="#" onclick="volverALogin(); return false;">← Volver a Iniciar Sesión</a></p>
     </div>
-    <p class="auth-register-link">¿No tenés cuenta? <a href="#" onclick="registrarUsuario(); return false;">Registrate</a></p>
 </div>
 
 <!-- APP PRINCIPAL -->
 <div class="container" id="main-app" style="display:none;">
     <div class="top-actions-panel">
-        <button class="btn-panel btn-perfil-top" onclick="document.getElementById('navBtnPerfil').click()">👤 Mi Perfil (<span id="userNameDisplay">Usuario</span>)</button>
-        <button class="btn-panel btn-logout-top" onclick="logoutUsuario()">🚪 Salir</button>
+        <div class="user-menu">
+            <button class="btn-panel btn-user-menu" onclick="toggleMenuUsuario()">👤 <span id="userNameDisplay">Usuario</span> <span class="user-menu-caret">▾</span></button>
+            <div id="userMenuDropdown" class="user-menu-dropdown" style="display:none;">
+                <button onclick="abrirModalPerfil()">👤 Mi Perfil</button>
+                <button onclick="logoutUsuario()">🚪 Cerrar Sesión</button>
+            </div>
+        </div>
     </div>
 
     <h1>💰 Plataforma de Inteligencia Financiera</h1>
@@ -106,7 +177,6 @@
         <button class="tab-button avanzado-only" id="tab-btn-detalle" onclick="cambiarPestaña('tab-detalle-gastos', this)">🧾 Detalle Gastos</button>
         <button class="tab-button" onclick="cambiarPestaña('tab-inversiones', this)">💹 Inversiones</button>
         <button class="tab-button avanzado-only" onclick="cambiarPestaña('tab-cuentas', this)">🤝 Cuentas por Cobrar</button>
-        <button class="tab-button" id="navBtnPerfil" onclick="cambiarPestaña('tab-perfil', this)">👤 Perfil</button>
     </div>
 
     <div class="historico-selector" id="panel-selector-mes">
@@ -368,42 +438,6 @@
             <tbody id="tablaDeudasBasicas"></tbody>
         </table>
 
-    </div>
-
-    <!-- PERFIL -->
-    <div id="tab-perfil" class="tab-content">
-        <h2>👤 Mi Perfil</h2>
-
-        <div class="form-section">
-            <h3 style="margin-top:0; color:#334155;">Datos Personales</h3>
-            <div class="form-grid">
-                <div class="form-group"><label for="profileNameInput">Mi Nombre</label><input type="text" id="profileNameInput"></div>
-                <div class="form-group">
-                    <label for="profileModoInput">Modo de Plataforma</label>
-                    <select id="profileModoInput">
-                        <option value="BASICO">🌱 Básico (Simple)</option>
-                        <option value="AVANZADO">🚀 Avanzado (Profesional)</option>
-                    </select>
-                </div>
-                <button class="btn-verde" onclick="guardarCambiosDesdePerfil()">Guardar Cambios</button>
-            </div>
-        </div>
-
-        <div class="form-section" style="background:#eff6ff; border:none;">
-            <h3 style="margin-top:0; color:#1e3a8a;">🔒 Seguridad</h3>
-            <div class="form-grid">
-                <div class="form-group"><label for="profilePasswordInput">Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
-                <button style="background-color: #0ea5e9;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
-            </div>
-        </div>
-
-        <div style="margin-top:40px; padding-top:16px; border-top:1px solid #e2e8f0;">
-            <p style="font-size:0.78em; color:#94a3b8; margin:0 0 10px 0;">Estas acciones son irreversibles.</p>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button style="background-color:#f1f5f9; color:#94a3b8; font-size:0.8em; padding:8px 14px; box-shadow:none;" onclick="resetearApp()">Blanquear todos mis datos</button>
-                <button style="background-color:#f1f5f9; color:#94a3b8; font-size:0.8em; padding:8px 14px; box-shadow:none;" onclick="eliminarCuenta()">Eliminar mi cuenta</button>
-            </div>
-        </div>
     </div>
 </div>
 

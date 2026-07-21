@@ -44,23 +44,71 @@ export function loginUsuario() {
 }
 export async function logoutUsuario() { if(await mostrarConfirmacion("¿Salir?")) auth.signOut(); }
 
-// Muestra u oculta el texto de la contraseña en la pantalla de login (el
-// clásico ícono de "ojito").
+// Íconos de "ojo" en SVG (más confiables que un emoji, que puede no
+// distinguirse bien entre estados según el sistema).
+const SVG_OJO_ABIERTO = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const SVG_OJO_TACHADO = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
+// Muestra u oculta el texto de la contraseña en la pantalla de login. El
+// ícono refleja el estado DESPUÉS del cambio: ojo abierto = contraseña
+// oculta (clic para verla), ojo tachado = contraseña visible (clic para
+// ocultarla de nuevo).
 export function toggleMostrarPassword() {
     let input = document.getElementById('authPassword');
     let boton = document.getElementById('btnMostrarPassword');
-    let mostrando = input.type === 'text';
-    input.type = mostrando ? 'password' : 'text';
-    boton.innerText = mostrando ? '👁️' : '🙈';
+    let vaAMostrarla = input.type === 'password';
+    input.type = vaAMostrarla ? 'text' : 'password';
+    boton.innerHTML = vaAMostrarla ? SVG_OJO_TACHADO : SVG_OJO_ABIERTO;
+    boton.setAttribute('aria-label', vaAMostrarla ? 'Ocultar contraseña' : 'Mostrar contraseña');
 }
 
-// Envía el email de "restablecer contraseña" de Firebase al correo que la
-// persona haya escrito en el campo de login.
-export function restablecerPassword() {
-    let email = document.getElementById('authEmail').value.trim();
-    if (!email) return mostrarAlerta("Escribí tu email en el campo de arriba y volvé a tocar el enlace.");
+// --- MENÚ DESPLEGABLE DE USUARIO (arriba a la derecha) ---
+export function toggleMenuUsuario() {
+    let dropdown = document.getElementById('userMenuDropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+// Cierra el menú si se hace clic afuera de él.
+document.addEventListener('click', (e) => {
+    let menu = document.querySelector('.user-menu');
+    let dropdown = document.getElementById('userMenuDropdown');
+    if (dropdown && dropdown.style.display === 'block' && menu && !menu.contains(e.target)) {
+        dropdown.style.display = 'none';
+    }
+});
+
+// --- MODAL MI PERFIL ---
+export function abrirModalPerfil() {
+    document.getElementById('userMenuDropdown').style.display = 'none';
+    document.getElementById('modal-perfil').style.display = 'flex';
+}
+export function cerrarModalPerfil() {
+    document.getElementById('modal-perfil').style.display = 'none';
+}
+
+// --- RESTABLECER CONTRASEÑA (pantalla aparte, con su propio email) ---
+export function mostrarVistaRecuperar() {
+    document.getElementById('auth-login-view').style.display = 'none';
+    document.getElementById('auth-recover-view').style.display = 'block';
+    document.getElementById('auth-recover-form').style.display = 'block';
+    document.getElementById('auth-recover-exito').style.display = 'none';
+    // Si ya habían escrito el email en el login, lo precargamos acá.
+    let emailLogin = document.getElementById('authEmail').value.trim();
+    if (emailLogin) document.getElementById('recoverEmail').value = emailLogin;
+}
+
+export function volverALogin() {
+    document.getElementById('auth-recover-view').style.display = 'none';
+    document.getElementById('auth-login-view').style.display = 'block';
+}
+
+export function enviarRecuperacionPassword() {
+    let email = document.getElementById('recoverEmail').value.trim();
+    if (!email) return mostrarAlerta("Escribí tu email.");
     auth.sendPasswordResetEmail(email)
-        .then(() => mostrarAlerta("Te enviamos un email para restablecer tu contraseña. Revisá tu bandeja de entrada (y la carpeta de spam)."))
+        .then(() => {
+            document.getElementById('auth-recover-form').style.display = 'none';
+            document.getElementById('auth-recover-exito').style.display = 'block';
+        })
         .catch(e => mostrarAlerta(traducirErrorAuth(e)));
 }
 
@@ -184,11 +232,6 @@ export function aplicarFiltrosDeModo() {
     evaluarCamposDinamicosGasto();
 }
 
-export function togglePerfilPanel() {
-    // Ya no existe el panel desplegable de perfil (ahora es la solapa
-    // "Perfil"), pero esta función queda vacía por si algo viejo la sigue
-    // llamando — no rompe nada.
-}
 export async function cambiarPasswordPerfil() {
     let n = document.getElementById('profilePasswordInput').value;
     if(n.length < 6) return mostrarAlerta("Mínimo 6 chars");

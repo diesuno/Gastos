@@ -17,7 +17,9 @@ import {
     registrarUsuario, loginUsuario, logoutUsuario,
     cargarDatosDesdeNube, guardarDatosEnNube,
     guardarModoDesdeOnboarding, guardarCambiosDesdePerfil,
-    togglePerfilPanel, cambiarPasswordPerfil
+    cambiarPasswordPerfil, toggleMostrarPassword, eliminarCuenta,
+    toggleMenuUsuario, abrirModalPerfil, cerrarModalPerfil,
+    mostrarVistaRecuperar, volverALogin, enviarRecuperacionPassword
 } from './auth.js';
 
 import {
@@ -87,10 +89,17 @@ async function resetearApp() {
 window.guardarModoDesdeOnboarding = guardarModoDesdeOnboarding;
 window.loginUsuario = loginUsuario;
 window.registrarUsuario = registrarUsuario;
-window.togglePerfilPanel = togglePerfilPanel;
 window.logoutUsuario = logoutUsuario;
 window.guardarCambiosDesdePerfil = guardarCambiosDesdePerfil;
 window.cambiarPasswordPerfil = cambiarPasswordPerfil;
+window.toggleMostrarPassword = toggleMostrarPassword;
+window.eliminarCuenta = eliminarCuenta;
+window.toggleMenuUsuario = toggleMenuUsuario;
+window.abrirModalPerfil = abrirModalPerfil;
+window.cerrarModalPerfil = cerrarModalPerfil;
+window.mostrarVistaRecuperar = mostrarVistaRecuperar;
+window.volverALogin = volverALogin;
+window.enviarRecuperacionPassword = enviarRecuperacionPassword;
 window.cambiarPestaña = cambiarPestaña;
 window.actualizarApp = actualizarApp;
 window.evaluarCamposDinamicosGasto = evaluarCamposDinamicosGasto;
