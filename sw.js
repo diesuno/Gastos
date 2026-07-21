@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.0.1'; // Ajuste visual: textos de ayuda más cortos para no desalinear los formularios
+const CACHE_NAME = 'finanzas-v8.1.1'; // Mi Perfil pasó a ser una solapa en vez de un panel desplegable
 const urlsToCache = [
   './',
   './index.html',

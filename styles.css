@@ -5,10 +5,21 @@ body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; margin: 0; p
 h1, h2, h3 { color: #1e3a8a; text-align: center; font-weight: 800;}
 
 /* LOGIN & ONBOARDING */
-#auth-section { max-width: 400px; margin: 80px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;}
-.auth-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 20px;}
+#auth-section { max-width: 400px; margin: 80px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 40px rgba(30,58,138,0.08); text-align: center;}
+.auth-logo { font-size: 2.8em; margin-bottom: 6px; line-height: 1;}
+.auth-subtitle { color: #64748b; margin-top: 0; margin-bottom: 30px; font-size: 0.95em;}
+.auth-group { display: flex; flex-direction: column; text-align: left; margin-bottom: 18px;}
 .auth-group label { font-weight: 600; margin-bottom: 8px; color: #4a5568; font-size: 0.9em;}
-.auth-btn-container { display: flex; flex-direction: column; gap: 12px; margin-top: 25px;}
+.auth-password-wrapper { position: relative; display: flex;}
+.auth-password-wrapper input { flex: 1; padding-right: 44px;}
+.auth-toggle-password { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: transparent; border: none; box-shadow: none; padding: 8px 10px; font-size: 1.05em; cursor: pointer; color: #94a3b8;}
+.auth-toggle-password:hover { background: transparent; transform: translateY(-50%); box-shadow: none; color: #475569;}
+.auth-forgot-link { display: block; text-align: right; font-size: 0.82em; color: #3b82f6; margin-top: 8px; text-decoration: none;}
+.auth-forgot-link:hover { text-decoration: underline;}
+.auth-btn-container { display: flex; flex-direction: column; gap: 12px; margin-top: 8px;}
+.auth-register-link { text-align: center; margin-top: 22px; color: #64748b; font-size: 0.9em;}
+.auth-register-link a { color: #3b82f6; font-weight: 600; text-decoration: none;}
+.auth-register-link a:hover { text-decoration: underline;}
 
 #onboarding-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px);}
 .onboarding-card { background: white; padding: 40px; border-radius: 20px; max-width: 600px; width: 90%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25);}
@@ -46,7 +57,6 @@ h1, h2, h3 { color: #1e3a8a; text-align: center; font-weight: 800;}
 .btn-perfil-top { background-color: #f1f5f9; color: #334155; } .btn-perfil-top:hover { background-color: #e2e8f0; }
 .btn-logout-top { background-color: #fee2e2; color: #b91c1c; } .btn-logout-top:hover { background-color: #fca5a5; }
 
-#profile-section { display: none; background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
 
 .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; flex-wrap: wrap;}
 .tab-button { background-color: transparent; color: #64748b; padding: 12px 24px; border: none; border-radius: 12px; cursor: pointer; font-size: 1em; font-weight: 600; transition: 0.3s; }
@@ -91,7 +101,6 @@ tr:hover { background-color: #f8fafc; }
 .totales-footer { background-color: #f1f5f9; padding: 15px; text-align: right; font-weight: 800; font-size: 1.1em; color: #b91c1c; border-radius: 0 0 12px 12px; }
 
 .chart-container { position: relative; margin: auto; height: 400px; width: 100%; }
-.footer-peligro { margin-top: 60px; text-align: center; border-top: 2px dashed #fca5a5; padding-top: 30px;}
 
 /* LÓGICA DE PERFILES - CLASE MAGICA */
 body.modo-basico .avanzado-only { display: none !important; }

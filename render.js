@@ -23,7 +23,7 @@ export function cambiarPestaña(tabId, boton) {
     document.getElementById(tabId).classList.add('active'); boton.classList.add('active');
 
     let panelMes = document.getElementById('panel-selector-mes');
-    if(tabId === 'tab-inversiones') panelMes.style.display = 'none';
+    if(tabId === 'tab-inversiones' || tabId === 'tab-perfil') panelMes.style.display = 'none';
     else panelMes.style.display = 'flex';
 
     // El canvas del gráfico solo tiene tamaño correcto una vez que la pestaña

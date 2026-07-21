@@ -69,39 +69,34 @@
 
 <!-- LOGIN -->
 <div id="auth-section" style="display:none;">
-    <h2>🔐 Ingreso Seguro</h2>
-    <div class="auth-group"><label for="authEmail">Correo Electrónico</label><input type="email" id="authEmail" placeholder="tu@email.com"></div>
-    <div class="auth-group"><label for="authPassword">Contraseña</label><input type="password" id="authPassword" placeholder="••••••••"></div>
+    <div class="auth-logo">💰</div>
+    <h2 style="margin-bottom:2px;">Bienvenido de nuevo</h2>
+    <p class="auth-subtitle">Ingresá para ver tus finanzas</p>
+
+    <div class="auth-group">
+        <label for="authEmail">Correo Electrónico</label>
+        <input type="email" id="authEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') loginUsuario()">
+    </div>
+    <div class="auth-group">
+        <label for="authPassword">Contraseña</label>
+        <div class="auth-password-wrapper">
+            <input type="password" id="authPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginUsuario()">
+            <button type="button" id="btnMostrarPassword" class="auth-toggle-password" onclick="toggleMostrarPassword()">👁️</button>
+        </div>
+        <a href="#" class="auth-forgot-link" onclick="restablecerPassword(); return false;">¿Olvidaste tu contraseña?</a>
+    </div>
+
     <div class="auth-btn-container">
         <button onclick="loginUsuario()">Iniciar Sesión</button>
-        <button class="btn-secundario" onclick="registrarUsuario()">Registrarme Nuevo</button>
     </div>
+    <p class="auth-register-link">¿No tenés cuenta? <a href="#" onclick="registrarUsuario(); return false;">Registrate</a></p>
 </div>
 
 <!-- APP PRINCIPAL -->
 <div class="container" id="main-app" style="display:none;">
     <div class="top-actions-panel">
-        <button class="btn-panel btn-perfil-top" onclick="togglePerfilPanel()">👤 Mi Perfil (<span id="userNameDisplay">Usuario</span>)</button>
+        <button class="btn-panel btn-perfil-top" onclick="document.getElementById('navBtnPerfil').click()">👤 Mi Perfil (<span id="userNameDisplay">Usuario</span>)</button>
         <button class="btn-panel btn-logout-top" onclick="logoutUsuario()">🚪 Salir</button>
-    </div>
-
-    <!-- SECCIÓN PERFIL -->
-    <div id="profile-section">
-        <h3 style="margin-top: 0;">👤 Configuración de Perfil</h3>
-        <div class="form-grid">
-            <div class="form-group"><label for="profileNameInput">Mi Nombre</label><input type="text" id="profileNameInput"></div>
-            <div class="form-group">
-                <label for="profileModoInput">Modo de Plataforma</label>
-                <select id="profileModoInput">
-                    <option value="BASICO">🌱 Básico (Simple)</option>
-                    <option value="AVANZADO">🚀 Avanzado (Profesional)</option>
-                </select>
-            </div>
-            <button class="btn-verde" onclick="guardarCambiosDesdePerfil()">Guardar Cambios</button>
-            <div class="form-group"><label for="profilePasswordInput">Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
-            <button style="background-color: #0ea5e9;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
-        </div>
-        <p style="text-align: center; margin-top: 20px;"><button class="btn-secundario" onclick="togglePerfilPanel()">Cerrar Perfil</button></p>
     </div>
 
     <h1>💰 Plataforma de Inteligencia Financiera</h1>
@@ -111,6 +106,7 @@
         <button class="tab-button avanzado-only" id="tab-btn-detalle" onclick="cambiarPestaña('tab-detalle-gastos', this)">🧾 Detalle Gastos</button>
         <button class="tab-button" onclick="cambiarPestaña('tab-inversiones', this)">💹 Inversiones</button>
         <button class="tab-button avanzado-only" onclick="cambiarPestaña('tab-cuentas', this)">🤝 Cuentas por Cobrar</button>
+        <button class="tab-button" id="navBtnPerfil" onclick="cambiarPestaña('tab-perfil', this)">👤 Perfil</button>
     </div>
 
     <div class="historico-selector" id="panel-selector-mes">
@@ -374,10 +370,41 @@
 
     </div>
 
-    <div class="footer-peligro">
-        <button style="background-color: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 800; font-size:1em; transition: 0.2s;" onclick="resetearApp()" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
-            ⚠️ Blanquear Todos mis Datos (Reset)
-        </button>
+    <!-- PERFIL -->
+    <div id="tab-perfil" class="tab-content">
+        <h2>👤 Mi Perfil</h2>
+
+        <div class="form-section">
+            <h3 style="margin-top:0; color:#334155;">Datos Personales</h3>
+            <div class="form-grid">
+                <div class="form-group"><label for="profileNameInput">Mi Nombre</label><input type="text" id="profileNameInput"></div>
+                <div class="form-group">
+                    <label for="profileModoInput">Modo de Plataforma</label>
+                    <select id="profileModoInput">
+                        <option value="BASICO">🌱 Básico (Simple)</option>
+                        <option value="AVANZADO">🚀 Avanzado (Profesional)</option>
+                    </select>
+                </div>
+                <button class="btn-verde" onclick="guardarCambiosDesdePerfil()">Guardar Cambios</button>
+            </div>
+        </div>
+
+        <div class="form-section" style="background:#eff6ff; border:none;">
+            <h3 style="margin-top:0; color:#1e3a8a;">🔒 Seguridad</h3>
+            <div class="form-grid">
+                <div class="form-group"><label for="profilePasswordInput">Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
+                <button style="background-color: #0ea5e9;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
+            </div>
+        </div>
+
+        <div class="form-section" style="background:#fef2f2; border:2px dashed #fca5a5;">
+            <h3 style="margin-top:0; color:#b91c1c;">⚠️ Zona de Peligro</h3>
+            <p style="font-size:0.85em; color:#7f1d1d; margin-top:-8px;">Estas acciones son irreversibles — no se pueden deshacer.</p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button style="background-color:#ef4444;" onclick="resetearApp()">Blanquear Todos mis Datos</button>
+                <button style="background-color:#7f1d1d;" onclick="eliminarCuenta()">Eliminar mi Cuenta</button>
+            </div>
+        </div>
     </div>
 </div>
 

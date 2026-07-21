@@ -8,21 +8,61 @@
 // callbacks de Firestore) y nunca durante la carga inicial de los módulos.
 import { auth, db } from './firebase-config.js';
 import { estadoApp } from './estado.js';
-import { mostrarAlerta, mostrarConfirmacion } from './modales.js';
+import { mostrarAlerta, mostrarConfirmacion, mostrarPrompt } from './modales.js';
 import { ocultarLoaderInicial } from './utilidades.js';
 import { actualizarApp } from './render.js';
 import { actualizarSelectAmigosDisplay, evaluarCamposDinamicosGasto } from './movimientos.js';
 import { sincronizarPoolPesos } from './cierreMensual.js';
 
+// Traduce los códigos de error de Firebase Auth a mensajes que una persona
+// sin conocimientos técnicos pueda entender (por defecto son textos en
+// inglés bastante crípticos).
+function traducirErrorAuth(e) {
+    const mensajes = {
+        'auth/wrong-password': 'La contraseña es incorrecta.',
+        'auth/user-not-found': 'No existe ninguna cuenta con ese email.',
+        'auth/invalid-email': 'Ese email no es válido.',
+        'auth/email-already-in-use': 'Ya existe una cuenta con ese email — probá iniciar sesión.',
+        'auth/weak-password': 'La contraseña tiene que tener al menos 6 caracteres.',
+        'auth/too-many-requests': 'Demasiados intentos seguidos. Esperá un momento y volvé a probar.',
+        'auth/invalid-credential': 'Email o contraseña incorrectos.',
+        'auth/requires-recent-login': 'Por seguridad, cerrá sesión y volvé a entrar antes de hacer esto.',
+        'auth/missing-email': 'Escribí tu email primero.',
+    };
+    return mensajes[e.code] || e.message;
+}
+
 export function registrarUsuario() {
     const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value;
-    if(!email || !pass) return; auth.createUserWithEmailAndPassword(email, pass).then(()=>mostrarAlerta("Creado!")).catch(e=>mostrarAlerta(e.message));
+    if(!email || !pass) return mostrarAlerta("Completá el email y la contraseña.");
+    auth.createUserWithEmailAndPassword(email, pass).then(()=>mostrarAlerta("¡Cuenta creada!")).catch(e=>mostrarAlerta(traducirErrorAuth(e)));
 }
 export function loginUsuario() {
     const email = document.getElementById('authEmail').value; const pass = document.getElementById('authPassword').value;
-    if(!email || !pass) return; auth.signInWithEmailAndPassword(email, pass).catch(e=>mostrarAlerta(e.message));
+    if(!email || !pass) return mostrarAlerta("Completá el email y la contraseña.");
+    auth.signInWithEmailAndPassword(email, pass).catch(e=>mostrarAlerta(traducirErrorAuth(e)));
 }
 export async function logoutUsuario() { if(await mostrarConfirmacion("¿Salir?")) auth.signOut(); }
+
+// Muestra u oculta el texto de la contraseña en la pantalla de login (el
+// clásico ícono de "ojito").
+export function toggleMostrarPassword() {
+    let input = document.getElementById('authPassword');
+    let boton = document.getElementById('btnMostrarPassword');
+    let mostrando = input.type === 'text';
+    input.type = mostrando ? 'password' : 'text';
+    boton.innerText = mostrando ? '👁️' : '🙈';
+}
+
+// Envía el email de "restablecer contraseña" de Firebase al correo que la
+// persona haya escrito en el campo de login.
+export function restablecerPassword() {
+    let email = document.getElementById('authEmail').value.trim();
+    if (!email) return mostrarAlerta("Escribí tu email en el campo de arriba y volvé a tocar el enlace.");
+    auth.sendPasswordResetEmail(email)
+        .then(() => mostrarAlerta("Te enviamos un email para restablecer tu contraseña. Revisá tu bandeja de entrada (y la carpeta de spam)."))
+        .catch(e => mostrarAlerta(traducirErrorAuth(e)));
+}
 
 // --- SINCRONIZACIÓN CON LA NUBE ---
 export function cargarDatosDesdeNube(uid) {
@@ -145,11 +185,33 @@ export function aplicarFiltrosDeModo() {
 }
 
 export function togglePerfilPanel() {
-    let p = document.getElementById('profile-section');
-    p.style.display = p.style.display === "block" ? "none" : "block";
+    // Ya no existe el panel desplegable de perfil (ahora es la solapa
+    // "Perfil"), pero esta función queda vacía por si algo viejo la sigue
+    // llamando — no rompe nada.
 }
 export async function cambiarPasswordPerfil() {
     let n = document.getElementById('profilePasswordInput').value;
     if(n.length < 6) return mostrarAlerta("Mínimo 6 chars");
-    auth.currentUser.updatePassword(n).then(() => { mostrarAlerta("Clave cambiada"); togglePerfilPanel(); }).catch(()=>mostrarAlerta("Volvé a iniciar sesión"));
+    auth.currentUser.updatePassword(n).then(() => { mostrarAlerta("Clave cambiada"); document.getElementById('profilePasswordInput').value = ''; }).catch(e => mostrarAlerta(traducirErrorAuth(e)));
+}
+
+// Elimina la cuenta por completo: borra el documento de Firestore y el
+// usuario de Firebase Auth. Es irreversible, así que pide doble confirmación
+// (igual que "Blanquear todos mis datos"). Si Firebase pide un login reciente
+// por seguridad, se lo explica a la persona en vez de fallar en silencio.
+export async function eliminarCuenta() {
+    if (!(await mostrarConfirmacion("⚠️ Esto va a eliminar tu cuenta y TODOS tus datos para siempre. No se puede deshacer.", {peligroso: true}))) return;
+    let confirmacion = await mostrarPrompt("Para confirmar, escribí ELIMINAR:");
+    if (confirmacion !== "ELIMINAR") return;
+
+    let user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        await db.collection("usuarios").doc(user.uid).delete();
+        await user.delete();
+        mostrarAlerta("Tu cuenta fue eliminada. ¡Gracias por haber usado la app!");
+    } catch (e) {
+        mostrarAlerta(traducirErrorAuth(e));
+    }
 }
