@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.2.0'; // Perfil vuelve a estar arriba (menú desplegable + modal), ojo de contraseña con SVG, recuperar contraseña en pantalla aparte
+const CACHE_NAME = 'finanzas-v8.2.1'; // Fix: los modales ahora scrollean internamente si el contenido no entra en la pantalla
 const urlsToCache = [
   './',
   './index.html',

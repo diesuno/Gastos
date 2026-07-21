@@ -22,7 +22,7 @@ h1, h2, h3 { color: #1e3a8a; text-align: center; font-weight: 800;}
 .auth-register-link a:hover { text-decoration: underline;}
 
 #onboarding-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px);}
-.onboarding-card { background: white; padding: 40px; border-radius: 20px; max-width: 600px; width: 90%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25);}
+.onboarding-card { background: white; padding: 40px; border-radius: 20px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25);}
 .mode-btn { border: none; padding: 20px; border-radius: 16px; cursor: pointer; transition: all 0.3s ease; text-align: left; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
 .mode-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.1);}
 .mode-basic { background: #e0f2f1; border-left: 5px solid #00897b; color: #004d40;}
@@ -30,7 +30,7 @@ h1, h2, h3 { color: #1e3a8a; text-align: center; font-weight: 800;}
 
 /* MODAL GENÉRICO (reemplaza alert/confirm/prompt) */
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px); padding: 20px; box-sizing: border-box;}
-.modal-box { background: white; padding: 30px; border-radius: 20px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: fadeIn 0.2s ease;}
+.modal-box { background: white; padding: 30px; border-radius: 20px; max-width: 440px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: fadeIn 0.2s ease;}
 .modal-mensaje { color: #334155; font-size: 1.05em; line-height: 1.5; white-space: pre-line; margin: 0 0 20px 0;}
 .modal-input-container { margin-bottom: 20px;}
 .modal-input-container input { width: 100%; box-sizing: border-box; text-align: center; font-size: 1.1em; font-weight: 600;}
