@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.1.1'; // Mi Perfil pasó a ser una solapa en vez de un panel desplegable
+const CACHE_NAME = 'finanzas-v8.1.2'; // Zona de Peligro más discreta, sin título ni símbolo de advertencia
 const urlsToCache = [
   './',
   './index.html',
