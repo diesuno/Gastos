@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v9.0.0'; // Rediseño: precio de S&P 500 pasa a ser directo el CEDEAR IVV en BYMA, sin ratio ni cotización de EEUU
+const CACHE_NAME = 'finanzas-v9.1.0'; // Compra de S&P simplificada: solo Monto + Nominales a mano, la cotización de referencia va aparte (API)
 const urlsToCache = [
   './',
   './index.html',

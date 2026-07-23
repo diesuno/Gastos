@@ -95,21 +95,6 @@ export function toggleMovimientoInversion() {
     document.getElementById('seccionExtraccion').style.display = mov === "EXTRACCION" ? "block" : "none";
 }
 
-// La cotización del CEDEAR de IVV puede no traerse automático (BYMA puede
-// fallar o cambiar su formato), así que siempre es editable a mano acá —
-// cargá el precio real que te haya dado tu banco si preferís el tuyo.
-export function actualizarCotizacionCedear() {
-    let nuevoPrecio = parseFloat(document.getElementById('inputCotizacionCedear').value);
-    if (!nuevoPrecio || nuevoPrecio <= 0) return;
-    estadoApp.mercado.spy_ars = nuevoPrecio;
-    estadoApp.mercado.spy_usd = estadoApp.mercado.spy_ars / estadoApp.mercado.dolarCCL;
-    estadoApp.mercado.actualizado.cedear = false; // lo tocó la persona a mano, ya no es "automático"
-    evaluarCamposInversion();
-    reconstruirHistorialMensual();
-    actualizarApp();
-    guardarDatosEnNube();
-}
-
 // --- FORMULARIO: mostrar Cotización o Cantidad al comprar Dólares ---
 export function toggleModoDolar() {
     let modo = document.getElementById('invModoDolar').value; // "COTIZACION" | "CANTIDAD"
@@ -123,14 +108,12 @@ export function evaluarCamposInversion() {
     let boxOrigen = document.getElementById('boxInvOrigen');
     let boxModoDolar = document.getElementById('boxModoDolar');
     let boxNominales = document.getElementById('boxInvNominales');
-    let boxCotizCedear = document.getElementById('boxCotizacionCedear');
     let lblMonto = document.getElementById('lblInvMontoNuevo');
 
     boxModoDolar.style.display = 'none';
     document.getElementById('boxInvCotizacionDolar').style.display = 'none';
     document.getElementById('boxInvCantidadDolares').style.display = 'none';
     boxNominales.style.display = 'none';
-    boxCotizCedear.style.display = 'none';
 
     if (inst === "Dólares") {
         // Comprar dólares siempre sale del pool de Pesos.
@@ -139,28 +122,14 @@ export function evaluarCamposInversion() {
         boxModoDolar.style.display = 'block';
         toggleModoDolar();
     } else {
-        // S&P 500 — acá "precio de 1 nominal" es directamente la cotización
-        // del CEDEAR de IVV en BYMA (o la que hayas cargado a mano), SIN
-        // convertir a la acción real de EEUU.
+        // S&P 500 — monto y nominales se cargan los dos a mano, tal cual la
+        // operación real que hiciste. La cotización de referencia (BYMA) no
+        // se pide acá: se consulta sola para la card y el gráfico, sin
+        // mezclarla con lo que cargás en la compra.
         boxOrigen.style.display = 'block';
         let origen = document.getElementById('invOrigen').value;
         lblMonto.innerText = origen === "PESOS" ? "Monto a Invertir (Pesos)" : "Monto a Invertir (Dólares)";
-
         boxNominales.style.display = 'block';
-        boxCotizCedear.style.display = 'block';
-        let precio = origen === "PESOS" ? precioNominalSp500Ars() : precioNominalSp500Usd();
-        let monto = parseFloat(document.getElementById('invMontoNuevo').value) || 0;
-        document.getElementById('invNominalesNuevo').value = precio > 0 ? Math.round(monto / precio) : '';
-
-        let inputCotiz = document.getElementById('inputCotizacionCedear');
-        if (document.activeElement !== inputCotiz) inputCotiz.value = Math.round(estadoApp.mercado.spy_ars);
-        document.getElementById('lblEstadoRatio').innerText = estadoApp.mercado.actualizado.cedear
-            ? 'Detectado automáticamente (BYMA)'
-            : 'No se pudo traer solo — verificá que sea la vigente';
-        document.getElementById('lblEstadoRatio').style.color = estadoApp.mercado.actualizado.cedear ? '#10b981' : '#d97706';
-
-        let avisoViejo = document.getElementById('avisoCotizacionVieja');
-        avisoViejo.style.display = estadoApp.mercado.actualizado.ccl ? 'none' : 'block';
     }
 }
 
