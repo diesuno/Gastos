@@ -144,10 +144,12 @@ export function cargarDatosDesdeNube(uid) {
             estadoApp.historialInversiones = data.historialInversiones || [];
             estadoApp.historialMensual = data.historialMensual || {};
             estadoApp.aportesPesosPorMes = data.aportesPesosPorMes || {};
-            // El ratio del CEDEAR de SPY es editable a mano (ver billetera.js) —
-            // si ya lo habías ajustado antes, lo recuperamos; si no, se queda
-            // con el valor por defecto (60) definido en estado.js.
-            if (data.ratioCedear) estadoApp.mercado.ratioCedear = data.ratioCedear;
+            // La cotización del CEDEAR de IVV es editable a mano (ver
+            // billetera.js) — si ya la habías ajustado antes, la
+            // recuperamos; si no, se queda con el valor de referencia
+            // definido en estado.js hasta que inicializarMercado() la
+            // actualice con la cotización real de BYMA.
+            if (data.cotizacionCedear) estadoApp.mercado.spy_ars = data.cotizacionCedear;
         }
 
         document.getElementById('userNameDisplay').innerText = estadoApp.perfilUsuario.nombre;
@@ -176,7 +178,7 @@ export function guardarDatosEnNube() {
         patrimonio: estadoApp.patrimonio, inversiones: estadoApp.inversiones, listaAmigos: estadoApp.listaAmigos, perfilUsuario: estadoApp.perfilUsuario,
         sp500: estadoApp.sp500, historialInversiones: estadoApp.historialInversiones,
         historialMensual: estadoApp.historialMensual, aportesPesosPorMes: estadoApp.aportesPesosPorMes,
-        ratioCedear: estadoApp.mercado.ratioCedear
+        cotizacionCedear: estadoApp.mercado.spy_ars
     }, { merge: true });
 }
 

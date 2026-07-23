@@ -47,12 +47,11 @@ export function sincronizarPoolPesos() {
 // uno. Así, si cargás una compra vieja (de hace 3 meses), el gráfico la
 // ubica en el mes que corresponde, no en el mes actual.
 //
-// Para valuar S&P 500 en cada mes se usa el precio histórico real de SPY de
-// ESE mes si lo tenemos guardado (estadoApp.mercado.historicoSpyUsd, cargado
-// al abrir la app — ver billetera.js); si no lo tenemos, se usa el precio de
-// hoy como aproximación. El mes actual siempre usa el precio de hoy, sea cual
-// sea el caso, porque es más preciso que cualquier dato "histórico" de este
-// mismo mes.
+// Para valuar S&P 500 se usa siempre la cotización ACTUAL del CEDEAR de IVV
+// (no hay ninguna fuente gratuita de precios históricos del CEDEAR en sí,
+// a diferencia del dólar o de acciones de EEUU) — así que el gráfico muestra
+// bien la EVOLUCIÓN DE LA CANTIDAD DE NOMINALES a lo largo del tiempo, pero
+// valuados todos al precio de hoy.
 export function reconstruirHistorialMensual() {
     let movimientosOrdenados = [...estadoApp.historialInversiones].sort((a, b) => a.fecha.localeCompare(b.fecha));
 
@@ -69,15 +68,12 @@ export function reconstruirHistorialMensual() {
         if (mov.origen === "S&P 500" && mov.montoOrigen) nominalesAcumulado -= mov.montoOrigen;
 
         let key = mov.fecha.slice(0, 7); // "YYYY-MM"
-        let precioDeEseMes = estadoApp.mercado.historicoSpyUsd[key] || estadoApp.mercado.spy_usd;
-        let sp500UsdDeEseMes = nominalesAcumulado * (precioDeEseMes / estadoApp.mercado.ratioCedear);
-
-        nuevoHistorial[key] = { dolares: dolaresAcumulado, sp500Usd: sp500UsdDeEseMes };
+        nuevoHistorial[key] = { dolares: dolaresAcumulado, sp500Usd: nominalesAcumulado * precioNominalSp500Usd() };
     });
 
-    // El mes de hoy siempre se valúa con el precio de HOY, aunque no haya
-    // habido ningún movimiento este mes — así el gráfico siempre termina en
-    // el valor real y actualizado, no en un dato viejo.
+    // El mes de hoy siempre queda registrado, aunque no haya habido ningún
+    // movimiento este mes — así el gráfico siempre termina en el valor real
+    // y actualizado.
     let hoy = new Date();
     let keyHoy = `${hoy.getFullYear()}-${(hoy.getMonth() + 1).toString().padStart(2, '0')}`;
     nuevoHistorial[keyHoy] = { dolares: dolaresAcumulado, sp500Usd: nominalesAcumulado * precioNominalSp500Usd() };

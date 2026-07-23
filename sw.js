@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.3.2'; // Fix: el ratio de CEDEAR aceptaba solo hasta 500, rechazando el de IVV (~680) y quedando en 60 por error
+const CACHE_NAME = 'finanzas-v9.0.0'; // Rediseño: precio de S&P 500 pasa a ser directo el CEDEAR IVV en BYMA, sin ratio ni cotización de EEUU
 const urlsToCache = [
   './',
   './index.html',

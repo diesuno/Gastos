@@ -49,11 +49,15 @@ export function ocultarLoaderInicial() {
 // CEDEAR (cuántos CEDEARs representan 1 acción real — ver estado.js). Se
 // centraliza acá para que, el día que haya que tocar esta cuenta de nuevo,
 // sea en un solo lugar y no en cada archivo por separado.
+// Precio real de "1 nominal" (1 CEDEAR) de S&P 500 — es directamente la
+// cotización del CEDEAR de IVV en BYMA (o la cargada a mano), sin convertir
+// a la acción real de EEUU. Se centraliza acá para que el resto de la app
+// (formularios, gráfico, historial) siempre use el mismo valor.
 export function precioNominalSp500Usd() {
-    return estadoApp.mercado.spy_usd / estadoApp.mercado.ratioCedear;
+    return estadoApp.mercado.spy_usd;
 }
 export function precioNominalSp500Ars() {
-    return estadoApp.mercado.spy_ars / estadoApp.mercado.ratioCedear;
+    return estadoApp.mercado.spy_ars;
 }
 
 // Convierte cualquier entrada del historial de Inversiones (nueva o vieja) a

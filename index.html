@@ -343,7 +343,7 @@
 
                     <div class="form-group" id="boxInvNominales" style="display:none;"><label for="invNominalesNuevo">Nominales</label><input type="number" step="any" id="invNominalesNuevo"><span class="porcentaje">Cuántas unidades de S&P comprás</span><span id="avisoCotizacionVieja" class="porcentaje" style="display:none; color:#d97706;">⚠️ Sin conexión, valor de referencia</span></div>
 
-                    <div class="form-group" id="boxRatioCedear" style="display:none;"><label for="inputRatioCedear">Ratio CEDEAR (X : 1)</label><input type="number" step="any" id="inputRatioCedear" onchange="actualizarRatioCedear()"><span class="porcentaje">CEDEARs por 1 acción real — lo fija BYMA</span><span id="lblEstadoRatio" class="porcentaje" style="font-weight:600;"></span></div>
+                    <div class="form-group" id="boxCotizacionCedear" style="display:none;"><label for="inputCotizacionCedear">Cotización CEDEAR IVV ($ ARS)</label><input type="number" step="any" id="inputCotizacionCedear" onchange="actualizarCotizacionCedear()"><span class="porcentaje">Precio de 1 nominal en Argentina (BYMA)</span><span id="lblEstadoRatio" class="porcentaje" style="font-weight:600;"></span></div>
 
                     <div class="form-group"><label for="invFechaNueva">Fecha</label><input type="date" id="invFechaNueva"></div>
                     <button style="background-color: #f59e0b; color: white; height:46px;" onclick="ejecutarInversionNueva()">Invertir</button>

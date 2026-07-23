@@ -30,7 +30,7 @@ import {
 import {
     inicializarMercado, toggleMovimientoInversion, evaluarCamposInversion,
     evaluarCamposRetiro, ejecutarInversionNueva, ejecutarRetiroNuevo,
-    revertirMovimientoInversion, actualizarRatioCedear, toggleModoDolar,
+    revertirMovimientoInversion, actualizarCotizacionCedear, toggleModoDolar,
     ejecutarExtraccion
 } from './billetera.js';
 
@@ -120,7 +120,7 @@ window.evaluarCamposRetiro = evaluarCamposRetiro;
 window.ejecutarInversionNueva = ejecutarInversionNueva;
 window.ejecutarRetiroNuevo = ejecutarRetiroNuevo;
 window.revertirMovimientoInversion = revertirMovimientoInversion;
-window.actualizarRatioCedear = actualizarRatioCedear;
+window.actualizarCotizacionCedear = actualizarCotizacionCedear;
 window.toggleModoDolar = toggleModoDolar;
 window.ejecutarExtraccion = ejecutarExtraccion;
 window.toggleSerieGrafico = toggleSerieGrafico;
