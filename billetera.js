@@ -9,7 +9,7 @@ import { generarId, precioNominalSp500Usd, precioNominalSp500Ars, normalizarMovi
 import { mostrarAlerta, mostrarConfirmacion } from './modales.js';
 import { actualizarApp } from './render.js';
 import { guardarDatosEnNube } from './auth.js';
-import { reconstruirHistorialMensual } from './cierreMensual.js';
+import { reconstruirHistorialMensual, reconstruirHistorialPesos } from './cierreMensual.js';
 
 // Lista de proxies CORS públicos, por si en el futuro hace falta consultar
 // alguna fuente que no permita pedidos directos desde el navegador.
@@ -187,7 +187,6 @@ export function ejecutarInversionNueva() {
             dolaresComprados = montoPesos / cotizacion;
         }
 
-        estadoApp.patrimonio.pesos -= montoPesos;
         estadoApp.patrimonio.dolares += dolaresComprados;
         registrarMovimientoInversion({
             mov: "Inversión", instrumento: "Dólares",
@@ -204,7 +203,7 @@ export function ejecutarInversionNueva() {
 
         let nominales = parseFloat(document.getElementById('invNominalesNuevo').value);
         if (!nominales || nominales <= 0) return mostrarAlerta("Completá los nominales");
-        if (origen === "PESOS") estadoApp.patrimonio.pesos -= monto; else estadoApp.patrimonio.dolares -= monto;
+        if (origen === "DOLARES") estadoApp.patrimonio.dolares -= monto;
         estadoApp.sp500.nominales += nominales;
         registrarMovimientoInversion({
             mov: "Inversión", instrumento: "S&P 500",
@@ -216,6 +215,7 @@ export function ejecutarInversionNueva() {
 
     document.getElementById('invMontoNuevo').value = "";
     reconstruirHistorialMensual();
+    reconstruirHistorialPesos();
     actualizarApp(); guardarDatosEnNube();
 }
 
@@ -242,7 +242,7 @@ export function ejecutarRetiroNuevo() {
 
     estadoApp.sp500.nominales -= nominalesARetirar;
     let valorDestino = nominalesARetirar * cotizacion;
-    if (destino === "PESOS") estadoApp.patrimonio.pesos += valorDestino; else estadoApp.patrimonio.dolares += valorDestino;
+    if (destino === "DOLARES") estadoApp.patrimonio.dolares += valorDestino;
 
     registrarMovimientoInversion({
         mov: "Retiro", instrumento: "S&P 500",
@@ -252,6 +252,7 @@ export function ejecutarRetiroNuevo() {
     });
 
     reconstruirHistorialMensual();
+    reconstruirHistorialPesos();
     actualizarApp(); guardarDatosEnNube();
 }
 
@@ -276,6 +277,7 @@ export function ejecutarExtraccion() {
     document.getElementById('extMontoDolares').value = "";
     document.getElementById('extMotivo').value = "";
     reconstruirHistorialMensual();
+    reconstruirHistorialPesos();
     actualizarApp(); guardarDatosEnNube();
 }
 
@@ -292,15 +294,14 @@ export async function revertirMovimientoInversion(id) {
     if (!(await mostrarConfirmacion(`¿Revertir este movimiento?\n\n${entrada.mov}: ${entrada.instrumento}`, {peligroso: true}))) return;
 
     if (entrada.destino === "DOLARES" && entrada.montoDestino) estadoApp.patrimonio.dolares -= entrada.montoDestino;
-    if (entrada.destino === "PESOS" && entrada.montoDestino) estadoApp.patrimonio.pesos -= entrada.montoDestino;
     if (entrada.destino === "S&P 500" && entrada.montoDestino) estadoApp.sp500.nominales -= entrada.montoDestino;
 
-    if (entrada.origen === "PESOS" && entrada.montoOrigen) estadoApp.patrimonio.pesos += entrada.montoOrigen;
     if (entrada.origen === "DOLARES" && entrada.montoOrigen) estadoApp.patrimonio.dolares += entrada.montoOrigen;
     if (entrada.origen === "S&P 500" && entrada.montoOrigen) estadoApp.sp500.nominales += entrada.montoOrigen;
 
     estadoApp.historialInversiones = estadoApp.historialInversiones.filter(h => h.id !== id);
     reconstruirHistorialMensual();
+    reconstruirHistorialPesos();
     actualizarApp(); guardarDatosEnNube();
 
     if (entradaOriginal.origen === undefined) {

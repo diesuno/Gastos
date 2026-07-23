@@ -1,44 +1,78 @@
 // ==========================================
-// 🔄 SINCRONIZACIÓN DEL POOL DE PESOS CON EL DISPONIBLE
+// 🔄 HISTORIAL ACUMULADO DE PESOS (Flujo Mensual + Inversiones)
 // ==========================================
-// Antes esto "cerraba" un mes una sola vez (cuando quedaba en el pasado) y
-// nunca lo volvía a tocar. Ahora es distinto: recorre cada mes (incluido el
-// mes EN CURSO) y compara cuánto Disponible tiene hoy contra cuánto se le
-// había sumado la última vez al pool de Pesos — si cambió, suma o resta la
-// diferencia. Así el pool queda siempre al día en vivo, sin esperar a fin de
-// mes, y sin duplicar plata que ya se sumó antes.
+// "Pesos" es UN SOLO saldo acumulado que se ve igual en Flujo Mensual
+// ("Disponible") y en Inversiones ("Pesos"): cada mes suma lo que generó ese
+// mes (ingresos - gastos) y resta/suma lo que entró o salió por Inversión,
+// Retiro o Extracción. Nunca se resetea entre meses — lo que te sobra en un
+// mes pasa directo al siguiente, y así en adelante.
+//
+// Para poder mostrar "cuánto tenía disponible en tal mes pasado" (no solo el
+// total de hoy), esto se reconstruye ENTERO desde cero cada vez, repasando
+// mes a mes en orden cronológico — mismo patrón que ya usamos para el
+// historial de Dólares/S&P 500 del gráfico.
 import { estadoApp } from './estado.js';
 import { calcularFlujoDeMes } from './flujoMensual.js';
 import { precioNominalSp500Usd, normalizarMovimientoInversion } from './utilidades.js';
 
-// Devuelve true si sumó/restó algo (para saber si hay que guardar en la nube).
-export function sincronizarPoolPesos() {
-    let hoy = new Date();
-    let anioActual = hoy.getFullYear(), mesActual = hoy.getMonth();
-    let huboCambios = false;
+// Recorre mes a mes, desde el primero con actividad hasta el actual, sumando
+// el flujo neto de ese mes y las inversiones/retiros/extracciones en Pesos
+// que caigan en ese mes (según su fecha real). Guarda el saldo acumulado a
+// fin de cada mes en estadoApp.historialPesosPorMes, y deja
+// estadoApp.patrimonio.pesos con el valor del mes actual (el mismo que se
+// ve en Inversiones). Devuelve true si el saldo actual cambió (para saber si
+// hay que guardar en la nube).
+export function reconstruirHistorialPesos() {
+    let valorAnterior = estadoApp.patrimonio.pesos;
 
-    // Recorremos desde 24 meses atrás hasta el mes actual, incluido.
-    for (let i = 24; i >= 0; i--) {
-        let fechaIter = new Date(anioActual, mesActual - i, 1);
-        let a = fechaIter.getFullYear(), m = fechaIter.getMonth();
+    // Determinamos desde qué mes hay que empezar a recorrer: el más viejo
+    // entre los movimientos de Flujo Mensual y los movimientos de Inversiones.
+    let fechas = [
+        ...estadoApp.todosLosMovimientos.map(m => m.fecha),
+        ...estadoApp.historialInversiones.map(h => h.fecha)
+    ].filter(Boolean).sort();
+
+    let hoy = new Date();
+    let keyHoy = `${hoy.getFullYear()}-${(hoy.getMonth() + 1).toString().padStart(2, '0')}`;
+
+    if (fechas.length === 0) {
+        // Todavía no hay ninguna actividad — el saldo es 0.
+        estadoApp.historialPesosPorMes = { [keyHoy]: 0 };
+        estadoApp.patrimonio.pesos = 0;
+        return estadoApp.patrimonio.pesos !== valorAnterior;
+    }
+
+    let [aInicio, mInicio] = fechas[0].split('-').map(Number);
+    let cursor = new Date(aInicio, mInicio - 1, 1);
+    let fin = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+
+    let saldoAcumulado = 0;
+    let nuevoHistorial = {};
+
+    while (cursor <= fin) {
+        let a = cursor.getFullYear(), m = cursor.getMonth();
         let key = `${a}-${(m + 1).toString().padStart(2, '0')}`;
 
+        // 1) Lo que generó ESTE mes en Flujo Mensual (ingresos - gastos).
         let flujo = calcularFlujoDeMes(a, m);
-        // Si ese mes no tiene movimientos ni un aporte previo registrado, no
-        // hay nada que hacer (evita ensuciar el registro con meses vacíos).
-        if (flujo.movimientosDelMes.length === 0 && !(key in estadoApp.aportesPesosPorMes)) continue;
+        saldoAcumulado += flujo.esAvanzado ? flujo.dispReal : flujo.dispBasico;
 
-        let disponibleActual = flujo.esAvanzado ? flujo.dispReal : flujo.dispBasico;
-        let aportePrevio = estadoApp.aportesPesosPorMes[key] || 0;
-        let delta = disponibleActual - aportePrevio;
+        // 2) Las inversiones/retiros/extracciones en Pesos con fecha en este mes.
+        estadoApp.historialInversiones
+            .filter(h => h.fecha.slice(0, 7) === key)
+            .forEach(movOriginal => {
+                let mov = normalizarMovimientoInversion(movOriginal);
+                if (mov.origen === "PESOS" && mov.montoOrigen) saldoAcumulado -= mov.montoOrigen;
+                if (mov.destino === "PESOS" && mov.montoDestino) saldoAcumulado += mov.montoDestino;
+            });
 
-        if (delta !== 0) {
-            estadoApp.patrimonio.pesos += delta;
-            huboCambios = true;
-        }
-        estadoApp.aportesPesosPorMes[key] = disponibleActual;
+        nuevoHistorial[key] = saldoAcumulado;
+        cursor.setMonth(cursor.getMonth() + 1);
     }
-    return huboCambios;
+
+    estadoApp.historialPesosPorMes = nuevoHistorial;
+    estadoApp.patrimonio.pesos = saldoAcumulado;
+    return estadoApp.patrimonio.pesos !== valorAnterior;
 }
 
 // Rearma TODO el historial mensual del gráfico desde cero, repasando cada

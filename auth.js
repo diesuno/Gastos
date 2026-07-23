@@ -12,7 +12,7 @@ import { mostrarAlerta, mostrarConfirmacion, mostrarPrompt } from './modales.js'
 import { ocultarLoaderInicial } from './utilidades.js';
 import { actualizarApp } from './render.js';
 import { actualizarSelectAmigosDisplay, evaluarCamposDinamicosGasto } from './movimientos.js';
-import { sincronizarPoolPesos } from './cierreMensual.js';
+import { reconstruirHistorialPesos } from './cierreMensual.js';
 
 // Traduce los códigos de error de Firebase Auth a mensajes que una persona
 // sin conocimientos técnicos pueda entender (por defecto son textos en
@@ -143,7 +143,6 @@ export function cargarDatosDesdeNube(uid) {
             }
             estadoApp.historialInversiones = data.historialInversiones || [];
             estadoApp.historialMensual = data.historialMensual || {};
-            estadoApp.aportesPesosPorMes = data.aportesPesosPorMes || {};
             // La cotización del CEDEAR de IVV es editable a mano (ver
             // billetera.js) — si ya la habías ajustado antes, la
             // recuperamos; si no, se queda con el valor de referencia
@@ -164,9 +163,9 @@ export function cargarDatosDesdeNube(uid) {
 
         actualizarSelectAmigosDisplay();
         aplicarFiltrosDeModo();
-        // Sincronizamos el pool de Pesos (incluye el mes en curso) — si sumó
-        // algo, lo persistimos ya mismo en la nube.
-        if (sincronizarPoolPesos()) guardarDatosEnNube();
+        // Reconstruimos el historial de Pesos (incluye el mes en curso) — si
+        // cambió el saldo, lo persistimos ya mismo en la nube.
+        if (reconstruirHistorialPesos()) guardarDatosEnNube();
         actualizarApp();
         ocultarLoaderInicial();
     });
@@ -177,7 +176,7 @@ export function guardarDatosEnNube() {
         todosLosMovimientos: estadoApp.todosLosMovimientos, suscripciones: estadoApp.suscripciones,
         patrimonio: estadoApp.patrimonio, inversiones: estadoApp.inversiones, listaAmigos: estadoApp.listaAmigos, perfilUsuario: estadoApp.perfilUsuario,
         sp500: estadoApp.sp500, historialInversiones: estadoApp.historialInversiones,
-        historialMensual: estadoApp.historialMensual, aportesPesosPorMes: estadoApp.aportesPesosPorMes,
+        historialMensual: estadoApp.historialMensual,
         cotizacionCedear: estadoApp.mercado.spy_ars
     }, { merge: true });
 }

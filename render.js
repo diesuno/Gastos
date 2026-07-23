@@ -4,7 +4,7 @@
 import { estadoApp, nombresMeses, fechaActual } from './estado.js';
 import { escapeHTML, agruparMovimientosPorGrupo, precioNominalSp500Usd, describirMovimientoInversion, obtenerMontoYSimboloParaMostrar } from './utilidades.js';
 import { calcularFlujoDeMes } from './flujoMensual.js';
-import { sincronizarPoolPesos } from './cierreMensual.js';
+import { reconstruirHistorialPesos } from './cierreMensual.js';
 import { renderizarGrafico, seriesGrafico } from './grafico.js';
 import { guardarDatosEnNube } from './auth.js';
 
@@ -41,30 +41,37 @@ export function actualizarApp() {
     estadoApp.movimientosMesGlobal = flujo.movimientosDelMes;
     let { ing, gastosEnActo, gastosCredito, gastosServicio, gastosFijosBasic, gastosVariablesBasic } = flujo;
 
-    // El pool de Pesos se mantiene sincronizado con el Disponible real de cada
-    // mes (incluido el mes en curso) en cada actualización de la app.
-    if (sincronizarPoolPesos()) guardarDatosEnNube();
+    // El historial acumulado de Pesos se reconstruye en cada actualización —
+    // así "Disponible" (acá) y "Pesos" (en Inversiones) siempre muestran el
+    // mismo número. Invertir o retirar también se refleja acá, porque
+    // reconstruirHistorialPesos() ya tiene en cuenta esos movimientos.
+    if (reconstruirHistorialPesos()) guardarDatosEnNube();
+
+    // "Disponible" ahora es el saldo ACUMULADO a fin del mes seleccionado (lo
+    // que sobró de meses anteriores + lo que generó este mes - lo invertido),
+    // no solo el neto de este mes en particular. Si el mes elegido todavía no
+    // tiene un saldo calculado (por ejemplo, un mes futuro), se muestra el
+    // saldo actual como mejor aproximación.
+    let disponibleAcumulado = estadoApp.historialPesosPorMes[estadoApp.keyMesActualGlobal] ?? estadoApp.patrimonio.pesos;
 
     // RENDER DASHBOARD DINÁMICO
     let dashUI = document.getElementById('dashboard-dinamico');
 
     if (esAvanzado) {
-        let disponible = ing - gastosEnActo;
         dashUI.innerHTML = `
             <div class="card ingreso"><h3>Ingresos Totales</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
             <div class="card gasto" style="background:#fffbeb; border-left-color:#f59e0b;"><h3>Pagado (En Acto)</h3><p style="color:#d97706;">$${gastosEnActo.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Dinero que ya salió hoy.</span></div>
             <div class="card gasto"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${(gastosCredito + gastosServicio).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Deudas del mes a pagar.</span></div>
-            <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${disponible.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Plata en mano hoy (no descuenta cuotas ni servicios pendientes).</span></div>
+            <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${disponibleAcumulado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Acumulado de meses anteriores + este mes, menos lo invertido. Es el mismo saldo que ves en Inversiones.</span></div>
         `;
     } else {
-        let dispBasic = ing - (gastosFijosBasic + gastosVariablesBasic);
         let pctFijos = ing > 0 ? ((gastosFijosBasic / ing) * 100).toFixed(1) : '0.0';
         let pctVariables = ing > 0 ? ((gastosVariablesBasic / ing) * 100).toFixed(1) : '0.0';
         dashUI.innerHTML = `
             <div class="card ingreso"><h3>Ingresos</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
             <div class="card gasto"><h3>Gastos Fijos</h3><p>$${gastosFijosBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">${pctFijos}% de tus ingresos</span></div>
             <div class="card gasto"><h3>Gastos Variables</h3><p>$${gastosVariablesBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">${pctVariables}% de tus ingresos</span></div>
-            <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${dispBasic.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Lo que te queda en el mes.</span></div>
+            <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${disponibleAcumulado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Acumulado de meses anteriores + este mes, menos lo invertido. Es el mismo saldo que ves en Inversiones.</span></div>
         `;
     }
 

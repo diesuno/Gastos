@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v9.1.0'; // Compra de S&P simplificada: solo Monto + Nominales a mano, la cotización de referencia va aparte (API)
+const CACHE_NAME = 'finanzas-v9.2.0'; // Disponible (Flujo Mensual) y Pesos (Inversiones) ahora son el mismo saldo acumulado
 const urlsToCache = [
   './',
   './index.html',
