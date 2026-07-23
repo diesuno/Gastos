@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.3.0'; // Referencia de S&P 500 cambiada de SPY a IVV (iShares Core S&P 500 ETF), nominales redondeados
+const CACHE_NAME = 'finanzas-v8.3.1'; // Gráfico: números con coma decimal (es-AR) y máximo 2 decimales
 const urlsToCache = [
   './',
   './index.html',

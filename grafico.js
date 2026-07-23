@@ -105,6 +105,27 @@ export function renderizarGrafico() {
     estadoApp.miGrafico = new Chart(ctx, {
         type: 'line',
         data: { labels, datasets },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    ticks: {
+                        // Formato argentino (coma decimal) y como máximo 2 decimales.
+                        callback: (valor) => valor.toLocaleString('es-AR', { maximumFractionDigits: 2 })
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: (contexto) => {
+                            let valor = contexto.parsed.y.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            return `${contexto.dataset.label}: US$ ${valor}`;
+                        }
+                    }
+                }
+            }
+        }
     });
 }
