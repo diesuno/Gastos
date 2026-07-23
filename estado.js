@@ -63,7 +63,7 @@ export const estadoApp = {
     // real de cada mes en vez de siempre el de hoy. Se llena en billetera.js
     // al abrir la app; si la fuente falla, queda vacío y todo cae de vuelta al
     // precio actual (ver cierreMensual.js).
-    mercado: { spy_usd: 750, dolarCCL: 1550, spy_ars: 1162500, ratioCedear: 60, historicoSpyUsd: {}, actualizado: { usd: false, ccl: false, ratio: false } },
+    mercado: { spy_usd: 750, dolarCCL: 1550, spy_ars: 1162500, ratioCedear: 680, historicoSpyUsd: {}, actualizado: { usd: false, ccl: false, ratio: false } },
 
     miGrafico: null,
 

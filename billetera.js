@@ -107,9 +107,11 @@ async function obtenerRatioCedearAutomatico() {
         let precioIvvArsSinRatio = estadoApp.mercado.spy_usd * estadoApp.mercado.dolarCCL;
         let ratioCalculado = precioIvvArsSinRatio / precioCedearArs;
 
-        // Los ratios de CEDEARs conocidos van de 1:1 a unos pocos cientos —
-        // si da un número fuera de este rango, algo se leyó mal.
-        if (ratioCalculado < 1 || ratioCalculado > 500) throw new Error(`Ratio fuera de rango: ${ratioCalculado}`);
+        // Los ratios de CEDEARs van de 1:1 hasta varios cientos (ej: Amazon
+        // 144:1) — algunos ETF de precio alto como IVV pueden superar el
+        // 500:1. Si da un número absurdamente alto (miles), seguramente algo
+        // se leyó mal.
+        if (ratioCalculado < 1 || ratioCalculado > 2000) throw new Error(`Ratio fuera de rango: ${ratioCalculado}`);
 
         return Math.round(ratioCalculado);
     } catch (e) {

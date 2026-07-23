@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.3.1'; // Gráfico: números con coma decimal (es-AR) y máximo 2 decimales
+const CACHE_NAME = 'finanzas-v8.3.2'; // Fix: el ratio de CEDEAR aceptaba solo hasta 500, rechazando el de IVV (~680) y quedando en 60 por error
 const urlsToCache = [
   './',
   './index.html',
