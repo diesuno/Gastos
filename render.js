@@ -150,7 +150,7 @@ function renderizarInversiones() {
         cardsHtml += `<div class="card" style="background:#ecfdf5;"><h3>Dólares</h3><p style="color:#10b981;">US$ ${estadoApp.patrimonio.dolares.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>`;
     }
     if (estadoApp.sp500.nominales > 0) {
-        cardsHtml += `<div class="card" style="background:#fffbeb;"><h3>S&P 500</h3><p style="color:#f59e0b;">${estadoApp.sp500.nominales.toFixed(4)} Nom.</p><span class="porcentaje">US$ ${valorSp500Usd.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;
+        cardsHtml += `<div class="card" style="background:#fffbeb;"><h3>S&P 500</h3><p style="color:#f59e0b;">${Math.round(estadoApp.sp500.nominales)} Nom.</p><span class="porcentaje">US$ ${valorSp500Usd.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;
     }
     document.getElementById('dashboard-inversiones').innerHTML = cardsHtml;
 
@@ -193,7 +193,11 @@ function renderizarTablaDetalleInversiones() {
     }).forEach(h => {
         let f = new Date(h.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
         let { monto, simbolo } = obtenerMontoYSimboloParaMostrar(h);
-        let montoTxt = `${simbolo}${monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:4})}`;
+        // Los nominales (sin símbolo de moneda) se muestran redondeados; los
+        // montos en pesos/dólares mantienen 2 decimales, como corresponde.
+        let montoTxt = simbolo === ''
+            ? `${Math.round(monto).toLocaleString('es-AR')}`
+            : `${simbolo}${monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
         let colorMov = COLOR_MOV[h.mov] || '#64748b';
         tbody.innerHTML += `<tr><td style="color:${colorMov}; font-weight:bold;">${h.mov}</td><td>${escapeHTML(describirMovimientoInversion(h))}</td><td>${escapeHTML(h.instrumento)}</td><td>${montoTxt}</td><td>${ff}</td><td><button class="btn-borrar" onclick="revertirMovimientoInversion('${h.id}')">Revertir</button></td></tr>`;
     });

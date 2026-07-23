@@ -49,19 +49,21 @@ export const estadoApp = {
 
     // "actualizado" indica si cada valor vino de una API real hoy, o si
     // seguimos usando el valor de referencia por defecto porque no se pudo
-    // conectar a nada (ver billetera.js). "spy_ars" es un valor CALCULADO
+    // conectar a nada (ver billetera.js). "spy_usd"/"spy_ars" siguen el
+    // nombre histórico de la variable, pero desde este cambio representan la
+    // cotización de IVV (iShares Core S&P 500 ETF), no de SPY — es el CEDEAR
+    // que en la práctica se usa acá. "spy_ars" es un valor CALCULADO
     // (spy_usd × dolarCCL), no se pide directo a ninguna API — así no
-    // depende del ratio del CEDEAR de SPY. "ratioCedear" es cuántos CEDEARs
-    // representan 1 acción real de SPY — este número lo fija BYMA y puede
-    // cambiar sin aviso (pasó de 20:1 a 60:1 en mayo/junio 2026), por eso es
-    // editable a mano en vez de venir de una API (no encontramos ninguna
-    // fuente gratuita que lo dé).
-    // "historicoSpyUsd" es un cache de precios mensuales pasados de SPY (clave
+    // depende del ratio del CEDEAR. "ratioCedear" es cuántos CEDEARs
+    // representan 1 acción real de IVV — este número lo fija BYMA/el banco y
+    // puede cambiar sin aviso, por eso es editable a mano en vez de venir de
+    // una API (la detección automática es un intento best-effort nomás).
+    // "historicoSpyUsd" es un cache de precios mensuales pasados de IVV (clave
     // "YYYY-MM" -> precio en USD), usado para valuar el gráfico con el precio
     // real de cada mes en vez de siempre el de hoy. Se llena en billetera.js
     // al abrir la app; si la fuente falla, queda vacío y todo cae de vuelta al
     // precio actual (ver cierreMensual.js).
-    mercado: { spy_usd: 630, dolarCCL: 1550, spy_ars: 976500, ratioCedear: 60, historicoSpyUsd: {}, actualizado: { usd: false, ccl: false, ratio: false } },
+    mercado: { spy_usd: 750, dolarCCL: 1550, spy_ars: 1162500, ratioCedear: 60, historicoSpyUsd: {}, actualizado: { usd: false, ccl: false, ratio: false } },
 
     miGrafico: null,
 

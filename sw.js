@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v8.2.1'; // Fix: los modales ahora scrollean internamente si el contenido no entra en la pantalla
+const CACHE_NAME = 'finanzas-v8.3.0'; // Referencia de S&P 500 cambiada de SPY a IVV (iShares Core S&P 500 ETF), nominales redondeados
 const urlsToCache = [
   './',
   './index.html',

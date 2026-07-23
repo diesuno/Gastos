@@ -21,7 +21,7 @@ const PROXIES_CORS = [
     url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
 ];
 
-// Intenta traer el precio de mercado actual de un símbolo (ej: "SPY") probando
+// Intenta traer el precio de mercado actual de un símbolo (ej: "IVV") probando
 // cada proxy de la lista en orden. Devuelve el precio, o null si ninguno funcionó.
 async function obtenerPrecioYahoo(simbolo) {
     const urlYahoo = `https://query1.finance.yahoo.com/v8/finance/chart/${simbolo}`;
@@ -40,7 +40,7 @@ async function obtenerPrecioYahoo(simbolo) {
     return null;
 }
 
-// Intenta traer precios de cierre MENSUALES de SPY de los últimos 13 meses,
+// Intenta traer precios de cierre MENSUALES de IVV de los últimos 13 meses,
 // para poder valuar el gráfico con el precio real de cada mes en vez de
 // siempre el de hoy. Es una API de Yahoo que no está pensada para esto
 // puntual (le pedimos un rango/intervalo distinto al de la cotización normal)
@@ -48,7 +48,7 @@ async function obtenerPrecioYahoo(simbolo) {
 // devuelve un objeto vacío y todo el resto de la app sigue funcionando
 // (el gráfico cae de vuelta al precio de hoy para los meses sin dato).
 async function obtenerPreciosHistoricosSpy() {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=13mo&interval=1mo`;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/IVV?range=13mo&interval=1mo`;
     for (const construirUrlProxy of PROXIES_CORS) {
         try {
             let res = await fetch(construirUrlProxy(url));
@@ -68,13 +68,13 @@ async function obtenerPreciosHistoricosSpy() {
             });
             return mapa;
         } catch (e) {
-            console.warn("Proxy CORS falló consultando el histórico de SPY:", e.message);
+            console.warn("Proxy CORS falló consultando el histórico de IVV:", e.message);
         }
     }
     return {};
 }
 
-// Intenta traer el precio REAL del CEDEAR de SPY (en pesos) desde BYMA, para
+// Intenta traer el precio REAL del CEDEAR de IVV (en pesos) desde BYMA, para
 // poder calcular el ratio automáticamente en vez de que lo cargues a mano.
 // Es un endpoint público sin login, pero no es una API oficial documentada:
 // puede no permitir pedidos desde el navegador (CORS), o cambiar el formato
@@ -93,19 +93,19 @@ async function obtenerRatioCedearAutomatico() {
         let lista = Array.isArray(data) ? data : (data.data || data.cedears || null);
         if (!Array.isArray(lista)) throw new Error("Formato de respuesta inesperado");
 
-        let entradaSpy = lista.find(item => {
+        let entradaIvv = lista.find(item => {
             let simbolo = (item.symbol || item.ticker || item.especie || "").toUpperCase();
-            return simbolo === "SPY";
+            return simbolo === "IVV";
         });
-        if (!entradaSpy) throw new Error("No se encontró SPY en la respuesta");
+        if (!entradaIvv) throw new Error("No se encontró IVV en la respuesta");
 
-        let precioCedearArs = entradaSpy.lastPrice ?? entradaSpy.closingPrice ?? entradaSpy.previousClosePrice
-            ?? entradaSpy.ultimoPrecio ?? entradaSpy.cierreAnterior ?? null;
+        let precioCedearArs = entradaIvv.lastPrice ?? entradaIvv.closingPrice ?? entradaIvv.previousClosePrice
+            ?? entradaIvv.ultimoPrecio ?? entradaIvv.cierreAnterior ?? null;
         if (!precioCedearArs || precioCedearArs <= 0) throw new Error("No se encontró un precio válido");
 
-        // El ratio implícito = (precio real de SPY en pesos) / (precio del CEDEAR).
-        let precioSpyArsSinRatio = estadoApp.mercado.spy_usd * estadoApp.mercado.dolarCCL;
-        let ratioCalculado = precioSpyArsSinRatio / precioCedearArs;
+        // El ratio implícito = (precio real de IVV en pesos) / (precio del CEDEAR).
+        let precioIvvArsSinRatio = estadoApp.mercado.spy_usd * estadoApp.mercado.dolarCCL;
+        let ratioCalculado = precioIvvArsSinRatio / precioCedearArs;
 
         // Los ratios de CEDEARs conocidos van de 1:1 a unos pocos cientos —
         // si da un número fuera de este rango, algo se leyó mal.
@@ -113,24 +113,24 @@ async function obtenerRatioCedearAutomatico() {
 
         return Math.round(ratioCalculado);
     } catch (e) {
-        console.warn("No se pudo detectar el ratio del CEDEAR de SPY automáticamente, se usa el valor manual:", e.message);
+        console.warn("No se pudo detectar el ratio del CEDEAR de IVV automáticamente, se usa el valor manual:", e.message);
         return null;
     }
 }
 
-// Trae la cotización real de SPY en dólares (Yahoo Finance, vía proxy CORS), el
+// Trae la cotización real de IVV en dólares (Yahoo Finance, vía proxy CORS), el
 // dólar CCL (dolarapi.com, API pública que no necesita proxy), el histórico
-// mensual de SPY (para el gráfico), y el ratio del CEDEAR (intentando
+// mensual de IVV (para el gráfico), y el ratio del CEDEAR (intentando
 // detectarlo automático desde BYMA; si no se puede, se mantiene el valor
 // cargado a mano). El precio en pesos de "1 nominal de S&P 500" se CALCULA
 // como spy_usd × dolarCCL — no se pide directo a ninguna fuente.
 export async function inicializarMercado() {
-    let precioUsd = await obtenerPrecioYahoo("SPY");
+    let precioUsd = await obtenerPrecioYahoo("IVV");
     if (precioUsd !== null) {
         estadoApp.mercado.spy_usd = precioUsd;
         estadoApp.mercado.actualizado.usd = true;
     } else {
-        console.warn("No se pudo obtener la cotización de SPY en ningún proxy, se usa valor de referencia.");
+        console.warn("No se pudo obtener la cotización de IVV en ningún proxy, se usa valor de referencia.");
     }
 
     try {
@@ -169,7 +169,7 @@ export function toggleMovimientoInversion() {
     document.getElementById('seccionExtraccion').style.display = mov === "EXTRACCION" ? "block" : "none";
 }
 
-// El ratio del CEDEAR de SPY (cuántos CEDEARs representan 1 acción real) lo
+// El ratio del CEDEAR de IVV (cuántos CEDEARs representan 1 acción real) lo
 // fija BYMA y puede cambiar sin aviso — no hay ninguna API gratuita 100%
 // confiable que lo dé, así que también es editable a mano acá.
 export function actualizarRatioCedear() {
@@ -221,7 +221,7 @@ export function evaluarCamposInversion() {
         boxRatio.style.display = 'block';
         let precio = origen === "PESOS" ? precioNominalSp500Ars() : precioNominalSp500Usd();
         let monto = parseFloat(document.getElementById('invMontoNuevo').value) || 0;
-        document.getElementById('invNominalesNuevo').value = precio > 0 ? (monto / precio).toFixed(4) : '';
+        document.getElementById('invNominalesNuevo').value = precio > 0 ? Math.round(monto / precio) : '';
 
         let inputRatio = document.getElementById('inputRatioCedear');
         if (document.activeElement !== inputRatio) inputRatio.value = estadoApp.mercado.ratioCedear;
