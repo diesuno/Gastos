@@ -42,8 +42,15 @@ export function loginUsuario() {
     if(!email || !pass) return mostrarAlerta("Completá el email y la contraseña.");
     auth.signInWithEmailAndPassword(email, pass).catch(e=>mostrarAlerta(traducirErrorAuth(e)));
 }
+// Guarda la función para desconectar el "oyente" en vivo de Firestore (lo
+// que devuelve onSnapshot). Si no se desconecta antes de cerrar sesión o
+// eliminar la cuenta, sigue intentando escuchar datos con un usuario que ya
+// no está autenticado, y Firestore responde con un error de permisos.
+let desconectarOyenteDatos = null;
+
 export async function logoutUsuario() {
     if(await mostrarConfirmacion("¿Salir?")) {
+        if (desconectarOyenteDatos) { desconectarOyenteDatos(); desconectarOyenteDatos = null; }
         await auth.signOut();
         // Después de cerrar sesión mostramos el login directo, no la landing
         // — quien ya usó la app no necesita volver a ver la presentación.
@@ -122,7 +129,7 @@ export function enviarRecuperacionPassword() {
 
 // --- SINCRONIZACIÓN CON LA NUBE ---
 export function cargarDatosDesdeNube(uid) {
-    db.collection("usuarios").doc(uid).onSnapshot(doc => {
+    desconectarOyenteDatos = db.collection("usuarios").doc(uid).onSnapshot(doc => {
         try {
             if (doc.exists) {
                 const data = doc.data();
@@ -274,6 +281,8 @@ export async function eliminarCuenta() {
 
     let user = auth.currentUser;
     if (!user) return;
+
+    if (desconectarOyenteDatos) { desconectarOyenteDatos(); desconectarOyenteDatos = null; }
 
     try {
         await db.collection("usuarios").doc(user.uid).delete();

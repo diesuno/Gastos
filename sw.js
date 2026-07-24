@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v10.1.0'; // Fix: el loader ya no puede quedar trabado para siempre si algo falla al cargar los datos
+const CACHE_NAME = 'finanzas-v10.2.0'; // Fix: desconectar el oyente de Firestore al cerrar sesión/eliminar cuenta (evita el error de permisos)
 const urlsToCache = [
   './',
   './index.html',
