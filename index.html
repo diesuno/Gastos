@@ -24,6 +24,103 @@
 </head>
 <body>
 
+<!-- LANDING / INTRODUCCIÓN (se ve antes del login) -->
+<div id="landing-section">
+    <nav class="landing-nav">
+        <div class="landing-logo">💰 Mi Plataforma Financiera</div>
+        <button class="btn-panel landing-nav-btn" onclick="mostrarLogin()">Iniciar Sesión</button>
+    </nav>
+
+    <section class="landing-hero">
+        <span class="landing-badge">🇦🇷 Pensada para Argentina</span>
+        <h1>Tu plata, <span class="landing-highlight">bajo control</span></h1>
+        <p class="landing-hero-subtitle">Flujo mensual, inversiones en dólares y CEDEARs, y gastos compartidos con amigos — todo en un solo lugar, sin planillas de Excel.</p>
+        <button class="landing-cta" onclick="mostrarLogin()">Empezar ahora →</button>
+    </section>
+
+    <section class="landing-features">
+        <h2 class="landing-section-title">Qué podés hacer</h2>
+        <div class="landing-tabs">
+            <button class="landing-tab-btn active" onclick="mostrarFeatureLanding('flujo', this)">📊 Flujo Mensual</button>
+            <button class="landing-tab-btn" onclick="mostrarFeatureLanding('inversiones', this)">💹 Inversiones</button>
+            <button class="landing-tab-btn" onclick="mostrarFeatureLanding('compartidos', this)">🤝 Gastos Compartidos</button>
+            <button class="landing-tab-btn" onclick="mostrarFeatureLanding('seguridad', this)">🔒 Privacidad</button>
+        </div>
+
+        <div class="landing-feat-panel">
+            <div id="landing-feat-flujo" class="landing-feat">
+                <div class="landing-feat-text">
+                    <h3>Sabé cuánto te queda, siempre</h3>
+                    <p>Cargá tus ingresos y gastos del mes. Elegí el <b>Modo Básico</b> si querés algo simple, o el <b>Modo Avanzado</b> si manejás tarjetas de crédito, servicios y cuotas.</p>
+                    <ul class="landing-feat-list">
+                        <li>✅ Disponible acumulado, mes a mes</li>
+                        <li>✅ Cuotas de tarjeta y servicios organizados</li>
+                        <li>✅ Qué % de tus ingresos se va en cada gasto</li>
+                    </ul>
+                </div>
+                <div class="landing-feat-mockup">
+                    <div class="landing-mock-card"><span>Disponible</span><b style="color:#1e3a8a;">$377.865</b></div>
+                    <div class="landing-mock-card"><span>Ingresos</span><b style="color:#10b981;">$650.000</b></div>
+                    <div class="landing-mock-card"><span>Obligaciones</span><b style="color:#ef4444;">$120.000</b></div>
+                </div>
+            </div>
+
+            <div id="landing-feat-inversiones" class="landing-feat" style="display:none;">
+                <div class="landing-feat-text">
+                    <h3>Dólares y CEDEARs, con cotización real</h3>
+                    <p>Comprá dólares y CEDEARs de S&P 500 (IVV), con cotización de BYMA autocompletada. Mirá cómo evoluciona tu cartera en un gráfico interactivo.</p>
+                    <ul class="landing-feat-list">
+                        <li>✅ Cotizaciones actualizadas automáticamente</li>
+                        <li>✅ Gráfico de evolución de 6 o 12 meses</li>
+                        <li>✅ Historial completo, revertible si te equivocás</li>
+                    </ul>
+                </div>
+                <div class="landing-feat-mockup">
+                    <div class="chart-container" style="height:200px;"><canvas id="landingChartDemo"></canvas></div>
+                </div>
+            </div>
+
+            <div id="landing-feat-compartidos" class="landing-feat" style="display:none;">
+                <div class="landing-feat-text">
+                    <h3>Gastos compartidos, sin planillas ni discusiones</h3>
+                    <p>Dividí gastos con amigos o pareja: vos pagaste todo, pagó el otro, mitad y mitad — elegís la opción y listo. Siempre sabés quién le debe a quién.</p>
+                    <ul class="landing-feat-list">
+                        <li>✅ 5 formas de dividir un gasto</li>
+                        <li>✅ Resumen neto por persona</li>
+                        <li>✅ Saldá deudas con un clic</li>
+                    </ul>
+                </div>
+                <div class="landing-feat-mockup">
+                    <div class="landing-mock-card"><span>Camila te debe</span><b style="color:#10b981;">$8.000</b></div>
+                    <div class="landing-mock-card"><span>Le debés a Juan</span><b style="color:#ef4444;">$4.000</b></div>
+                </div>
+            </div>
+
+            <div id="landing-feat-seguridad" class="landing-feat" style="display:none;">
+                <div class="landing-feat-text">
+                    <h3>Tus datos, solo tuyos</h3>
+                    <p>Cada cuenta tiene su propio acceso protegido. Nadie más puede ver ni tocar tu información financiera.</p>
+                    <ul class="landing-feat-list">
+                        <li>✅ Autenticación segura por email y contraseña</li>
+                        <li>✅ Reglas de acceso a nivel de base de datos</li>
+                        <li>✅ Podés borrar tu cuenta y tus datos cuando quieras</li>
+                    </ul>
+                </div>
+                <div class="landing-feat-mockup" style="display:flex; align-items:center; justify-content:center;">
+                    <span style="font-size:5em;">🔒</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="landing-cta-final">
+        <h2>¿Lista para ordenar tus finanzas?</h2>
+        <button class="landing-cta" onclick="mostrarLogin()">Crear cuenta gratis</button>
+    </section>
+
+    <footer class="landing-footer">Hecha con 💙 para uso personal.</footer>
+</div>
+
 <!-- MODAL ONBOARDING (PRIMER INGRESO) -->
 <div id="onboarding-modal">
     <div class="onboarding-card">
@@ -139,7 +236,7 @@
 </div>
 
 <!-- LOADER INICIAL (mientras se conecta con Firebase y se traen los datos) -->
-<div id="loader-inicial" class="loader-overlay">
+<div id="loader-inicial" class="loader-overlay" style="display:none;">
     <div class="loader-caja">
         <div class="loader-spinner"></div>
         <p>Cargando tu información...</p>
@@ -170,6 +267,7 @@
             <button onclick="loginUsuario()">Iniciar Sesión</button>
         </div>
         <p class="auth-register-link">¿No tenés cuenta? <a href="#" onclick="registrarUsuario(); return false;">Registrate</a></p>
+        <p class="auth-register-link"><a href="#" onclick="volverALanding(); return false;">← Volver</a></p>
     </div>
 
     <div id="auth-recover-view" style="display:none;">

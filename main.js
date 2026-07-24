@@ -43,6 +43,8 @@ import {
 
 import { toggleSerieGrafico, setMesesAMostrar } from './grafico.js';
 
+import { mostrarLogin, volverALanding, mostrarFeatureLanding } from './landing.js';
+
 import { inicializarSelectorHistorico, cambiarPestaña, actualizarApp, actualizarFiltrosDetalle } from './render.js';
 
 // --- INICIALIZACIÓN DE CAMPOS DE FECHA ---
@@ -52,14 +54,19 @@ document.getElementById('invFechaNueva').valueAsDate = fechaActual;
 // --- ESTADO DE SESIÓN ---
 auth.onAuthStateChanged(user => {
     if (user) {
+        document.getElementById('landing-section').style.display = 'none';
+        document.getElementById('loader-inicial').style.display = 'flex';
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('main-app').style.display = 'block';
         inicializarSelectorHistorico();
         inicializarMercado();
         cargarDatosDesdeNube(user.uid);
     } else {
+        // Nota: al cargar la página por primera vez sin sesión, la landing
+        // queda visible (es lo que ya se ve por defecto en el HTML) y acá no
+        // hace falta tocar nada. Al cerrar sesión, logoutUsuario() ya se
+        // encarga de mostrar el login directamente (no la landing de nuevo).
         ocultarLoaderInicial();
-        document.getElementById('auth-section').style.display = 'block';
         document.getElementById('main-app').style.display = 'none';
     }
 });
@@ -130,3 +137,8 @@ window.ejecutarExtraccion = ejecutarExtraccion;
 window.toggleSerieGrafico = toggleSerieGrafico;
 window.setMesesAMostrar = setMesesAMostrar;
 window.actualizarFiltrosDetalle = actualizarFiltrosDetalle;
+
+// --- Landing page ---
+window.mostrarLogin = mostrarLogin;
+window.volverALanding = volverALanding;
+window.mostrarFeatureLanding = mostrarFeatureLanding;

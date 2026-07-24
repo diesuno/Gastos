@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v9.5.1'; // Gráfico más fácil de tocar en el celular: área táctil más grande y tooltip por columna
+const CACHE_NAME = 'finanzas-v10.0.0'; // Landing page nueva con vista previa interactiva de funciones, antes del login
 const urlsToCache = [
   './',
   './index.html',
@@ -16,7 +16,8 @@ const urlsToCache = [
   './render.js',
   './grafico.js',
   './flujoMensual.js',
-  './cierreMensual.js'
+  './cierreMensual.js',
+  './landing.js'
 ];
 
 // Instala la nueva versión

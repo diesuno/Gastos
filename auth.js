@@ -42,7 +42,15 @@ export function loginUsuario() {
     if(!email || !pass) return mostrarAlerta("Completá el email y la contraseña.");
     auth.signInWithEmailAndPassword(email, pass).catch(e=>mostrarAlerta(traducirErrorAuth(e)));
 }
-export async function logoutUsuario() { if(await mostrarConfirmacion("¿Salir?")) auth.signOut(); }
+export async function logoutUsuario() {
+    if(await mostrarConfirmacion("¿Salir?")) {
+        await auth.signOut();
+        // Después de cerrar sesión mostramos el login directo, no la landing
+        // — quien ya usó la app no necesita volver a ver la presentación.
+        document.getElementById('landing-section').style.display = 'none';
+        document.getElementById('auth-section').style.display = 'block';
+    }
+}
 
 // Íconos de "ojo" en SVG (más confiables que un emoji, que puede no
 // distinguirse bien entre estados según el sistema).
@@ -254,6 +262,9 @@ export async function eliminarCuenta() {
     try {
         await db.collection("usuarios").doc(user.uid).delete();
         await user.delete();
+        document.getElementById('main-app').style.display = 'none';
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('landing-section').style.display = 'block';
         mostrarAlerta("Tu cuenta fue eliminada. ¡Gracias por haber usado la app!");
     } catch (e) {
         mostrarAlerta(traducirErrorAuth(e));
