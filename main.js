@@ -36,7 +36,9 @@ import {
 
 import {
     liquidarDeudaIndividual, liquidarDeudaGlobal,
-    borrarMovimientoReal, darDeBajaServicio, editarMontoServicio
+    borrarMovimientoReal, darDeBajaServicio,
+    abrirModalEditarServicio, toggleCamposModalEditarServicio,
+    cerrarModalEditarServicio, guardarEdicionServicio
 } from './deudas.js';
 
 import { toggleSerieGrafico, setMesesAMostrar } from './grafico.js';
@@ -109,7 +111,10 @@ window.crearPersonaDeuda = crearPersonaDeuda;
 window.resetearApp = resetearApp;
 window.darDeBajaServicio = darDeBajaServicio;
 window.borrarMovimientoReal = borrarMovimientoReal;
-window.editarMontoServicio = editarMontoServicio;
+window.abrirModalEditarServicio = abrirModalEditarServicio;
+window.toggleCamposModalEditarServicio = toggleCamposModalEditarServicio;
+window.cerrarModalEditarServicio = cerrarModalEditarServicio;
+window.guardarEdicionServicio = guardarEdicionServicio;
 window.liquidarDeudaIndividual = liquidarDeudaIndividual;
 window.liquidarDeudaGlobal = liquidarDeudaGlobal;
 

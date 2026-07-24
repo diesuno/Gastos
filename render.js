@@ -61,7 +61,12 @@ export function actualizarApp() {
         dashUI.innerHTML = `
             <div class="card ingreso"><h3>Ingresos Totales</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
             <div class="card gasto" style="background:#fffbeb; border-left-color:#f59e0b;"><h3>Pagado (En Acto)</h3><p style="color:#d97706;">$${gastosEnActo.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Dinero que ya salió hoy.</span></div>
-            <div class="card gasto"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${(gastosCredito + gastosServicio).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Deudas del mes a pagar.</span></div>
+            <div class="card gasto obligaciones-card"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${(gastosCredito + gastosServicio).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Pasá el mouse para ver el detalle</span>
+                <div class="obligaciones-tooltip">
+                    <div>💳 Cuotas (Tarjeta): <b>$${gastosCredito.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></div>
+                    <div>🔌 Servicios: <b>$${gastosServicio.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></div>
+                </div>
+            </div>
             <div class="card ahorro" style="grid-column: span 3; background:#e0f2fe; border-color: #0ea5e9;"><h3>Disponible</h3><p style="color:#1e3a8a; font-size: 1.8em;">$${disponibleAcumulado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Acumulado de meses anteriores + este mes, menos lo invertido. Es el mismo saldo que ves en Inversiones.</span></div>
         `;
     } else {
@@ -104,7 +109,7 @@ export function actualizarApp() {
     if (esAvanzado) {
         let tbCredito = document.getElementById('tablaCreditos'); tbCredito.innerHTML = '';
         let tbServ = document.getElementById('tablaServicios'); tbServ.innerHTML = '';
-        let totalCredAgrup = 0, totalServAgrup = 0;
+        let totalCredMio = 0, totalCredCompartido = 0, totalServMio = 0, totalServCompartido = 0;
 
         let gruposUI = agruparMovimientosPorGrupo(estadoApp.movimientosMesGlobal);
 
@@ -114,12 +119,14 @@ export function actualizarApp() {
             let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#ef4444;">$${mov.montoAdeudado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>` : "-";
 
             if(mov.metodo === "CREDITO") {
-                totalCredAgrup += mov.montoTotalAgrupado;
+                totalCredMio += mov.montoTotalAgrupado;
+                totalCredCompartido += mov.montoAdeudado;
                 let saldoRest = mov.deudaRestante || 0;
                 tbCredito.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${mov.cuotaActual}/${mov.cuotasTotales}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:#ef4444; font-weight:bold;">$${saldoRest.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X Todo</button></td></tr>`;
             }
             if(mov.metodo === "SERVICIO") {
-                totalServAgrup += mov.montoTotalAgrupado;
+                totalServMio += mov.montoTotalAgrupado;
+                totalServCompartido += mov.montoAdeudado;
                 let prevMonthDate = new Date(aSel, mSel - 1, 1);
                 let montoPasado = null; let variacionHtml = "-";
                 let suscObj = estadoApp.suscripciones.find(s => s.id === mov.idGrupo);
@@ -135,11 +142,11 @@ export function actualizarApp() {
                 } else { variacionHtml = `<span style="color:#3b82f6; font-style:italic;">Nuevo</span>`; }
 
                 let debStr = mov.debito === "SI" ? "✅ Sí" : "❌ No";
-                tbServ.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="editarMontoServicio('${mov.idGrupo}', ${mov.montoTotalAgrupado})">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
+                tbServ.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="abrirModalEditarServicio('${mov.idGrupo}')">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
             }
         });
-        document.getElementById('lblTotalCreditos').innerText = `Total Tarjetas: $${totalCredAgrup.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-        document.getElementById('lblTotalServicios').innerText = `Total Servicios: $${totalServAgrup.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        document.getElementById('lblTotalCreditos').innerText = `Mío: $${totalCredMio.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}   —   Compartido: $${totalCredCompartido.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        document.getElementById('lblTotalServicios').innerText = `Mío: $${totalServMio.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}   —   Compartido: $${totalServCompartido.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
     }
 
     renderizarInversiones();

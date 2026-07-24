@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v9.2.0'; // Disponible (Flujo Mensual) y Pesos (Inversiones) ahora son el mismo saldo acumulado
+const CACHE_NAME = 'finanzas-v9.4.0'; // Modal completo para editar Servicios: nombre, tipo, monto, débito automático y división del pago
 const urlsToCache = [
   './',
   './index.html',
