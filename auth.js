@@ -123,59 +123,75 @@ export function enviarRecuperacionPassword() {
 // --- SINCRONIZACIÓN CON LA NUBE ---
 export function cargarDatosDesdeNube(uid) {
     db.collection("usuarios").doc(uid).onSnapshot(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            estadoApp.todosLosMovimientos = data.todosLosMovimientos || [];
-            estadoApp.suscripciones = data.suscripciones || [];
-            estadoApp.patrimonio = data.patrimonio || { pesos: 0, dolares: 0 };
-            estadoApp.inversiones = data.inversiones || [];
-            estadoApp.listaAmigos = data.listaAmigos || [];
+        try {
+            if (doc.exists) {
+                const data = doc.data();
+                estadoApp.todosLosMovimientos = data.todosLosMovimientos || [];
+                estadoApp.suscripciones = data.suscripciones || [];
+                estadoApp.patrimonio = data.patrimonio || { pesos: 0, dolares: 0 };
+                estadoApp.inversiones = data.inversiones || [];
+                estadoApp.listaAmigos = data.listaAmigos || [];
 
-            if (data.perfilUsuario) {
-                estadoApp.perfilUsuario = data.perfilUsuario;
-            }
-            // Si venía de una versión anterior que no tenía 'modo' guardado
-            if (typeof estadoApp.perfilUsuario.modo === "undefined") {
-                estadoApp.perfilUsuario.modo = "";
+                if (data.perfilUsuario) {
+                    estadoApp.perfilUsuario = data.perfilUsuario;
+                }
+                // Si venía de una versión anterior que no tenía 'modo' guardado
+                if (typeof estadoApp.perfilUsuario.modo === "undefined") {
+                    estadoApp.perfilUsuario.modo = "";
+                }
+
+                // --- MIGRACIÓN: S&P 500 pasó de ser "posiciones sueltas" a un pool
+                // acumulado. Si hay entradas viejas de S&P 500 en "inversiones",
+                // las sumamos al pool nuevo y las sacamos de la lista de posiciones
+                // (que ahora es solo para Plazo Fijo / Mercado Pago).
+                estadoApp.sp500 = data.sp500 || { nominales: 0 };
+                let entradasSpViejas = estadoApp.inversiones.filter(inv => inv.instrumento === "S&P 500");
+                if (entradasSpViejas.length > 0) {
+                    entradasSpViejas.forEach(inv => { estadoApp.sp500.nominales += (inv.nominales || 0); });
+                    estadoApp.inversiones = estadoApp.inversiones.filter(inv => inv.instrumento !== "S&P 500");
+                }
+                estadoApp.historialInversiones = data.historialInversiones || [];
+                estadoApp.historialMensual = data.historialMensual || {};
+                // La cotización del CEDEAR de IVV es editable a mano (ver
+                // billetera.js) — si ya la habías ajustado antes, la
+                // recuperamos; si no, se queda con el valor de referencia
+                // definido en estado.js hasta que inicializarMercado() la
+                // actualice con la cotización real de BYMA.
+                if (data.cotizacionCedear) estadoApp.mercado.spy_ars = data.cotizacionCedear;
             }
 
-            // --- MIGRACIÓN: S&P 500 pasó de ser "posiciones sueltas" a un pool
-            // acumulado. Si hay entradas viejas de S&P 500 en "inversiones",
-            // las sumamos al pool nuevo y las sacamos de la lista de posiciones
-            // (que ahora es solo para Plazo Fijo / Mercado Pago).
-            estadoApp.sp500 = data.sp500 || { nominales: 0 };
-            let entradasSpViejas = estadoApp.inversiones.filter(inv => inv.instrumento === "S&P 500");
-            if (entradasSpViejas.length > 0) {
-                entradasSpViejas.forEach(inv => { estadoApp.sp500.nominales += (inv.nominales || 0); });
-                estadoApp.inversiones = estadoApp.inversiones.filter(inv => inv.instrumento !== "S&P 500");
+            document.getElementById('userNameDisplay').innerText = estadoApp.perfilUsuario.nombre;
+            document.getElementById('profileNameInput').value = estadoApp.perfilUsuario.nombre;
+
+            if (estadoApp.perfilUsuario.modo === "") {
+                document.getElementById('onboarding-modal').style.display = 'flex';
+            } else {
+                document.getElementById('onboarding-modal').style.display = 'none';
+                document.getElementById('profileModoInput').value = estadoApp.perfilUsuario.modo;
             }
-            estadoApp.historialInversiones = data.historialInversiones || [];
-            estadoApp.historialMensual = data.historialMensual || {};
-            // La cotización del CEDEAR de IVV es editable a mano (ver
-            // billetera.js) — si ya la habías ajustado antes, la
-            // recuperamos; si no, se queda con el valor de referencia
-            // definido en estado.js hasta que inicializarMercado() la
-            // actualice con la cotización real de BYMA.
-            if (data.cotizacionCedear) estadoApp.mercado.spy_ars = data.cotizacionCedear;
+
+            actualizarSelectAmigosDisplay();
+            aplicarFiltrosDeModo();
+            // Reconstruimos el historial de Pesos (incluye el mes en curso) — si
+            // cambió el saldo, lo persistimos ya mismo en la nube.
+            if (reconstruirHistorialPesos()) guardarDatosEnNube();
+            actualizarApp();
+        } catch (e) {
+            // Red de seguridad: si algo de lo de arriba falla, esto evita que
+            // la app quede trabada en "Cargando tu información..." para
+            // siempre — mejor mostrar un aviso claro que colgarse en silencio.
+            console.error("Error procesando los datos cargados desde la nube:", e);
+            mostrarAlerta("Hubo un problema cargando tus datos. Si esto se repite, contame este mensaje: " + e.message);
+        } finally {
+            ocultarLoaderInicial();
         }
-
-        document.getElementById('userNameDisplay').innerText = estadoApp.perfilUsuario.nombre;
-        document.getElementById('profileNameInput').value = estadoApp.perfilUsuario.nombre;
-
-        if (estadoApp.perfilUsuario.modo === "") {
-            document.getElementById('onboarding-modal').style.display = 'flex';
-        } else {
-            document.getElementById('onboarding-modal').style.display = 'none';
-            document.getElementById('profileModoInput').value = estadoApp.perfilUsuario.modo;
-        }
-
-        actualizarSelectAmigosDisplay();
-        aplicarFiltrosDeModo();
-        // Reconstruimos el historial de Pesos (incluye el mes en curso) — si
-        // cambió el saldo, lo persistimos ya mismo en la nube.
-        if (reconstruirHistorialPesos()) guardarDatosEnNube();
-        actualizarApp();
+    }, (error) => {
+        // Esto atiende errores del propio Firestore (por ejemplo, permisos
+        // denegados) — sin esto, el loader también se quedaría trabado para
+        // siempre ante un error de conexión.
+        console.error("Error de Firestore al escuchar los datos:", error);
         ocultarLoaderInicial();
+        mostrarAlerta("No se pudieron cargar tus datos: " + error.message);
     });
 }
 

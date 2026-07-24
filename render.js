@@ -32,6 +32,17 @@ export function cambiarPestaña(tabId, boton) {
 }
 
 export function actualizarApp() {
+    try {
+        actualizarAppInterno();
+    } catch (e) {
+        // Red de seguridad: si algo de renderizar la app falla, esto evita
+        // que la app quede "trabada" en silencio en medio de una acción —
+        // mejor un error visible en la consola que un cuelgue sin aviso.
+        console.error("Error actualizando la app:", e);
+    }
+}
+
+function actualizarAppInterno() {
     let sel = document.getElementById('filtroMesAnio'); if(!sel.value) return;
     let [aSel, mSel] = sel.value.split('-').map(Number);
     estadoApp.keyMesActualGlobal = `${aSel}-${(mSel + 1).toString().padStart(2, '0')}`;
@@ -152,6 +163,7 @@ export function actualizarApp() {
     renderizarInversiones();
     actualizarPestañaCuentasCobrar(esAvanzado);
 }
+// (cierre de actualizarAppInterno)
 
 // Pinta toda la pestaña "Inversiones": cards resumen, checkboxes del gráfico
 // y tabla de Historial de Movimientos.

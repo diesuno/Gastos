@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v10.0.0'; // Landing page nueva con vista previa interactiva de funciones, antes del login
+const CACHE_NAME = 'finanzas-v10.1.0'; // Fix: el loader ya no puede quedar trabado para siempre si algo falla al cargar los datos
 const urlsToCache = [
   './',
   './index.html',
