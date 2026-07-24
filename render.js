@@ -161,7 +161,8 @@ function renderizarInversiones() {
     // --- Cards resumen (Pesos siempre; el resto solo si hay saldo) ---
     let cardsHtml = `<div class="card" style="background:#f8fafc;"><h3>Pesos</h3><p style="color:#1e3a8a;">$${estadoApp.patrimonio.pesos.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Disponible acumulado</span></div>`;
     if (estadoApp.patrimonio.dolares > 0) {
-        cardsHtml += `<div class="card" style="background:#ecfdf5;"><h3>Dólares</h3><p style="color:#10b981;">US$ ${estadoApp.patrimonio.dolares.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>`;
+        let equivalenteArs = estadoApp.patrimonio.dolares * estadoApp.mercado.dolarOficial;
+        cardsHtml += `<div class="card" style="background:#ecfdf5;"><h3>Dólares</h3><p style="color:#10b981;">US$ ${estadoApp.patrimonio.dolares.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">≈ $${equivalenteArs.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})} (dólar oficial)</span></div>`;
     }
     if (estadoApp.sp500.nominales > 0) {
         cardsHtml += `<div class="card" style="background:#fffbeb;"><h3>S&P 500</h3><p style="color:#f59e0b;">${Math.round(estadoApp.sp500.nominales)} Nom.</p><span class="porcentaje">US$ ${valorSp500Usd.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;

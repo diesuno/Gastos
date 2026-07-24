@@ -81,6 +81,21 @@ export async function inicializarMercado() {
         console.warn("No se pudo obtener el dólar CCL de dolarapi.com, se usa valor de referencia:", e.message);
     }
 
+    // Dólar oficial (para mostrar "cuánto valen mis dólares en pesos" en la
+    // card y el gráfico) — usamos "compra" porque es lo que te pagarían si
+    // los vendieras, que es lo que corresponde para valuar una tenencia.
+    try {
+        let res = await fetch("https://dolarapi.com/v1/dolares/oficial");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        let data = await res.json();
+        if (data && data.compra) {
+            estadoApp.mercado.dolarOficial = data.compra;
+            estadoApp.mercado.actualizado.oficial = true;
+        }
+    } catch (e) {
+        console.warn("No se pudo obtener el dólar oficial de dolarapi.com, se usa valor de referencia:", e.message);
+    }
+
     estadoApp.mercado.spy_usd = estadoApp.mercado.spy_ars / estadoApp.mercado.dolarCCL;
 
     reconstruirHistorialMensual();

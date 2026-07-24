@@ -121,7 +121,13 @@ export function renderizarGrafico() {
                     callbacks: {
                         label: (contexto) => {
                             let valor = contexto.parsed.y.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                            return `${contexto.dataset.label}: US$ ${valor}`;
+                            let linea = `${contexto.dataset.label}: US$ ${valor}`;
+                            if (contexto.dataset.label.includes('Dólares')) {
+                                let equivalenteArs = contexto.parsed.y * estadoApp.mercado.dolarOficial;
+                                let arsTxt = equivalenteArs.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                return [linea, `≈ $${arsTxt} (dólar oficial)`];
+                            }
+                            return linea;
                         }
                     }
                 }

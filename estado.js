@@ -56,7 +56,7 @@ export const estadoApp = {
     // "spy_usd" es ese mismo valor pasado a dólares (spy_ars ÷ dolarCCL). Los
     // nombres de variable quedaron del momento en que la app seguía a SPY —
     // hoy representan directamente al CEDEAR de IVV.
-    mercado: { spy_usd: 1.1, dolarCCL: 1550, spy_ars: 1700, actualizado: { ccl: false, cedear: false } },
+    mercado: { spy_usd: 1.1, dolarCCL: 1550, dolarOficial: 1450, spy_ars: 1700, actualizado: { ccl: false, cedear: false, oficial: false } },
 
     miGrafico: null,
 

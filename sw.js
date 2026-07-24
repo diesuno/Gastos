@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v9.4.0'; // Modal completo para editar Servicios: nombre, tipo, monto, débito automático y división del pago
+const CACHE_NAME = 'finanzas-v9.5.0'; // Equivalente en pesos (dólar oficial) para Dólares: en la card y en el gráfico
 const urlsToCache = [
   './',
   './index.html',
