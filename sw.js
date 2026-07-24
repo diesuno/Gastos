@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v9.3.0'; // Gastos compartidos estilo Splitwise: 5 opciones, sin doble conteo, Obligaciones con desglose, totales Mío/Compartido
+const CACHE_NAME = 'finanzas-v9.4.0'; // Modal completo para editar Servicios: nombre, tipo, monto, débito automático y división del pago
 const urlsToCache = [
   './',
   './index.html',

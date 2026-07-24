@@ -45,6 +45,43 @@
     </div>
 </div>
 
+<!-- MODAL EDITAR SERVICIO -->
+<div id="modal-editar-servicio" class="modal-overlay" style="display:none;">
+    <div class="modal-box" style="max-width:480px; text-align:left;">
+        <h2 style="margin-top:0; text-align:center;">🔌 Editar Servicio</h2>
+        <div class="form-grid">
+            <div class="form-group"><label for="editServNombre">Nombre</label><input type="text" id="editServNombre"></div>
+            <div class="form-group"><label for="editServTipo">Tipo</label>
+                <select id="editServTipo">
+                    <option value="Gasto Fijo">Gasto Fijo</option>
+                    <option value="Gasto Variable">Gasto Variable</option>
+                </select>
+            </div>
+            <div class="form-group"><label for="editServMonto">Monto (desde este mes)</label><input type="number" step="any" id="editServMonto"></div>
+            <div class="form-group"><label for="editServDebito">Débito Automático</label>
+                <select id="editServDebito">
+                    <option value="NO">No</option>
+                    <option value="SI">Sí, adherido</option>
+                </select>
+            </div>
+            <div class="form-group"><label for="editServDividir">División del pago</label>
+                <select id="editServDividir" onchange="toggleCamposModalEditarServicio()">
+                    <option value="NO">Normal</option>
+                    <option value="PAGUE_100_DEUDA">Pagué 100%</option>
+                    <option value="PAGUE_50_INTEGRO">Pagué 50%</option>
+                    <option value="PAGO_OTRO_50">Debo 50%</option>
+                    <option value="PAGO_OTRO_100_DEUDA">Debo 100%</option>
+                </select>
+            </div>
+            <div class="form-group" id="boxEditServAmigo" style="display:none;"><label for="editServAmigo">¿Con quién?</label><select id="editServAmigo"></select></div>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+            <button class="btn-secundario" onclick="cerrarModalEditarServicio()">Cancelar</button>
+            <button class="btn-verde" onclick="guardarEdicionServicio()">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL MI PERFIL -->
 <div id="modal-perfil" class="modal-overlay" style="display:none;">
     <div class="modal-box" style="max-width:520px; text-align:left;">

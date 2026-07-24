@@ -79,8 +79,66 @@ export async function darDeBajaServicio(idGrupo) {
         let s = estadoApp.suscripciones.find(x => x.id === idGrupo); if(s) { s.mesBaja = estadoApp.keyMesActualGlobal; actualizarApp(); guardarDatosEnNube(); }
     }
 }
-export async function editarMontoServicio(idGrupo, montoActual) {
-    let nuevo = await mostrarPrompt("Ingresá el nuevo valor a pagar desde este mes en adelante:", montoActual);
-    if(!nuevo) return; let nReal = parseFloat(nuevo); if(isNaN(nReal) || nReal <= 0) return;
-    let s = estadoApp.suscripciones.find(x => x.id === idGrupo); if(s) { s.montosPorMes[estadoApp.keyMesActualGlobal] = nReal; actualizarApp(); guardarDatosEnNube(); }
+// --- MODAL EDITAR SERVICIO ---
+// Antes esto era un simple prompt para cambiar el monto; ahora es un modal
+// que permite editar nombre, tipo, monto, débito automático y la división
+// del pago (con quién y cómo se reparte), todo en un solo lugar.
+let idGrupoEnEdicion = null;
+
+export function abrirModalEditarServicio(idGrupo) {
+    let s = estadoApp.suscripciones.find(x => x.id === idGrupo);
+    if (!s) return;
+    idGrupoEnEdicion = idGrupo;
+
+    document.getElementById('editServNombre').value = s.concepto;
+    document.getElementById('editServTipo').value = s.tipo;
+    document.getElementById('editServDebito').value = s.debito || "NO";
+    document.getElementById('editServDividir').value = s.dividir || "NO";
+
+    // El monto que se edita es el vigente para el mes que se está viendo.
+    let dKeys = Object.keys(s.montosPorMes).sort();
+    let montoVigente = s.montosPorMes[dKeys[dKeys.length - 1]];
+    document.getElementById('editServMonto').value = montoVigente;
+
+    let selAmigo = document.getElementById('editServAmigo');
+    selAmigo.innerHTML = '';
+    estadoApp.listaAmigos.forEach(am => { let o = document.createElement('option'); o.value = am; o.text = am; selAmigo.appendChild(o); });
+    selAmigo.value = s.amigo || '';
+
+    toggleCamposModalEditarServicio();
+    document.getElementById('modal-editar-servicio').style.display = 'flex';
+}
+
+export function toggleCamposModalEditarServicio() {
+    let dividir = document.getElementById('editServDividir').value;
+    document.getElementById('boxEditServAmigo').style.display = dividir !== "NO" ? 'block' : 'none';
+}
+
+export function cerrarModalEditarServicio() {
+    document.getElementById('modal-editar-servicio').style.display = 'none';
+    idGrupoEnEdicion = null;
+}
+
+export function guardarEdicionServicio() {
+    if (!idGrupoEnEdicion) return;
+    let s = estadoApp.suscripciones.find(x => x.id === idGrupoEnEdicion);
+    if (!s) return;
+
+    let nombre = document.getElementById('editServNombre').value.trim();
+    let monto = parseFloat(document.getElementById('editServMonto').value);
+    let dividir = document.getElementById('editServDividir').value;
+    let amigo = document.getElementById('editServAmigo').value;
+    if (!nombre) return mostrarAlerta("Ingresá un nombre");
+    if (!monto || monto <= 0) return mostrarAlerta("Ingresá un monto válido");
+    if (dividir !== "NO" && !amigo) return mostrarAlerta("Elegí una persona para dividir");
+
+    s.concepto = nombre;
+    s.tipo = document.getElementById('editServTipo').value;
+    s.debito = document.getElementById('editServDebito').value;
+    s.dividir = dividir;
+    s.amigo = dividir !== "NO" ? amigo : "";
+    s.montosPorMes[estadoApp.keyMesActualGlobal] = monto;
+
+    cerrarModalEditarServicio();
+    actualizarApp(); guardarDatosEnNube();
 }

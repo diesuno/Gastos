@@ -142,7 +142,7 @@ export function actualizarApp() {
                 } else { variacionHtml = `<span style="color:#3b82f6; font-style:italic;">Nuevo</span>`; }
 
                 let debStr = mov.debito === "SI" ? "✅ Sí" : "❌ No";
-                tbServ.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="editarMontoServicio('${mov.idGrupo}', ${mov.montoTotalAgrupado})">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
+                tbServ.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="abrirModalEditarServicio('${mov.idGrupo}')">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
             }
         });
         document.getElementById('lblTotalCreditos').innerText = `Mío: $${totalCredMio.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}   —   Compartido: $${totalCredCompartido.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
