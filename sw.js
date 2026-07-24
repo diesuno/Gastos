@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v9.5.0'; // Equivalente en pesos (dólar oficial) para Dólares: en la card y en el gráfico
+const CACHE_NAME = 'finanzas-v9.5.1'; // Gráfico más fácil de tocar en el celular: área táctil más grande y tooltip por columna
 const urlsToCache = [
   './',
   './index.html',

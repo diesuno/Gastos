@@ -91,14 +91,16 @@ export function renderizarGrafico() {
         datasets.push({
             label: '💵 Dólares',
             data: serieConArrastre(meses, f => f.dolares),
-            borderColor: COLOR_DOLARES, backgroundColor: 'transparent', borderWidth: 3, tension: 0.2, spanGaps: true
+            borderColor: COLOR_DOLARES, backgroundColor: 'transparent', borderWidth: 3, tension: 0.2, spanGaps: true,
+            pointRadius: 4, pointHoverRadius: 7, pointHitRadius: 20
         });
     }
     if (seriesGrafico.sp500 && estadoApp.sp500.nominales > 0) {
         datasets.push({
             label: '📈 S&P 500 (USD)',
             data: serieConArrastre(meses, f => f.sp500Usd),
-            borderColor: COLOR_SP500, backgroundColor: 'transparent', borderWidth: 3, tension: 0.2, spanGaps: true
+            borderColor: COLOR_SP500, backgroundColor: 'transparent', borderWidth: 3, tension: 0.2, spanGaps: true,
+            pointRadius: 4, pointHoverRadius: 7, pointHitRadius: 20
         });
     }
 
@@ -108,6 +110,10 @@ export function renderizarGrafico() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            // Con esto, tocar en cualquier parte vertical de un mes (no solo
+            // el pixel exacto del punto) ya muestra el tooltip — mucho más
+            // fácil de usar con el dedo en el celular.
+            interaction: { mode: 'index', intersect: false },
             scales: {
                 y: {
                     ticks: {
