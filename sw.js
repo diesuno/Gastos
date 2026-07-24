@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v10.2.0'; // Fix: desconectar el oyente de Firestore al cerrar sesión/eliminar cuenta (evita el error de permisos)
+const CACHE_NAME = 'finanzas-v10.4.0'; // FIX IMPORTANTE: el Service Worker ya no intercepta Firestore/Firebase/cotizaciones externas
 const urlsToCache = [
   './',
   './index.html',
@@ -46,8 +46,19 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Estrategia "Network First": Siempre intenta traer lo más nuevo de internet primero
+// Estrategia "Network First": Siempre intenta traer lo más nuevo de internet primero.
+// IMPORTANTE: solo aplicamos esto a pedidos de NUESTRO propio sitio (los
+// archivos de la app). Cualquier otro pedido — la conexión en vivo con
+// Firestore, Firebase Auth, o las cotizaciones externas (Yahoo, BYMA,
+// dolarapi) — lo dejamos pasar SIN TOCAR, tal cual lo haría el navegador sin
+// Service Worker. Interceptar esas conexiones (sobre todo la de Firestore,
+// que es de larga duración) puede trabarlas sin generar ningún error visible.
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) {
+    return; // No respondemos nosotros: que lo maneje el navegador directo.
+  }
+
   event.respondWith(
     fetch(event.request).catch(() => {
       return caches.match(event.request);
