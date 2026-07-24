@@ -34,14 +34,30 @@ export function obtenerMovimientosDeMes(aSel, mSel) {
 
             let vMov = { id: susc.id + "_" + keyMes, idGrupo: susc.id, monto: montoActivo, tipo: susc.tipo, concepto: susc.concepto, fecha: `${aSel}-${(mSel+1).toString().padStart(2,'0')}-01`, metodo: "SERVICIO", debito: susc.debito, dividir: susc.dividir, amigo: susc.amigo, esVirtual: true };
 
-            let registrarDeuda = false; let mDeuda = 0; let tDeuda = "";
-            if (susc.dividir === "PAGUE_50_TOTAL") { vMov.monto = montoActivo/2; }
-            else if (susc.dividir === "PAGUE_50_INTEGRO") { vMov.monto = montoActivo/2; movsVirtuales.push({...vMov, id: generarId(), monto: montoActivo/2, tipo: "Gasto Variable", concepto: `Adelanto a ${susc.amigo}: ${susc.concepto}`}); registrarDeuda = true; mDeuda = montoActivo/2; tDeuda = "A_FAVOR"; }
-            else if (susc.dividir === "PAGO_OTRO_50") { registrarDeuda = true; mDeuda = montoActivo/2; tDeuda = "EN_CONTRA"; }
-            else if (susc.dividir === "PAGUE_100_DEUDA") { vMov.monto = montoActivo; vMov.tipo = "Gasto Variable"; vMov.concepto = `Adelanto a ${susc.amigo}: ${susc.concepto}`; registrarDeuda = true; mDeuda = montoActivo; tDeuda = "A_FAVOR"; }
-            else if (susc.dividir === "PAGO_OTRO_100_DEUDA") { registrarDeuda = true; mDeuda = montoActivo; tDeuda = "EN_CONTRA"; }
+            let registrarDeuda = false; let mDeuda = 0; let tDeuda = ""; let pushearVMov = true;
+            if (susc.dividir === "PAGUE_50_INTEGRO") {
+                // Pagué 50%: mi parte real es la mitad — la otra mitad no es
+                // mía, no se cuenta como gasto (queda solo en Cuentas por
+                // Cobrar hasta que me la devuelvan).
+                vMov.monto = montoActivo/2;
+                registrarDeuda = true; mDeuda = montoActivo/2; tDeuda = "A_FAVOR";
+            } else if (susc.dividir === "PAGO_OTRO_50") {
+                // Debo 50%: mi parte real es la mitad, y la debo — cuenta
+                // como obligación mía ya.
+                vMov.monto = montoActivo/2;
+                registrarDeuda = true; mDeuda = montoActivo/2; tDeuda = "EN_CONTRA";
+            } else if (susc.dividir === "PAGUE_100_DEUDA") {
+                // 0% es mío — no se registra ningún gasto, solo la Cuenta
+                // Cobrar (me deben el 100%).
+                pushearVMov = false;
+                registrarDeuda = true; mDeuda = montoActivo; tDeuda = "A_FAVOR";
+            } else if (susc.dividir === "PAGO_OTRO_100_DEUDA") {
+                // Debo 100%: es enteramente mío aunque lo pague el otro —
+                // cuenta como obligación mía completa.
+                registrarDeuda = true; mDeuda = montoActivo; tDeuda = "EN_CONTRA";
+            }
 
-            if (susc.dividir !== "PAGO_OTRO_50" && susc.dividir !== "PAGO_OTRO_100_DEUDA") { movsVirtuales.push(vMov); }
+            if (pushearVMov) movsVirtuales.push(vMov);
 
             if(registrarDeuda) {
                 let yaPagado = (susc.pagosAmigo && susc.pagosAmigo.includes(keyMes));

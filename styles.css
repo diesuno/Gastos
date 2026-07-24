@@ -79,6 +79,10 @@ h1, h2, h3 { color: #1e3a8a; text-align: center; font-weight: 800;}
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; align-items: end; }
 
 .card { background: white; padding: 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02), 0 10px 15px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; transition: transform 0.2s;}
+.obligaciones-card { position: relative; cursor: help; }
+.obligaciones-card .obligaciones-tooltip { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 14px 18px; z-index: 60; white-space: nowrap; text-align: left; font-size: 0.9em; color: #334155;}
+.obligaciones-card:hover .obligaciones-tooltip { display: block; }
+.obligaciones-card .obligaciones-tooltip div { margin: 4px 0; }
 .card:hover { transform: translateY(-2px); }
 .card h3 { margin: 0 0 10px 0; font-size: 1em; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
 .card p { margin: 0; font-size: 1.8em; font-weight: 800; color: #1e293b;}

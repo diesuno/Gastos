@@ -98,21 +98,45 @@ export function agregarMovimiento() {
                 estadoApp.todosLosMovimientos.push(objBase);
             } else {
                 let registrarDeuda = false; let mDeuda = 0; let tDeuda = "";
+                let esEnElActo = (metodoP === "EN_EL_ACTO");
 
-                if (dividir === "PAGUE_50_TOTAL") {
+                if (dividir === "PAGUE_50_INTEGRO") {
+                    // Pagué 50%: mi parte real (la mitad) siempre cuenta como
+                    // gasto mío, tenga el método que tenga.
                     objBase.monto = montoPorCuota/2; estadoApp.todosLosMovimientos.push(objBase);
-                } else if (dividir === "PAGUE_50_INTEGRO") {
-                    objBase.monto = montoPorCuota/2; estadoApp.todosLosMovimientos.push(objBase);
-                    let vAdelanto = {...objBase, id: generarId(), monto: montoPorCuota/2, tipo: "Gasto Variable", concepto: `Adelanto a ${amigo}: ${conceptoF}`};
-                    estadoApp.todosLosMovimientos.push(vAdelanto);
+                    if (esEnElActo) {
+                        // En el Acto: la otra mitad también salió de mi
+                        // bolsillo hoy (me la van a devolver después), así
+                        // que se refleja en Pagado en el Acto.
+                        let vAdelanto = {...objBase, id: generarId(), monto: montoPorCuota/2, tipo: "Gasto Variable", concepto: `Adelanto a ${amigo}: ${conceptoF}`};
+                        estadoApp.todosLosMovimientos.push(vAdelanto);
+                    }
+                    // Con Tarjeta/Servicio la otra mitad NO se cuenta como
+                    // gasto mío — no es mía, queda solo en Cuentas por
+                    // Cobrar hasta que me la devuelvan.
                     registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "A_FAVOR";
                 } else if (dividir === "PAGO_OTRO_50") {
+                    // Debo 50%: mi parte real es la mitad, y la debo — cuenta
+                    // como obligación mía ya (aunque todavía no haya salido
+                    // plata de mi bolsillo), salvo que sea En el Acto: ahí la
+                    // plata directamente no salió de mí hoy.
+                    if (!esEnElActo) { objBase.monto = montoPorCuota/2; estadoApp.todosLosMovimientos.push(objBase); }
                     registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "EN_CONTRA";
                 } else if (dividir === "PAGUE_100_DEUDA") {
-                    objBase.monto = montoPorCuota; objBase.tipo = "Gasto Variable"; objBase.concepto = `Adelanto a ${amigo}: ${conceptoF}`;
-                    estadoApp.todosLosMovimientos.push(objBase);
+                    if (esEnElActo) {
+                        // En el Acto: pagué el 100% en efectivo hoy, aunque
+                        // no sea mío — se refleja en Pagado en el Acto.
+                        objBase.monto = montoPorCuota; objBase.tipo = "Gasto Variable"; objBase.concepto = `Adelanto a ${amigo}: ${conceptoF}`;
+                        estadoApp.todosLosMovimientos.push(objBase);
+                    }
+                    // Con Tarjeta/Servicio: 0% es mío, no se registra ningún
+                    // gasto — solo la Cuenta Cobrar (me deben el 100%).
                     registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "A_FAVOR";
                 } else if (dividir === "PAGO_OTRO_100_DEUDA") {
+                    // Debo 100%: es enteramente mío aunque lo haya pagado el
+                    // otro — cuenta como obligación mía completa (salvo En
+                    // el Acto, donde la plata no salió de mí hoy).
+                    if (!esEnElActo) { estadoApp.todosLosMovimientos.push(objBase); }
                     registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "EN_CONTRA";
                 } else {
                     estadoApp.todosLosMovimientos.push(objBase);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v9.2.0'; // Disponible (Flujo Mensual) y Pesos (Inversiones) ahora son el mismo saldo acumulado
+const CACHE_NAME = 'finanzas-v9.3.0'; // Gastos compartidos estilo Splitwise: 5 opciones, sin doble conteo, Obligaciones con desglose, totales Mío/Compartido
 const urlsToCache = [
   './',
   './index.html',
