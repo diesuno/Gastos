@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v10.2.0'; // Ajuste: Diarias suma todo lo pendiente, Fijas (Tarjeta/Servicio) solo el mes filtrado
+const CACHE_NAME = 'finanzas-v10.4.0'; // Editar movimientos (En el Acto), orden/filtro en Detalle Gastos, tarjetas reutilizables
 const urlsToCache = [
   './',
   './index.html',

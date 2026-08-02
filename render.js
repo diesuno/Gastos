@@ -20,8 +20,12 @@ let ordenTablas = {
     deudasDiarias: { campo: 'fecha', ascendente: false },
     deudasFijas: { campo: 'fecha', ascendente: false },
     detalleInversiones: { campo: 'fecha', ascendente: false },
+    detalleCreditos: { campo: 'texto', ascendente: true },
+    detalleServicios: { campo: 'texto', ascendente: true },
 };
 let filtrosMovimientos = { metodo: 'TODOS', desde: '', hasta: '', busqueda: '' };
+let filtrosCreditos = { busqueda: '', tarjeta: 'TODAS' };
+let filtrosServicios = { busqueda: '' };
 
 // Compara 2 valores para ordenar (soporta texto y números por igual — las
 // fechas ya vienen como texto "YYYY-MM-DD", que ordena bien alfabéticamente).
@@ -66,6 +70,20 @@ export function limpiarFiltrosMovimientos() {
     document.getElementById('filtroFechaHasta').value = '';
     document.getElementById('buscarMovimientos').value = '';
     aplicarFiltrosMovimientos();
+}
+
+export function aplicarFiltrosCreditos() {
+    filtrosCreditos.busqueda = document.getElementById('buscarCreditos').value.trim().toLowerCase();
+    filtrosCreditos.tarjeta = document.getElementById('filtroTarjeta').value;
+    filtrosServicios.busqueda = document.getElementById('buscarServicios').value.trim().toLowerCase();
+    actualizarApp();
+}
+
+export function limpiarFiltrosCreditos() {
+    document.getElementById('buscarCreditos').value = '';
+    document.getElementById('filtroTarjeta').value = 'TODAS';
+    document.getElementById('buscarServicios').value = '';
+    aplicarFiltrosCreditos();
 }
 
 export function inicializarSelectorHistorico() {
@@ -118,10 +136,28 @@ export function actualizarApp() {
     let dashUI = document.getElementById('dashboard-dinamico');
 
     if (esAvanzado) {
+        let pctEnActo = ing > 0 ? ((gastosEnActo / ing) * 100).toFixed(1) : '0.0';
+        let totalObligaciones = gastosCredito + gastosServicio;
+        let pctObligaciones = ing > 0 ? ((totalObligaciones / ing) * 100).toFixed(1) : '0.0';
+
+        // Comparamos Obligaciones contra el mismo total del mes anterior, para
+        // mostrar si subió o bajó y en qué porcentaje.
+        let mAnt = mSel - 1, aAnt = aSel;
+        if (mAnt < 0) { mAnt = 11; aAnt -= 1; }
+        let flujoAnterior = calcularFlujoDeMes(aAnt, mAnt);
+        let totalObligacionesAnt = flujoAnterior.gastosCredito + flujoAnterior.gastosServicio;
+        let varObligacionesTxt = 'Sin datos del mes anterior';
+        if (totalObligacionesAnt > 0) {
+            let diffPct = ((totalObligaciones - totalObligacionesAnt) / totalObligacionesAnt) * 100;
+            if (diffPct > 0.05) varObligacionesTxt = `<span style="color:#ef4444; font-weight:600;">▲ +${diffPct.toFixed(1)}% vs. mes anterior</span>`;
+            else if (diffPct < -0.05) varObligacionesTxt = `<span style="color:#10b981; font-weight:600;">▼ ${diffPct.toFixed(1)}% vs. mes anterior</span>`;
+            else varObligacionesTxt = `<span style="color:#94a3b8; font-weight:600;">= Igual al mes anterior</span>`;
+        }
+
         dashUI.innerHTML = `
             <div class="card ingreso"><h3>Ingresos Totales</h3><p>$${ing.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p></div>
-            <div class="card gasto" style="background:#fffbeb; border-left-color:#f59e0b;"><h3>Pagado (En Acto)</h3><p style="color:#d97706;">$${gastosEnActo.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Dinero que ya salió hoy.</span></div>
-            <div class="card gasto obligaciones-card"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${(gastosCredito + gastosServicio).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">Pasá el mouse para ver el detalle</span>
+            <div class="card gasto" style="background:#fffbeb; border-left-color:#f59e0b;"><h3>Pagado (En Acto)</h3><p style="color:#d97706;">$${gastosEnActo.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">${pctEnActo}% de tus ingresos</span></div>
+            <div class="card gasto obligaciones-card"><h3>Obligaciones (Cuotas+Serv)</h3><p>$${totalObligaciones.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</p><span class="porcentaje">${pctObligaciones}% de tus ingresos</span><br><span class="porcentaje">${varObligacionesTxt}</span>
                 <div class="obligaciones-tooltip">
                     <div>💳 Cuotas (Tarjeta): <b>$${gastosCredito.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></div>
                     <div>🔌 Servicios: <b>$${gastosServicio.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></div>
@@ -177,7 +213,13 @@ export function actualizarApp() {
             let mtdText = mov.metodo === "CREDITO" ? "💳 Crédito" : (mov.metodo === "SERVICIO" ? "🔌 Servicio" : "💵 En el Acto");
             let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0ea5e9; font-weight:bold;">SÍ</span>` : "No";
             let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#ef4444;">$${mov.montoAdeudado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>` : "-";
-            tabla.innerHTML += `<tr><td>${ff}</td><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${mtdText}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="${mov.esVirtual ? `darDeBajaServicio('${mov.idGrupo}')` : `borrarMovimientoReal('${mov.idGrupo}')`}">X</button></td></tr>`;
+            // Por ahora solo se puede editar texto/fecha/monto de movimientos
+            // "En el Acto" reales — las cuotas de tarjeta y los servicios
+            // (virtuales) todavía no tienen pensada su lógica de edición acá.
+            let esEditable = (mov.metodo === "EN_EL_ACTO" && !mov.esVirtual);
+            let btnEditar = esEditable ? `<button class="btn-editar" onclick="abrirModalEditarMovimiento('${mov.id}')">Editar</button> ` : '';
+            let btnBorrar = `<button class="btn-borrar" onclick="${mov.esVirtual ? `darDeBajaServicio('${mov.idGrupo}')` : `borrarMovimientoReal('${mov.idGrupo}')`}">X</button>`;
+            tabla.innerHTML += `<tr><td>${ff}</td><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${mtdText}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td>${btnEditar}${btnBorrar}</td></tr>`;
         });
     } else {
         thead.innerHTML = `<tr>
@@ -205,7 +247,7 @@ export function actualizarApp() {
 
         filas.forEach(mov => {
             let f = new Date(mov.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
-            tabla.innerHTML += `<tr><td>${ff}</td><td>${escapeHTML(mov.concepto)}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X</button></td></tr>`;
+            tabla.innerHTML += `<tr><td>${ff}</td><td>${escapeHTML(mov.concepto)}</td><td>${mov.tipo}</td><td>$${mov.monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td><button class="btn-editar" onclick="abrirModalEditarMovimiento('${mov.id}')">Editar</button> <button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X</button></td></tr>`;
         });
     }
 
@@ -215,40 +257,72 @@ export function actualizarApp() {
         let tbServ = document.getElementById('tablaServicios'); tbServ.innerHTML = '';
         let totalCredMio = 0, totalCredCompartido = 0, totalServMio = 0, totalServCompartido = 0;
 
-        let gruposUI = agruparMovimientosPorGrupo(estadoApp.movimientosMesGlobal);
+        // Opciones del filtro de Tarjeta, siempre actualizadas con la lista real.
+        let selTarjeta = document.getElementById('filtroTarjeta');
+        let valorPrevioTarjeta = filtrosCreditos.tarjeta;
+        selTarjeta.innerHTML = '<option value="TODAS">Todas</option>';
+        estadoApp.listaTarjetas.forEach(t => { let o = document.createElement('option'); o.value = t; o.text = t; selTarjeta.appendChild(o); });
+        selTarjeta.value = estadoApp.listaTarjetas.includes(valorPrevioTarjeta) ? valorPrevioTarjeta : 'TODAS';
 
-        Object.values(gruposUI).forEach(mov => {
-            if(mov.tipo === "Ingreso") return;
+        document.getElementById('thTextoCreditos').innerHTML = `Texto${iconoOrden('detalleCreditos', 'texto')}`;
+        document.getElementById('thMontoCreditos').innerHTML = `Valor Cuota${iconoOrden('detalleCreditos', 'monto')}`;
+        document.getElementById('thTarjetaCreditos').innerHTML = `Tarjeta${iconoOrden('detalleCreditos', 'tarjeta')}`;
+        document.getElementById('thTextoServicios').innerHTML = `Servicio${iconoOrden('detalleServicios', 'texto')}`;
+        document.getElementById('thMontoServicios').innerHTML = `Valor a Pagar${iconoOrden('detalleServicios', 'monto')}`;
+
+        let gruposUI = Object.values(agruparMovimientosPorGrupo(estadoApp.movimientosMesGlobal)).filter(mov => mov.tipo !== "Ingreso");
+
+        let filasCredito = gruposUI.filter(mov => {
+            if (mov.metodo !== "CREDITO") return false;
+            if (filtrosCreditos.busqueda && !mov.conceptoOriginal.toLowerCase().includes(filtrosCreditos.busqueda)) return false;
+            if (filtrosCreditos.tarjeta !== 'TODAS' && (mov.tarjeta || '') !== filtrosCreditos.tarjeta) return false;
+            return true;
+        });
+        let ordenCred = ordenTablas.detalleCreditos;
+        let valorDeCredito = (mov) => ordenCred.campo === 'monto' ? mov.montoTotalAgrupado : (ordenCred.campo === 'tarjeta' ? (mov.tarjeta || '') : mov.conceptoOriginal);
+        filasCredito.sort((a, b) => (ordenCred.ascendente ? 1 : -1) * compararValores(valorDeCredito(a), valorDeCredito(b)));
+
+        filasCredito.forEach(mov => {
             let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0ea5e9; font-weight:bold;">SÍ</span>` : "No";
             let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#ef4444;">$${mov.montoAdeudado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>` : "-";
-
-            if(mov.metodo === "CREDITO") {
-                totalCredMio += mov.montoTotalAgrupado;
-                totalCredCompartido += mov.montoAdeudado;
-                let saldoRest = mov.deudaRestante || 0;
-                tbCredito.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${mov.cuotaActual}/${mov.cuotasTotales}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:#ef4444; font-weight:bold;">$${saldoRest.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X Todo</button></td></tr>`;
-            }
-            if(mov.metodo === "SERVICIO") {
-                totalServMio += mov.montoTotalAgrupado;
-                totalServCompartido += mov.montoAdeudado;
-                let prevMonthDate = new Date(aSel, mSel - 1, 1);
-                let montoPasado = null; let variacionHtml = "-";
-                let suscObj = estadoApp.suscripciones.find(s => s.id === mov.idGrupo);
-                if(suscObj) {
-                    let dKeys = Object.keys(suscObj.montosPorMes).sort();
-                    for (let key of dKeys) { let [kA, kM] = key.split('-').map(Number); if (new Date(kA, kM - 1, 1) <= prevMonthDate) montoPasado = suscObj.montosPorMes[key]; }
-                }
-                if(montoPasado !== null) {
-                    let diff = mov.montoTotalAgrupado - montoPasado;
-                    if(diff > 0) variacionHtml = `<span style="color:#ef4444; font-weight:bold;">▲ +${((diff/montoPasado)*100).toFixed(1)}%</span>`;
-                    else if(diff < 0) variacionHtml = `<span style="color:#10b981; font-weight:bold;">▼ -${((Math.abs(diff)/montoPasado)*100).toFixed(1)}%</span>`;
-                    else variacionHtml = `<span style="color:#94a3b8; font-weight:bold;">= Igual</span>`;
-                } else { variacionHtml = `<span style="color:#3b82f6; font-style:italic;">Nuevo</span>`; }
-
-                let debStr = mov.debito === "SI" ? "✅ Sí" : "❌ No";
-                tbServ.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="abrirModalEditarServicio('${mov.idGrupo}')">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
-            }
+            totalCredMio += mov.montoTotalAgrupado;
+            totalCredCompartido += mov.montoAdeudado;
+            let saldoRest = mov.deudaRestante || 0;
+            tbCredito.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${mov.cuotaActual}/${mov.cuotasTotales}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:#ef4444; font-weight:bold;">$${saldoRest.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${escapeHTML(mov.tarjeta || '-')}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X Todo</button></td></tr>`;
         });
+
+        let filasServicios = gruposUI.filter(mov => {
+            if (mov.metodo !== "SERVICIO") return false;
+            if (filtrosServicios.busqueda && !mov.conceptoOriginal.toLowerCase().includes(filtrosServicios.busqueda)) return false;
+            return true;
+        });
+        let ordenServ = ordenTablas.detalleServicios;
+        let valorDeServicio = (mov) => ordenServ.campo === 'monto' ? mov.montoTotalAgrupado : mov.conceptoOriginal;
+        filasServicios.sort((a, b) => (ordenServ.ascendente ? 1 : -1) * compararValores(valorDeServicio(a), valorDeServicio(b)));
+
+        filasServicios.forEach(mov => {
+            let lblComp = mov.esCompartido === "SÍ" ? `<span style="color:#0ea5e9; font-weight:bold;">SÍ</span>` : "No";
+            let lblDeu = mov.montoAdeudado > 0 ? `<span style="color:#ef4444;">$${mov.montoAdeudado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>` : "-";
+            totalServMio += mov.montoTotalAgrupado;
+            totalServCompartido += mov.montoAdeudado;
+            let prevMonthDate = new Date(aSel, mSel - 1, 1);
+            let montoPasado = null; let variacionHtml = "-";
+            let suscObj = estadoApp.suscripciones.find(s => s.id === mov.idGrupo);
+            if(suscObj) {
+                let dKeys = Object.keys(suscObj.montosPorMes).sort();
+                for (let key of dKeys) { let [kA, kM] = key.split('-').map(Number); if (new Date(kA, kM - 1, 1) <= prevMonthDate) montoPasado = suscObj.montosPorMes[key]; }
+            }
+            if(montoPasado !== null) {
+                let diff = mov.montoTotalAgrupado - montoPasado;
+                if(diff > 0) variacionHtml = `<span style="color:#ef4444; font-weight:bold;">▲ +${((diff/montoPasado)*100).toFixed(1)}%</span>`;
+                else if(diff < 0) variacionHtml = `<span style="color:#10b981; font-weight:bold;">▼ -${((Math.abs(diff)/montoPasado)*100).toFixed(1)}%</span>`;
+                else variacionHtml = `<span style="color:#94a3b8; font-weight:bold;">= Igual</span>`;
+            } else { variacionHtml = `<span style="color:#3b82f6; font-style:italic;">Nuevo</span>`; }
+
+            let debStr = mov.debito === "SI" ? "✅ Sí" : "❌ No";
+            tbServ.innerHTML += `<tr><td>${escapeHTML(mov.conceptoOriginal)}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="abrirModalEditarServicio('${mov.idGrupo}')">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
+        });
+
         document.getElementById('lblTotalCreditos').innerText = `Mío: $${totalCredMio.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}   —   Compartido: $${totalCredCompartido.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
         document.getElementById('lblTotalServicios').innerText = `Mío: $${totalServMio.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}   —   Compartido: $${totalServCompartido.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
     }
