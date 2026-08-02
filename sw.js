@@ -1,8 +1,23 @@
-const CACHE_NAME = 'finanzas-v5.1.0'; // Pasamos a la versión 3
+const CACHE_NAME = 'finanzas-v10.2.0'; // Ajuste: Diarias suma todo lo pendiente, Fijas (Tarjeta/Servicio) solo el mes filtrado
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './styles.css',
+  './modales.js',
+  './main.js',
+  './estado.js',
+  './firebase-config.js',
+  './utilidades.js',
+  './auth.js',
+  './movimientos.js',
+  './billetera.js',
+  './deudas.js',
+  './render.js',
+  './grafico.js',
+  './flujoMensual.js',
+  './cierreMensual.js',
+  './periodo.js'
 ];
 
 // Instala la nueva versión
