@@ -16,7 +16,7 @@ import { mostrarConfirmacion, mostrarPrompt } from './modales.js';
 import {
     registrarUsuario, loginUsuario, logoutUsuario,
     cargarDatosDesdeNube, guardarDatosEnNube,
-    guardarModoDesdeOnboarding, guardarCambiosDesdePerfil,
+    guardarModoDesdeOnboarding, guardarCambiosDesdePerfil, exportarDatosDiagnostico,
     cambiarPasswordPerfil, toggleMostrarPassword, eliminarCuenta,
     toggleMenuUsuario, abrirModalPerfil, cerrarModalPerfil,
     mostrarVistaRecuperar, volverALogin, enviarRecuperacionPassword,
@@ -46,7 +46,9 @@ import {
     abrirModalExportarExcel, cerrarModalExportarExcel,
     toggleExportFijasTodosMeses, confirmarDescargaExcel,
     abrirModalPagarResumen, sugerirMontoResumen,
-    cerrarModalPagarResumen, confirmarPagoResumen, toggleResumenTipo
+    cerrarModalPagarResumen, confirmarPagoResumen, toggleResumenTipo,
+    pagarServicioIndividual, pagarTodosLosServicios,
+    asignarTarjetaAGrupo, marcarCuotaComoPagada
 } from './deudas.js';
 
 import { toggleSerieGrafico, setMesesAMostrar } from './grafico.js';
@@ -101,6 +103,7 @@ window.loginUsuario = loginUsuario;
 window.registrarUsuario = registrarUsuario;
 window.logoutUsuario = logoutUsuario;
 window.guardarCambiosDesdePerfil = guardarCambiosDesdePerfil;
+window.exportarDatosDiagnostico = exportarDatosDiagnostico;
 window.cambiarPasswordPerfil = cambiarPasswordPerfil;
 window.toggleMostrarPassword = toggleMostrarPassword;
 window.eliminarCuenta = eliminarCuenta;
@@ -142,6 +145,10 @@ window.sugerirMontoResumen = sugerirMontoResumen;
 window.cerrarModalPagarResumen = cerrarModalPagarResumen;
 window.confirmarPagoResumen = confirmarPagoResumen;
 window.toggleResumenTipo = toggleResumenTipo;
+window.pagarServicioIndividual = pagarServicioIndividual;
+window.pagarTodosLosServicios = pagarTodosLosServicios;
+window.asignarTarjetaAGrupo = asignarTarjetaAGrupo;
+window.marcarCuotaComoPagada = marcarCuotaComoPagada;
 window.liquidarDeudaIndividual = liquidarDeudaIndividual;
 window.liquidarDeudaGlobal = liquidarDeudaGlobal;
 

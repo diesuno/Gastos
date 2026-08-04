@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v11.1.0'; // Nueva categoría "Liquidación de Deuda": resta del Disponible sin contar como gasto diario/fijo/variable
+const CACHE_NAME = 'finanzas-v11.3.0'; // Arreglar cuotas viejas: asignar tarjeta retroactiva y marcar como pagada manualmente
 const urlsToCache = [
   './',
   './index.html',

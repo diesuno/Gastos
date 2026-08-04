@@ -290,7 +290,11 @@ export function actualizarApp() {
             if (!mov.pagado) { totalCredMio += mov.montoTotalAgrupado; totalCredCompartido += mov.montoAdeudado; }
             let saldoRest = mov.deudaRestante || 0;
             let textoConIndicador = mov.pagado ? `✅ ${escapeHTML(mov.conceptoOriginal)}` : escapeHTML(mov.conceptoOriginal);
-            tbCredito.innerHTML += `<tr><td>${textoConIndicador}</td><td>${mov.cuotaActual}/${mov.cuotasTotales}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:#ef4444; font-weight:bold;">$${saldoRest.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${escapeHTML(mov.tarjeta || '-')}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X Todo</button></td></tr>`;
+            let celdaTarjeta = mov.tarjeta
+                ? escapeHTML(mov.tarjeta)
+                : `<button class="btn-secundario" style="padding:4px 8px; font-size:0.75em;" onclick="asignarTarjetaAGrupo('${mov.idGrupo}')">Asignar</button>`;
+            let btnMarcarPagada = mov.pagado ? '' : `<button class="btn-verde" style="padding:6px 10px; font-size:0.85em;" onclick="marcarCuotaComoPagada('${mov.id}')">✓ Pagada</button> `;
+            tbCredito.innerHTML += `<tr><td>${textoConIndicador}</td><td>${mov.cuotaActual}/${mov.cuotasTotales}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:#ef4444; font-weight:bold;">$${saldoRest.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${celdaTarjeta}</td><td>${lblComp}</td><td>${lblDeu}</td><td>${btnMarcarPagada}<button class="btn-borrar" onclick="borrarMovimientoReal('${mov.idGrupo}')">X Todo</button></td></tr>`;
         });
 
         let filasServicios = gruposUI.filter(mov => {
@@ -327,7 +331,8 @@ export function actualizarApp() {
 
             let debStr = mov.debito === "SI" ? "✅ Sí" : "❌ No";
             let textoServConIndicador = mov.pagado ? `✅ ${escapeHTML(mov.conceptoOriginal)}` : escapeHTML(mov.conceptoOriginal);
-            tbServ.innerHTML += `<tr><td>${textoServConIndicador}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td><button class="btn-editar" onclick="abrirModalEditarServicio('${mov.idGrupo}')">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
+            let btnPagarServ = mov.pagado ? '' : `<button class="btn-verde" style="padding:6px 10px; font-size:0.85em;" onclick="pagarServicioIndividual('${mov.idGrupo}')">Pagar</button> `;
+            tbServ.innerHTML += `<tr><td>${textoServConIndicador}</td><td>${debStr}</td><td>$${mov.montoTotalAgrupado.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>${variacionHtml}</td><td>${lblComp}</td><td>${lblDeu}</td><td>${btnPagarServ}<button class="btn-editar" onclick="abrirModalEditarServicio('${mov.idGrupo}')">Editar</button> <button class="btn-borrar" onclick="darDeBajaServicio('${mov.idGrupo}')" style="margin-left:5px;">Baja</button></td></tr>`;
         });
 
         document.getElementById('lblTotalCreditos').innerText = `Mío: $${totalCredMio.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}   —   Compartido: $${totalCredCompartido.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
