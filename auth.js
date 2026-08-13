@@ -71,7 +71,20 @@ export function loginUsuario() {
     if(!email || !pass) return mostrarAlerta("Completá el email y la contraseña.");
     auth.signInWithEmailAndPassword(email, pass).catch(e=>mostrarAlerta(traducirErrorAuth(e)));
 }
-export async function logoutUsuario() { if(await mostrarConfirmacion("¿Salir?")) auth.signOut(); }
+// Desconecta el oyente de Firestore, sea cual sea el motivo del cierre de
+// sesión (togó "Salir", el token expiró solo, se eliminó la cuenta, etc.)
+// — se llama desde main.js cada vez que onAuthStateChanged detecta que ya
+// no hay usuario logueado.
+export function desconectarOyente() {
+    if (desconectarOyenteDatos) { desconectarOyenteDatos(); desconectarOyenteDatos = null; }
+}
+
+export async function logoutUsuario() {
+    if(await mostrarConfirmacion("¿Salir?")) {
+        if (desconectarOyenteDatos) { desconectarOyenteDatos(); desconectarOyenteDatos = null; }
+        auth.signOut();
+    }
+}
 
 // Íconos de "ojo" en SVG (más confiables que un emoji, que puede no
 // distinguirse bien entre estados según el sistema).
@@ -158,68 +171,96 @@ export function enviarRecuperacionPassword() {
         .catch(e => mostrarAlerta(traducirErrorAuth(e)));
 }
 
+// Guarda la función para desconectar el "oyente" en vivo de Firestore (lo
+// que devuelve onSnapshot). Si onAuthStateChanged se dispara más de una vez
+// (pasa, por ejemplo, al renovar el token de sesión en segundo plano — no
+// hace falta que vos hagas nada para que ocurra), sin esto podían quedar
+// 2+ oyentes activos al mismo tiempo escuchando y guardando por su cuenta,
+// un terreno fértil para pisarse entre sí si entrás desde varios equipos.
+let desconectarOyenteDatos = null;
+
 // --- SINCRONIZACIÓN CON LA NUBE ---
 export function cargarDatosDesdeNube(uid) {
-    db.collection("usuarios").doc(uid).onSnapshot(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            estadoApp.todosLosMovimientos = data.todosLosMovimientos || [];
-            estadoApp.suscripciones = data.suscripciones || [];
-            estadoApp.patrimonio = data.patrimonio || { pesos: 0, dolares: 0 };
-            estadoApp.inversiones = data.inversiones || [];
-            estadoApp.listaAmigos = data.listaAmigos || [];
-            estadoApp.listaTarjetas = data.listaTarjetas || [];
+    // Si ya había un oyente activo de una llamada anterior, lo cerramos
+    // primero — nunca puede haber más de uno al mismo tiempo.
+    if (desconectarOyenteDatos) { desconectarOyenteDatos(); desconectarOyenteDatos = null; }
 
-            if (data.perfilUsuario) {
-                estadoApp.perfilUsuario = data.perfilUsuario;
-            }
-            // Si venía de una versión anterior que no tenía 'modo' guardado
-            if (typeof estadoApp.perfilUsuario.modo === "undefined") {
-                estadoApp.perfilUsuario.modo = "";
+    desconectarOyenteDatos = db.collection("usuarios").doc(uid).onSnapshot(doc => {
+        try {
+            if (doc.exists) {
+                const data = doc.data();
+                estadoApp.todosLosMovimientos = data.todosLosMovimientos || [];
+                estadoApp.suscripciones = data.suscripciones || [];
+                estadoApp.patrimonio = data.patrimonio || { pesos: 0, dolares: 0 };
+                estadoApp.inversiones = data.inversiones || [];
+                estadoApp.listaAmigos = data.listaAmigos || [];
+                estadoApp.listaTarjetas = data.listaTarjetas || [];
+
+                if (data.perfilUsuario) {
+                    estadoApp.perfilUsuario = data.perfilUsuario;
+                }
+                // Si venía de una versión anterior que no tenía 'modo' guardado
+                if (typeof estadoApp.perfilUsuario.modo === "undefined") {
+                    estadoApp.perfilUsuario.modo = "";
+                }
+
+                // --- MIGRACIÓN: S&P 500 pasó de ser "posiciones sueltas" a un pool
+                // acumulado. Si hay entradas viejas de S&P 500 en "inversiones",
+                // las sumamos al pool nuevo y las sacamos de la lista de posiciones
+                // (que ahora es solo para Plazo Fijo / Mercado Pago).
+                estadoApp.sp500 = data.sp500 || { nominales: 0 };
+                let entradasSpViejas = estadoApp.inversiones.filter(inv => inv.instrumento === "S&P 500");
+                if (entradasSpViejas.length > 0) {
+                    entradasSpViejas.forEach(inv => { estadoApp.sp500.nominales += (inv.nominales || 0); });
+                    estadoApp.inversiones = estadoApp.inversiones.filter(inv => inv.instrumento !== "S&P 500");
+                }
+                estadoApp.historialInversiones = data.historialInversiones || [];
+                estadoApp.historialMensual = data.historialMensual || {};
+                // La cotización del CEDEAR de IVV es editable a mano (ver
+                // billetera.js) — si ya la habías ajustado antes, la
+                // recuperamos; si no, se queda con el valor de referencia
+                // definido en estado.js hasta que inicializarMercado() la
+                // actualice con la cotización real de BYMA.
+                if (data.cotizacionCedear) estadoApp.mercado.spy_ars = data.cotizacionCedear;
             }
 
-            // --- MIGRACIÓN: S&P 500 pasó de ser "posiciones sueltas" a un pool
-            // acumulado. Si hay entradas viejas de S&P 500 en "inversiones",
-            // las sumamos al pool nuevo y las sacamos de la lista de posiciones
-            // (que ahora es solo para Plazo Fijo / Mercado Pago).
-            estadoApp.sp500 = data.sp500 || { nominales: 0 };
-            let entradasSpViejas = estadoApp.inversiones.filter(inv => inv.instrumento === "S&P 500");
-            if (entradasSpViejas.length > 0) {
-                entradasSpViejas.forEach(inv => { estadoApp.sp500.nominales += (inv.nominales || 0); });
-                estadoApp.inversiones = estadoApp.inversiones.filter(inv => inv.instrumento !== "S&P 500");
+            document.getElementById('userNameDisplay').innerText = estadoApp.perfilUsuario.nombre;
+            document.getElementById('profileNameInput').value = estadoApp.perfilUsuario.nombre;
+
+            let diaCobro = estadoApp.perfilUsuario.diaCobro || 0;
+            document.getElementById('chkCicloPersonalizado').checked = diaCobro > 0;
+            document.getElementById('inputDiaCobro').value = diaCobro > 0 ? diaCobro : '';
+            toggleCampoDiaCobro();
+
+            if (estadoApp.perfilUsuario.modo === "") {
+                document.getElementById('onboarding-modal').style.display = 'flex';
+            } else {
+                document.getElementById('onboarding-modal').style.display = 'none';
+                document.getElementById('profileModoInput').value = estadoApp.perfilUsuario.modo;
             }
-            estadoApp.historialInversiones = data.historialInversiones || [];
-            estadoApp.historialMensual = data.historialMensual || {};
-            // La cotización del CEDEAR de IVV es editable a mano (ver
-            // billetera.js) — si ya la habías ajustado antes, la
-            // recuperamos; si no, se queda con el valor de referencia
-            // definido en estado.js hasta que inicializarMercado() la
-            // actualice con la cotización real de BYMA.
-            if (data.cotizacionCedear) estadoApp.mercado.spy_ars = data.cotizacionCedear;
+
+            actualizarSelectAmigosDisplay();
+            aplicarFiltrosDeModo();
+            // Reconstruimos el historial de Pesos (incluye el mes en curso) — si
+            // cambió el saldo, lo persistimos ya mismo en la nube.
+            if (reconstruirHistorialPesos()) guardarDatosEnNube();
+            actualizarApp();
+        } catch (e) {
+            // Red de seguridad: si algo de lo de arriba falla, esto evita que
+            // la app quede trabada en "Cargando tu información..." para
+            // siempre — mejor mostrar un aviso claro que colgarse en silencio.
+            console.error("Error procesando los datos cargados desde la nube:", e);
+            mostrarAlerta("Hubo un problema cargando tus datos. Si esto se repite, contame este mensaje: " + e.message);
+        } finally {
+            ocultarLoaderInicial();
         }
-
-        document.getElementById('userNameDisplay').innerText = estadoApp.perfilUsuario.nombre;
-        document.getElementById('profileNameInput').value = estadoApp.perfilUsuario.nombre;
-
-        let diaCobro = estadoApp.perfilUsuario.diaCobro || 0;
-        document.getElementById('chkCicloPersonalizado').checked = diaCobro > 0;
-        document.getElementById('inputDiaCobro').value = diaCobro > 0 ? diaCobro : '';
-        toggleCampoDiaCobro();
-
-        if (estadoApp.perfilUsuario.modo === "") {
-            document.getElementById('onboarding-modal').style.display = 'flex';
-        } else {
-            document.getElementById('onboarding-modal').style.display = 'none';
-            document.getElementById('profileModoInput').value = estadoApp.perfilUsuario.modo;
-        }
-
-        actualizarSelectAmigosDisplay();
-        aplicarFiltrosDeModo();
-        // Reconstruimos el historial de Pesos (incluye el mes en curso) — si
-        // cambió el saldo, lo persistimos ya mismo en la nube.
-        if (reconstruirHistorialPesos()) guardarDatosEnNube();
-        actualizarApp();
+    }, (error) => {
+        // Esto atiende errores del propio Firestore (por ejemplo, permisos
+        // denegados) — sin esto, el loader también se quedaría trabado para
+        // siempre ante un error de conexión.
+        console.error("Error de Firestore al escuchar los datos:", error);
         ocultarLoaderInicial();
+        mostrarAlerta("No se pudieron cargar tus datos: " + error.message);
     });
 }
 
@@ -350,7 +391,24 @@ export async function eliminarCuenta() {
     let user = auth.currentUser;
     if (!user) return;
 
+    // Pedimos la contraseña y reautenticamos ANTES de borrar cualquier cosa.
+    // Así, si esto falla (contraseña incorrecta, o Firebase lo rechaza por
+    // cualquier motivo), no se borra absolutamente nada. Esto tapa un
+    // agujero real que había antes: si el paso de borrar el USUARIO fallaba
+    // después de ya haber borrado los DATOS, quedabas con una cuenta que
+    // todavía podía iniciar sesión pero sin nada adentro.
+    let password = await mostrarPrompt("Para confirmar tu identidad, volvé a escribir tu contraseña:");
+    if (!password) return;
+
     try {
+        let credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+        await user.reauthenticateWithCredential(credential);
+    } catch (e) {
+        return mostrarAlerta("No se pudo confirmar tu contraseña, así que no se borró nada: " + traducirErrorAuth(e));
+    }
+
+    try {
+        if (desconectarOyenteDatos) { desconectarOyenteDatos(); desconectarOyenteDatos = null; }
         await db.collection("usuarios").doc(user.uid).delete();
         await user.delete();
         mostrarAlerta("Tu cuenta fue eliminada. ¡Gracias por haber usado la app!");

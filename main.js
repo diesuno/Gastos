@@ -15,7 +15,7 @@ import { mostrarConfirmacion, mostrarPrompt } from './modales.js';
 
 import {
     registrarUsuario, loginUsuario, logoutUsuario,
-    cargarDatosDesdeNube, guardarDatosEnNube,
+    cargarDatosDesdeNube, guardarDatosEnNube, desconectarOyente,
     guardarModoDesdeOnboarding, guardarCambiosDesdePerfil, exportarDatosDiagnostico,
     cambiarPasswordPerfil, toggleMostrarPassword, eliminarCuenta,
     toggleMenuUsuario, abrirModalPerfil, cerrarModalPerfil,
@@ -68,6 +68,11 @@ auth.onAuthStateChanged(user => {
         inicializarMercado();
         cargarDatosDesdeNube(user.uid);
     } else {
+        // Nos aseguramos de que no quede ningún oyente de Firestore
+        // corriendo de una sesión anterior, sea cual sea el motivo por el
+        // que ya no hay usuario logueado (cerraste sesión, el token expiró
+        // solo, se eliminó la cuenta, etc.).
+        desconectarOyente();
         ocultarLoaderInicial();
         document.getElementById('auth-section').style.display = 'block';
         document.getElementById('main-app').style.display = 'none';
