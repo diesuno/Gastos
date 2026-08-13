@@ -6,7 +6,7 @@ import { generarId, agruparMovimientosPorGrupo } from './utilidades.js';
 import { mostrarConfirmacion, mostrarPrompt, mostrarAlerta } from './modales.js';
 import { actualizarApp } from './render.js';
 import { guardarDatosEnNube } from './auth.js';
-import { obtenerTodasLasDeudasPendientes, calcularMiParteSuscripcion } from './flujoMensual.js';
+import { obtenerTodasLasDeudasPendientes, calcularMontoTotalSuscripcion } from './flujoMensual.js';
 import { obtenerKeyPeriodoDeFecha } from './periodo.js';
 
 // --- PAGAR RESUMEN (TARJETA O SERVICIO) ---
@@ -51,7 +51,7 @@ export function sugerirMontoResumen() {
     } else {
         let idServicio = document.getElementById('resumenServicio').value;
         let susc = estadoApp.suscripciones.find(s => s.id === idServicio);
-        if (susc) sugerido = calcularMiParteSuscripcion(susc, estadoApp.keyMesActualGlobal);
+        if (susc) sugerido = calcularMontoTotalSuscripcion(susc, estadoApp.keyMesActualGlobal);
     }
     document.getElementById('resumenMonto').value = sugerido.toFixed(2);
 }
@@ -114,7 +114,7 @@ export async function pagarServicioIndividual(idGrupo) {
     if (susc.pagosResumen && susc.pagosResumen.includes(estadoApp.keyMesActualGlobal)) {
         return mostrarAlerta(`Ya pagaste "${susc.concepto}" este mes.`);
     }
-    let monto = calcularMiParteSuscripcion(susc, estadoApp.keyMesActualGlobal);
+    let monto = calcularMontoTotalSuscripcion(susc, estadoApp.keyMesActualGlobal);
     if (!monto || monto <= 0) return mostrarAlerta("No hay ningún monto pendiente para este servicio este mes.");
 
     if (!(await mostrarConfirmacion(`¿Pagar "${susc.concepto}" por $${monto.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}?`))) return;
@@ -135,7 +135,7 @@ export async function pagarServicioIndividual(idGrupo) {
 // movimiento — a los que ya estén pagados no los vuelve a tocar.
 export async function pagarTodosLosServicios() {
     let pendientes = estadoApp.suscripciones
-        .map(susc => ({ susc, monto: calcularMiParteSuscripcion(susc, estadoApp.keyMesActualGlobal) }))
+        .map(susc => ({ susc, monto: calcularMontoTotalSuscripcion(susc, estadoApp.keyMesActualGlobal) }))
         .filter(({ susc, monto }) => monto > 0 && !(susc.pagosResumen && susc.pagosResumen.includes(estadoApp.keyMesActualGlobal)));
 
     if (pendientes.length === 0) return mostrarAlerta("No hay ningún servicio pendiente de pago este mes.");

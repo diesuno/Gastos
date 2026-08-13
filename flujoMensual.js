@@ -71,6 +71,20 @@ export function obtenerMovimientosDeMes(aSel, mSel) {
     return filtrados.concat(movsVirtuales);
 }
 
+// Calcula el monto TOTAL (completo, sin dividir) de una suscripción en un
+// período puntual — se usa específicamente para la ACCIÓN de pagar (Pagar
+// Resumen / Pagar Servicio), porque ahí sale la plata completa de tu
+// bolsillo, sea compartido o no: la parte del otro queda como una deuda a tu
+// favor aparte, no se descuenta de lo que vos desembolsás. Es DISTINTO de
+// calcularMiParteSuscripcion(), que da tu parte económica (la mitad si está
+// compartido 50/50) y se usa para Obligaciones — ese cálculo sigue como
+// estaba, esto es solo para cuando efectivamente pagás.
+export function calcularMontoTotalSuscripcion(susc, keyPeriodo) {
+    let montoActivo = 0; let diffKeys = Object.keys(susc.montosPorMes).sort();
+    for (let key of diffKeys) { if (key <= keyPeriodo) montoActivo = susc.montosPorMes[key]; }
+    return montoActivo;
+}
+
 // Calcula "mi parte" (lo que se registra como Gasto real, en la misma
 // unidad que se muestra en "Valor a Pagar") de una suscripción en un
 // período puntual, según cómo esté dividida. Se centraliza acá para que
