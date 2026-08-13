@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v11.3.0'; // Arreglar cuotas viejas: asignar tarjeta retroactiva y marcar como pagada manualmente
+const CACHE_NAME = 'finanzas-v11.4.0'; // FIX IMPORTANTE: el Service Worker ya no intercepta Firestore/Firebase/cotizaciones externas — probable causa del "se queda pensando"
 const urlsToCache = [
   './',
   './index.html',
@@ -46,8 +46,20 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Estrategia "Network First": Siempre intenta traer lo más nuevo de internet primero
+// Estrategia "Network First": Siempre intenta traer lo más nuevo de internet primero.
+// IMPORTANTE: solo aplicamos esto a pedidos de NUESTRO propio sitio (los
+// archivos de la app). Cualquier otro pedido — la conexión en vivo con
+// Firestore, Firebase Auth, o las cotizaciones externas (Yahoo, BYMA,
+// dolarapi) — lo dejamos pasar SIN TOCAR, tal cual lo haría el navegador sin
+// Service Worker. Interceptar esas conexiones (sobre todo la de Firestore,
+// que es de larga duración) puede trabarlas sin generar ningún error visible
+// — esto es lo que probablemente causaba el "se queda pensando" al cargar.
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) {
+    return; // No respondemos nosotros: que lo maneje el navegador directo.
+  }
+
   event.respondWith(
     fetch(event.request).catch(() => {
       return caches.match(event.request);
