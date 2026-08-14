@@ -170,6 +170,12 @@ export function agregarMovimiento() {
                 // pagar el resumen de la tarjeta (ver deudas.js) — mientras
                 // esté en false, sigue sumando en Obligaciones.
                 pagado: false,
+                // "montoTotalCuota" es el valor COMPLETO de esta cuota, sin
+                // dividir — no se muestra en ninguna columna, es un dato
+                // interno para que "Pagar Resumen" pueda sugerir el monto
+                // real a pagar (lo completo, aunque sea compartida — la
+                // parte del otro se recupera aparte, en Cuentas por Cobrar).
+                montoTotalCuota: montoPorCuota,
                 deudaRestante: montoTotal - (montoPorCuota * (i + 1)), esVirtual: false
             };
 

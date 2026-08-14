@@ -47,7 +47,7 @@ export function sugerirMontoResumen() {
         let gruposUI = agruparMovimientosPorGrupo(estadoApp.movimientosMesGlobal);
         sugerido = Object.values(gruposUI)
             .filter(mov => mov.metodo === "CREDITO" && mov.tarjeta === tarjeta && !mov.pagado)
-            .reduce((acc, mov) => acc + mov.montoTotalAgrupado, 0);
+            .reduce((acc, mov) => acc + (mov.montoTotalCuota ?? mov.montoTotalAgrupado), 0);
     } else {
         let idServicio = document.getElementById('resumenServicio').value;
         let susc = estadoApp.suscripciones.find(s => s.id === idServicio);
