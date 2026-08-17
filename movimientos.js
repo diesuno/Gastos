@@ -9,7 +9,7 @@ import { guardarDatosEnNube } from './auth.js';
 
 export function evaluarCamposDinamicosGasto() {
     let t = document.getElementById('inputTipo').value;
-    let esGasto = (t !== "Gasto Variable");
+    let esGasto = (t !== "ingreso");
     let esAvanzado = (estadoApp.perfilUsuario.modo === "AVANZADO");
 
     if (!esGasto || !esAvanzado) {
