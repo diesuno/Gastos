@@ -6,7 +6,7 @@ import { generarId, agruparMovimientosPorGrupo } from './utilidades.js';
 import { mostrarConfirmacion, mostrarPrompt, mostrarAlerta } from './modales.js';
 import { actualizarApp } from './render.js';
 import { guardarDatosEnNube } from './auth.js';
-import { obtenerTodasLasDeudasPendientes, calcularMontoTotalSuscripcion } from './flujoMensual.js';
+import { obtenerTodasLasDeudasPendientes, calcularMiParteSuscripcion, calcularMontoTotalSuscripcion } from './flujoMensual.js';
 import { obtenerKeyPeriodoDeFecha } from './periodo.js';
 
 // --- PAGAR RESUMEN (TARJETA O SERVICIO) ---
