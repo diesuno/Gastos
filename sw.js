@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v11.4.0'; // FIX IMPORTANTE: el Service Worker ya no intercepta Firestore/Firebase/cotizaciones externas — probable causa del "se queda pensando"
+const CACHE_NAME = 'finanzas-v13.0.0'; // FIX IMPORTANTE: el Service Worker ya no intercepta Firestore/Firebase/cotizaciones externas — probable causa del "se queda pensando"
 const urlsToCache = [
   './',
   './index.html',
@@ -56,13 +56,16 @@ self.addEventListener('activate', event => {
 // — esto es lo que probablemente causaba el "se queda pensando" al cargar.
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+
+  // Solo cachear pedidos del propio origen.
+  // Firebase, Firestore y cualquier CDN externo pasan directo
+  // para no bloquear datos en tiempo real.
   if (url.origin !== self.location.origin) {
-    return; // No respondemos nosotros: que lo maneje el navegador directo.
+    event.respondWith(fetch(event.request));
+    return;
   }
 
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
+    caches.match(event.request).then(cached => cached || fetch(event.request))
   );
 });
