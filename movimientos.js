@@ -12,31 +12,45 @@ export function evaluarCamposDinamicosGasto() {
     let esGasto = (t !== "Ingreso");
     let esAvanzado = (estadoApp.perfilUsuario.modo === "AVANZADO");
 
-    if (!esGasto || !esAvanzado) {
-        document.getElementById('boxMetodoPago').style.display = "none";
-        document.getElementById('boxPlanCuotas').style.display = "none";
-        document.getElementById('boxDebitoAuto').style.display = "none";
-        document.getElementById('boxGastoCompartido').style.display = "none";
-        document.getElementById('boxSeleccionAmigo').style.display = "none";
-
-        document.getElementById('inputMetodoPago').value = "EN_EL_ACTO";
-        document.getElementById('inputCuotas').value = "1";
-        document.getElementById('inputDebitoAuto').value = "NO";
-        document.getElementById('inputDividir').value = "NO";
-        return;
+// Categoría: visible para cualquier gasto (fijo o variable), en cualquier modo
+// (Básico o Avanzado) — no depende del resto de los campos avanzados.
+document.getElementById('boxCategoria').style.display = esGasto ? "block" : "none";
+    if (!esGasto) {
+        document.getElementById('boxCategoriaPersonalizada').style.display = "none";
     }
 
-    document.getElementById('boxMetodoPago').style.display = "block";
+if (!esGasto || !esAvanzado) {
+    document.getElementById('boxMetodoPago').style.display = "none";
+    document.getElementById('boxPlanCuotas').style.display = "none";
+    document.getElementById('boxDebitoAuto').style.display = "none";
+    document.getElementById('boxGastoCompartido').style.display = "none";
+    document.getElementById('boxSeleccionAmigo').style.display = "none";
+
+    document.getElementById('inputMetodoPago').value = "EN_EL_ACTO";
+    document.getElementById('inputCuotas').value = "1";
+    document.getElementById('inputDebitoAuto').value = "NO";
+    document.getElementById('inputDividir').value = "NO";
+    return;
+}
+
+document.getElementById('boxMetodoPago').style.display = "block";
     document.getElementById('boxGastoCompartido').style.display = "block";
 
-    let m = document.getElementById('inputMetodoPago').value;
+let m = document.getElementById('inputMetodoPago').value;
     document.getElementById('boxPlanCuotas').style.display = (m === "CREDITO") ? "block" : "none";
     document.getElementById('boxDebitoAuto').style.display = (m === "SERVICIO") ? "block" : "none";
     document.getElementById('boxTarjeta').style.display = (m === "CREDITO") ? "block" : "none";
     if (m === "CREDITO") actualizarSelectTarjetasDisplay();
 
-    if(m !== "CREDITO") document.getElementById('inputCuotas').value = "1";
+if(m !== "CREDITO") document.getElementById('inputCuotas').value = "1";
     toggleSelectAmigo();
+}
+
+// Muestra/oculta el campo de texto libre cuando se elige "Personalizada..."
+// en el selector de Categoría.
+export function toggleCategoriaPersonalizada() {
+    let esPersonalizada = document.getElementById('inputCategoria').value === '__PERSONALIZADA__';
+    document.getElementById('boxCategoriaPersonalizada').style.display = esPersonalizada ? 'block' : 'none';
 }
 
 // --- TARJETAS REUTILIZABLES (mismo patrón que la lista de amigos) ---
@@ -48,7 +62,7 @@ export function actualizarSelectTarjetasDisplay() {
     let optNueva = document.createElement('option'); optNueva.value = '__NUEVA__'; optNueva.text = '+ Agregar una nueva';
     s.appendChild(optNueva);
     // Si la tarjeta que tenía seleccionada sigue existiendo, la mantenemos.
-    if (estadoApp.listaTarjetas.includes(valorPrevio)) s.value = valorPrevio;
+if (estadoApp.listaTarjetas.includes(valorPrevio)) s.value = valorPrevio;
 }
 
 export function toggleNuevaTarjeta() {
@@ -100,18 +114,18 @@ export function guardarEdicionMovimiento() {
     let mov = estadoApp.todosLosMovimientos.find(m => m.id === idMovimientoEnEdicion);
     if (!mov) return;
 
-    let texto = document.getElementById('editMovTexto').value.trim();
+let texto = document.getElementById('editMovTexto').value.trim();
     let fecha = document.getElementById('editMovFecha').value;
     let monto = parseFloat(document.getElementById('editMovMonto').value);
     if (!texto) return mostrarAlerta("Ingresá un texto");
     if (!fecha) return mostrarAlerta("Elegí una fecha");
     if (!monto || monto <= 0) return mostrarAlerta("Ingresá un monto válido");
 
-    mov.concepto = texto;
+mov.concepto = texto;
     mov.fecha = fecha;
     mov.monto = monto;
 
-    cerrarModalEditarMovimiento();
+cerrarModalEditarMovimiento();
     actualizarApp(); guardarDatosEnNube();
 }
 
@@ -122,16 +136,29 @@ export function agregarMovimiento() {
     let fechaBaseStr = document.getElementById('inputFecha').value;
     if(!montoTotal || !concepto || !fechaBaseStr) return mostrarAlerta("Completá los campos obligatorios");
 
-    let esAvanzado = (estadoApp.perfilUsuario.modo === "AVANZADO");
+let esAvanzado = (estadoApp.perfilUsuario.modo === "AVANZADO");
     let cuotas = esAvanzado ? (parseInt(document.getElementById('inputCuotas').value) || 1) : 1;
     let metodoP = esAvanzado ? document.getElementById('inputMetodoPago').value : "EN_EL_ACTO";
     let debAuto = esAvanzado ? document.getElementById('inputDebitoAuto').value : "NO";
     let dividir = esAvanzado ? document.getElementById('inputDividir').value : "NO";
     let amigo = esAvanzado ? document.getElementById('inputAmigoAsignado').value : "";
 
-    // Tarjeta usada (solo aplica si el método es Crédito). Si eligió "+
-    // Agregar una nueva", la creamos y la sumamos a la lista reutilizable.
-    let tarjeta = "";
+// Categoría: solo aplica a gastos (no a ingresos). Si eligió "Personalizada",
+// usamos el texto libre que cargó; si no, el valor del selector estándar.
+let categoria = "";
+    if (tipo !== "Ingreso") {
+        let selCategoria = document.getElementById('inputCategoria').value;
+        if (selCategoria === '__PERSONALIZADA__') {
+            categoria = document.getElementById('inputCategoriaPersonalizada').value.trim();
+            if (!categoria) return mostrarAlerta("Escribí el nombre de la categoría personalizada");
+        } else {
+            categoria = selCategoria;
+        }
+    }
+
+// Tarjeta usada (solo aplica si el método es Crédito). Si eligió "+
+// Agregar una nueva", la creamos y la sumamos a la lista reutilizable.
+let tarjeta = "";
     if (esAvanzado && metodoP === "CREDITO") {
         let seleccion = document.getElementById('inputTarjetaSeleccionada').value;
         if (seleccion === "__NUEVA__") {
@@ -144,100 +171,73 @@ export function agregarMovimiento() {
         }
     }
 
-    if(dividir !== "NO" && !amigo) return mostrarAlerta("Elegí una persona para dividir");
+if(dividir !== "NO" && !amigo) return mostrarAlerta("Elegí una persona para dividir");
 
-    let idGrupoPrincipal = generarId();
+let idGrupoPrincipal = generarId();
 
-    if (metodoP === "SERVICIO" && tipo !== "Ingreso") {
-        let fBaseObj = new Date(fechaBaseStr + 'T00:00:00');
-        let keyMes = `${fBaseObj.getFullYear()}-${(fBaseObj.getMonth()+1).toString().padStart(2,'0')}`;
-        estadoApp.suscripciones.push({
-            id: idGrupoPrincipal, concepto: concepto, tipo: tipo, fechaAlta: fechaBaseStr, mesBaja: null,
-            metodo: "SERVICIO", debito: debAuto, dividir: dividir, amigo: amigo,
-            montosPorMes: { [keyMes]: montoTotal }, pagosAmigo: []
-        });
+if (metodoP === "SERVICIO" && tipo !== "Ingreso") {
+    let fBaseObj = new Date(fechaBaseStr + 'T00:00:00');
+    let keyMes = `${fBaseObj.getFullYear()}-${(fBaseObj.getMonth()+1).toString().padStart(2,'0')}`;
+    estadoApp.suscripciones.push({
+        id: idGrupoPrincipal, concepto: concepto, tipo: tipo, fechaAlta: fechaBaseStr, mesBaja: null,
+        metodo: "SERVICIO", debito: debAuto, dividir: dividir, amigo: amigo, categoria: categoria,
+        montosPorMes: { [keyMes]: montoTotal }, pagosAmigo: []
+    });
+} else {
+    let montoPorCuota = montoTotal / cuotas;
+    for (let i = 0; i < cuotas; i++) {
+        let f = new Date(fechaBaseStr + 'T00:00:00'); f.setMonth(f.getMonth() + i);
+        let fechaF = `${f.getFullYear()}-${(f.getMonth()+1).toString().padStart(2,'0')}-${f.getDate().toString().padStart(2,'0')}`;
+        let conceptoF = (cuotas > 1) ? `${concepto} (${i+1}/${cuotas})` : concepto;
+
+    let objBase = {
+        id: generarId(), idGrupo: idGrupoPrincipal, monto: montoPorCuota, montoTotalCuota: montoPorCuota, tipo: tipo, concepto: conceptoF,
+        fecha: fechaF, metodo: metodoP, cuotaActual: i+1, cuotasTotales: cuotas, tarjeta: tarjeta, categoria: categoria,
+        pagado: false,
+        montoTotalCuota: montoTotal, deudaRestante: montoTotal - (montoPorCuota * (i + 1)), esVirtual: false
+    };
+
+    if(tipo === "Ingreso") {
+        estadoApp.todosLosMovimientos.push(objBase);
     } else {
-        let montoPorCuota = montoTotal / cuotas;
-        for (let i = 0; i < cuotas; i++) {
-            let f = new Date(fechaBaseStr + 'T00:00:00'); f.setMonth(f.getMonth() + i);
-            let fechaF = `${f.getFullYear()}-${(f.getMonth()+1).toString().padStart(2,'0')}-${f.getDate().toString().padStart(2,'0')}`;
-            let conceptoF = (cuotas > 1) ? `${concepto} (${i+1}/${cuotas})` : concepto;
+        let registrarDeuda = false; let mDeuda = 0; let tDeuda = "";
+        let esEnElActo = (metodoP === "EN_EL_ACTO");
 
-            let objBase = {
-                id: generarId(), idGrupo: idGrupoPrincipal, monto: montoPorCuota, tipo: tipo, concepto: conceptoF,
-                fecha: fechaF, metodo: metodoP, cuotaActual: i+1, cuotasTotales: cuotas, tarjeta: tarjeta,
-                // "pagado" marca si esta cuota puntual ya quedó cubierta al
-                // pagar el resumen de la tarjeta (ver deudas.js) — mientras
-                // esté en false, sigue sumando en Obligaciones.
-                pagado: false,
-                // "montoTotalCuota" es el valor COMPLETO de esta cuota, sin
-                // dividir — no se muestra en ninguna columna, es un dato
-                // interno para que "Pagar Resumen" pueda sugerir el monto
-                // real a pagar (lo completo, aunque sea compartida — la
-                // parte del otro se recupera aparte, en Cuentas por Cobrar).
-                montoTotalCuota: montoPorCuota,
-                deudaRestante: montoTotal - (montoPorCuota * (i + 1)), esVirtual: false
-            };
-
-            if(tipo === "Ingreso") {
-                estadoApp.todosLosMovimientos.push(objBase);
-            } else {
-                let registrarDeuda = false; let mDeuda = 0; let tDeuda = "";
-                let esEnElActo = (metodoP === "EN_EL_ACTO");
-
-                if (dividir === "PAGUE_50_INTEGRO") {
-                    // Pagué 50%: mi parte real (la mitad) siempre cuenta como
-                    // gasto mío, tenga el método que tenga.
-                    objBase.monto = montoPorCuota/2; estadoApp.todosLosMovimientos.push(objBase);
-                    if (esEnElActo) {
-                        // En el Acto: la otra mitad también salió de mi
-                        // bolsillo hoy (me la van a devolver después), así
-                        // que se refleja en Pagado en el Acto.
-                        let vAdelanto = {...objBase, id: generarId(), monto: montoPorCuota/2, tipo: "Gasto Variable", concepto: `Adelanto a ${amigo}: ${conceptoF}`};
-                        estadoApp.todosLosMovimientos.push(vAdelanto);
-                    }
-                    // Con Tarjeta/Servicio la otra mitad NO se cuenta como
-                    // gasto mío — no es mía, queda solo en Cuentas por
-                    // Cobrar hasta que me la devuelvan.
-                    registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "A_FAVOR";
-                } else if (dividir === "PAGO_OTRO_50") {
-                    // Debo 50%: mi parte real es la mitad, y la debo — cuenta
-                    // como obligación mía ya (aunque todavía no haya salido
-                    // plata de mi bolsillo), salvo que sea En el Acto: ahí la
-                    // plata directamente no salió de mí hoy.
-                    if (!esEnElActo) { objBase.monto = montoPorCuota/2; estadoApp.todosLosMovimientos.push(objBase); }
-                    registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "EN_CONTRA";
-                } else if (dividir === "PAGUE_100_DEUDA") {
-                    if (esEnElActo) {
-                        // En el Acto: pagué el 100% en efectivo hoy, aunque
-                        // no sea mío — se refleja en Pagado en el Acto.
-                        objBase.monto = montoPorCuota; objBase.tipo = "Gasto Variable"; objBase.concepto = `Adelanto a ${amigo}: ${conceptoF}`;
-                        estadoApp.todosLosMovimientos.push(objBase);
-                    }
-                    // Con Tarjeta/Servicio: 0% es mío, no se registra ningún
-                    // gasto — solo la Cuenta Cobrar (me deben el 100%).
-                    registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "A_FAVOR";
-                } else if (dividir === "PAGO_OTRO_100_DEUDA") {
-                    // Debo 100%: es enteramente mío aunque lo haya pagado el
-                    // otro — cuenta como obligación mía completa (salvo En
-                    // el Acto, donde la plata no salió de mí hoy).
-                    if (!esEnElActo) { estadoApp.todosLosMovimientos.push(objBase); }
-                    registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "EN_CONTRA";
-                } else {
-                    estadoApp.todosLosMovimientos.push(objBase);
-                }
-
-                if(registrarDeuda) {
-                    estadoApp.todosLosMovimientos.push({
-                        id: generarId(), idGrupo: idGrupoPrincipal, monto: mDeuda, tipo: "Cuenta Cobrar",
-                        concepto: tDeuda === "A_FAVOR" ? `Te debe por: ${conceptoF}` : `Le debés por: ${conceptoF}`,
-                        fecha: fechaF, deudor: amigo, sentido: tDeuda, estado: "Pendiente", metodo: metodoP, esVirtual: false
-                    });
-                }
+        if (dividir === "PAGUE_50_INTEGRO") {
+            objBase.monto = montoPorCuota/2; estadoApp.todosLosMovimientos.push(objBase);
+            if (esEnElActo) {
+                let vAdelanto = {...objBase, id: generarId(), monto: montoPorCuota/2, tipo: "Gasto Variable", concepto: `Adelanto a ${amigo}: ${conceptoF}`};
+                estadoApp.todosLosMovimientos.push(vAdelanto);
             }
+            registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "A_FAVOR";
+        } else if (dividir === "PAGO_OTRO_50") {
+            if (!esEnElActo) { objBase.monto = montoPorCuota/2; estadoApp.todosLosMovimientos.push(objBase); }
+            registrarDeuda = true; mDeuda = montoPorCuota/2; tDeuda = "EN_CONTRA";
+        } else if (dividir === "PAGUE_100_DEUDA") {
+            if (esEnElActo) {
+                objBase.monto = montoPorCuota; objBase.tipo = "Gasto Variable"; objBase.concepto = `Adelanto a ${amigo}: ${conceptoF}`;
+                estadoApp.todosLosMovimientos.push(objBase);
+            }
+            registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "A_FAVOR";
+        } else if (dividir === "PAGO_OTRO_100_DEUDA") {
+            if (!esEnElActo) { estadoApp.todosLosMovimientos.push(objBase); }
+            registrarDeuda = true; mDeuda = montoPorCuota; tDeuda = "EN_CONTRA";
+        } else {
+            estadoApp.todosLosMovimientos.push(objBase);
+        }
+
+        if(registrarDeuda) {
+            estadoApp.todosLosMovimientos.push({
+                id: generarId(), idGrupo: idGrupoPrincipal, monto: mDeuda, tipo: "Cuenta Cobrar",
+                concepto: tDeuda === "A_FAVOR" ? `Te debe por: ${conceptoF}` : `Le debés por: ${conceptoF}`,
+                fecha: fechaF, deudor: amigo, sentido: tDeuda, estado: "Pendiente", metodo: metodoP, esVirtual: false
+            });
         }
     }
+    }
+}
     document.getElementById('inputMonto').value = ""; document.getElementById('inputConcepto').value = "";
     document.getElementById('inputNuevaTarjeta').value = "";
+    document.getElementById('inputCategoriaPersonalizada').value = "";
     actualizarApp(); guardarDatosEnNube();
 }
