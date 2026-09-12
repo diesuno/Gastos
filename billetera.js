@@ -104,10 +104,25 @@ export async function inicializarMercado() {
 
 // --- FORMULARIO: mostrar Inversión, Retiro o Extracción ---
 export function toggleMovimientoInversion() {
-    let mov = document.getElementById('invMovimiento').value;
-    document.getElementById('seccionInversion').style.display = mov === "INVERSION" ? "block" : "none";
-    document.getElementById('seccionRetiro').style.display = mov === "RETIRO" ? "block" : "none";
-    document.getElementById('seccionExtraccion').style.display = mov === "EXTRACCION" ? "block" : "none";
+let mov = document.getElementById('invMovimiento').value;
+document.getElementById('seccionInversion').style.display = mov === "INVERSION" ? "block" : "none";
+document.getElementById('seccionRetiro').style.display = mov === "RETIRO" ? "block" : "none";
+if (mov === "RETIRO") toggleInstrumentoRetiro();
+}
+
+// --- FORMULARIO: dentro de Retiro, elegir si el instrumento es S&P 500 o Dólares ---
+export function toggleInstrumentoRetiro() {
+let instrumento = document.getElementById('retInstrumento').value;
+document.getElementById('boxRetiroSp500').style.display = instrumento === "SP500" ? "block" : "none";
+document.getElementById('boxRetiroDolares').style.display = instrumento === "DOLARES" ? "block" : "none";
+}
+
+// --- FORMULARIO: el checkbox "Los saco de la plataforma" cambia la explicación ---
+export function toggleExplicacionExtraccion() {
+let sacar = document.getElementById('extSacoDePlataforma').checked;
+document.getElementById('lblExplicacionExtraccion').innerText = sacar
+? "Salen de la app definitivamente (los gastaste, los vendiste fuera del sistema, etc.)."
+: "Se convierten a Pesos y quedan disponibles dentro de la app, al dólar oficial de hoy.";
 }
 
 // --- FORMULARIO: mostrar Cotización o Cantidad al comprar Dólares ---
@@ -275,27 +290,39 @@ export function ejecutarRetiroNuevo() {
 // gastaste o vendiste fuera del sistema). Queda registrada con un motivo para
 // tener el detalle a mano después.
 export function ejecutarExtraccion() {
-    let hoy = new Date().toISOString().split('T')[0];
-    let monto = parseFloat(document.getElementById('extMontoDolares').value);
-    let motivo = document.getElementById('extMotivo').value.trim();
-    if (!monto || monto <= 0) return mostrarAlerta("Ingresá un monto válido");
-    if (!motivo) return mostrarAlerta("Ingresá un motivo");
-    if (estadoApp.patrimonio.dolares < monto) return mostrarAlerta("No tenés suficientes dólares.");
+let hoy = new Date().toISOString().split('T')[0];
+let monto = parseFloat(document.getElementById('extMontoDolares').value);
+let motivo = document.getElementById('extMotivo').value.trim();
+let sacarDePlataforma = document.getElementById('extSacoDePlataforma').checked;
+if (!monto || monto <= 0) return mostrarAlerta("Ingresá un monto válido");
+if (sacarDePlataforma && !motivo) return mostrarAlerta("Ingresá un motivo");
+if (estadoApp.patrimonio.dolares < monto) return mostrarAlerta("No tenés suficientes dólares.");
 
-    estadoApp.patrimonio.dolares -= monto;
-    registrarMovimientoInversion({
-        mov: "Extracción", instrumento: "Dólares",
-        origen: "DOLARES", destino: "FUERA", montoOrigen: monto, montoDestino: null, monedaDestino: null,
-        motivo, fecha: hoy
-    });
+estadoApp.patrimonio.dolares -= monto;
 
-    document.getElementById('extMontoDolares').value = "";
-    document.getElementById('extMotivo').value = "";
-    reconstruirHistorialMensual();
-    reconstruirHistorialPesos();
-    actualizarApp(); guardarDatosEnNube();
+if (sacarDePlataforma) {
+registrarMovimientoInversion({
+mov: "Extracción", instrumento: "Dólares",
+origen: "DOLARES", destino: "FUERA", montoOrigen: monto, montoDestino: null, monedaDestino: null,
+motivo, fecha: hoy
+});
+} else {
+let cotizacion = estadoApp.mercado.dolarOficial;
+let montoPesos = monto * cotizacion;
+estadoApp.patrimonio.pesos += montoPesos;
+registrarMovimientoInversion({
+mov: "Retiro", instrumento: "Dólares",
+origen: "DOLARES", destino: "PESOS", montoOrigen: monto, montoDestino: montoPesos, monedaDestino: "Pesos",
+motivo: motivo || "Conversión a Pesos", fecha: hoy
+});
 }
 
+document.getElementById('extMontoDolares').value = "";
+document.getElementById('extMotivo').value = "";
+reconstruirHistorialMensual();
+reconstruirHistorialPesos();
+actualizarApp(); guardarDatosEnNube();
+}
 // Deshace un movimiento del Historial: le devuelve al pool de origen lo que
 // salió, y le saca al pool de destino lo que entró — funciona igual para
 // Inversión, Retiro o Extracción porque todos comparten el mismo esquema
@@ -310,6 +337,7 @@ export async function revertirMovimientoInversion(id) {
 
     if (entrada.destino === "DOLARES" && entrada.montoDestino) estadoApp.patrimonio.dolares -= entrada.montoDestino;
     if (entrada.destino === "S&P 500" && entrada.montoDestino) estadoApp.sp500.nominales -= entrada.montoDestino;
+if (entrada.destino === "PESOS" && entrada.montoDestino) estadoApp.patrimonio.pesos -= entrada.montoDestino;
 
     if (entrada.origen === "DOLARES" && entrada.montoOrigen) estadoApp.patrimonio.dolares += entrada.montoOrigen;
     if (entrada.origen === "S&P 500" && entrada.montoOrigen) estadoApp.sp500.nominales += entrada.montoOrigen;
