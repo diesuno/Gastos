@@ -1,656 +1,662 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma Financiera 2026</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma Financiera 2026</title>
 
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a237e">
-    <link class="apple-touch-icon" href="icono-192.png">
-    <link rel="icon" type="image/png" href="icono-192.png">
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
-      }
-    </script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a237e">
+<link class="apple-touch-icon" href="icono-192.png">
+<link rel="icon" type="image/png" href="icono-192.png">
+<script>
+if ('serviceWorker' in navigator) {
+window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
+}
+</script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <!-- MODAL ONBOARDING (PRIMER INGRESO) -->
 <div id="onboarding-modal">
-    <div class="onboarding-card">
-        <h2 style="margin-top:0;">👋 ¡Bienvenido a tu Plataforma!</h2>
-        <p style="color:#475569; font-size:1.1em;">Para darte la mejor experiencia, elegí cómo querés usar el sistema. (Podés cambiarlo después en Mi Perfil).</p>
+<div class="onboarding-card">
+<h2 style="margin-top:0;">👋 ¡Bienvenido a tu Plataforma!</h2>
+<p style="color:#475569; font-size:1.1em;">Para darte la mejor experiencia, elegí cómo querés usar el sistema. (Podés cambiarlo después en Mi Perfil).</p>
 
-        <div style="display:flex; gap:20px; margin-top:30px;">
-            <button class="mode-btn mode-basic" onclick="guardarModoDesdeOnboarding('BASICO')">
-                <span style="font-size:1.5em; display:block; margin-bottom:5px;">🌱</span>
-                <b style="font-size:1.2em;">Modo Básico</b>
-                <p style="margin-top:8px; font-size:0.9em; line-height:1.4; color:#004d40;">Fácil y directo. Anotá tus ingresos y gastos fijos/variables diarios sin enredarte con tarjetas o deudas complejas.</p>
-            </button>
-            <button class="mode-btn mode-adv" onclick="guardarModoDesdeOnboarding('AVANZADO')">
-                <span style="font-size:1.5em; display:block; margin-bottom:5px;">🚀</span>
-                <b style="font-size:1.2em;">Modo Avanzado</b>
-                <p style="margin-top:8px; font-size:0.9em; line-height:1.4; color:#1a237e;">Nivel profesional. Gestión de flujo de caja, tarjetas de crédito, gastos compartidos con amigos y servicios devengados.</p>
-            </button>
-        </div>
-    </div>
+<div style="display:flex; gap:20px; margin-top:30px;">
+<button class="mode-btn mode-basic" onclick="guardarModoDesdeOnboarding('BASICO')">
+<span style="font-size:1.5em; display:block; margin-bottom:5px;">🌱</span>
+<b style="font-size:1.2em;">Modo Básico</b>
+<p style="margin-top:8px; font-size:0.9em; line-height:1.4; color:#004d40;">Fácil y directo. Anotá tus ingresos y gastos fijos/variables diarios sin enredarte con tarjetas o deudas complejas.</p>
+</button>
+<button class="mode-btn mode-adv" onclick="guardarModoDesdeOnboarding('AVANZADO')">
+<span style="font-size:1.5em; display:block; margin-bottom:5px;">🚀</span>
+<b style="font-size:1.2em;">Modo Experimental</b>
+<p style="margin-top:8px; font-size:0.9em; line-height:1.4; color:#1a237e;">Nivel profesional. Gestión de flujo de caja, tarjetas de crédito, gastos compartidos con amigos y servicios devengados.</p>
+</button>
+</div>
+</div>
 </div>
 
 <!-- MODAL REGISTRO -->
 <div id="modal-registro" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:440px; text-align:left;">
-        <h2 style="margin-top:0; text-align:center;">✨ Crear Cuenta</h2>
-        <div class="auth-group">
-            <label for="regNombre">Nombre</label>
-            <input type="text" id="regNombre" placeholder="Tu nombre">
-        </div>
-        <div class="auth-group">
-            <label for="regEmail">Correo Electrónico</label>
-            <input type="email" id="regEmail" placeholder="tu@email.com">
-        </div>
-        <div class="auth-group">
-            <label for="regPassword">Contraseña</label>
-            <div class="auth-password-wrapper">
-                <input type="password" id="regPassword" placeholder="Mínimo 8 caracteres">
-                <button type="button" id="btnMostrarRegPassword" class="auth-toggle-password" onclick="toggleMostrarRegPassword()" aria-label="Mostrar contraseña"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-            </div>
-        </div>
-        <div class="auth-group">
-            <label for="regPasswordConfirmar">Repetir Contraseña</label>
-            <div class="auth-password-wrapper">
-                <input type="password" id="regPasswordConfirmar" placeholder="Escribila de nuevo">
-                <button type="button" id="btnMostrarRegPasswordConfirmar" class="auth-toggle-password" onclick="toggleMostrarRegPasswordConfirmar()" aria-label="Mostrar contraseña"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-            </div>
-        </div>
-        <div class="auth-btn-container">
-            <button onclick="registrarUsuario()">Crear Cuenta</button>
-            <button class="btn-secundario" onclick="cerrarModalRegistro()">Cancelar</button>
-        </div>
-    </div>
+<div class="modal-box" style="max-width:440px; text-align:left;">
+<h2 style="margin-top:0; text-align:center;">✨ Crear Cuenta</h2>
+<div class="auth-group">
+<label for="regNombre">Nombre</label>
+<input type="text" id="regNombre" placeholder="Tu nombre">
+</div>
+<div class="auth-group">
+<label for="regEmail">Correo Electrónico</label>
+<input type="email" id="regEmail" placeholder="tu@email.com">
+</div>
+<div class="auth-group">
+<label for="regPassword">Contraseña</label>
+<div class="auth-password-wrapper">
+<input type="password" id="regPassword" placeholder="Mínimo 8 caracteres">
+<button type="button" id="btnMostrarRegPassword" class="auth-toggle-password" onclick="toggleMostrarRegPassword()" aria-label="Mostrar contraseña"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+</div>
+</div>
+<div class="auth-group">
+<label for="regPasswordConfirmar">Repetir Contraseña</label>
+<div class="auth-password-wrapper">
+<input type="password" id="regPasswordConfirmar" placeholder="Escribila de nuevo">
+<button type="button" id="btnMostrarRegPasswordConfirmar" class="auth-toggle-password" onclick="toggleMostrarRegPasswordConfirmar()" aria-label="Mostrar contraseña"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+</div>
+</div>
+<div class="auth-btn-container">
+<button onclick="registrarUsuario()">Crear Cuenta</button>
+<button class="btn-secundario" onclick="cerrarModalRegistro()">Cancelar</button>
+</div>
+</div>
 </div>
 
 <!-- MODAL PAGAR RESUMEN DE TARJETA O SERVICIO -->
 <div id="modal-pagar-resumen" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:440px; text-align:left;">
-        <h2 style="margin-top:0; text-align:center;">💳 Pagar Resumen</h2>
-        <p style="font-size:0.85em; color:#64748b; margin-top:-10px;">Esto es lo que efectivamente sale de tu bolsillo — se resta del Disponible, y esa/s cuota/s dejan de sumar en Obligaciones este mes (para no contar la misma plata dos veces).</p>
-        <div class="form-grid">
-            <div class="form-group"><label for="resumenTipo">¿Qué estás pagando?</label>
-                <select id="resumenTipo" onchange="toggleResumenTipo()">
-                    <option value="TARJETA">Tarjeta de Crédito</option>
-                    <option value="SERVICIO">Servicio / Suscripción</option>
-                </select>
-            </div>
-            <div class="form-group" id="boxResumenTarjeta"><label for="resumenTarjeta">Tarjeta</label>
-                <select id="resumenTarjeta" onchange="sugerirMontoResumen()"></select>
-            </div>
-            <div class="form-group" id="boxResumenServicio" style="display:none;"><label for="resumenServicio">Servicio</label>
-                <select id="resumenServicio" onchange="sugerirMontoResumen()"></select>
-            </div>
-            <div class="form-group"><label for="resumenMonto">Monto a Pagar</label><input type="number" step="any" id="resumenMonto"><span class="porcentaje">Sugerido según este mes — corregilo si vino distinto</span></div>
-            <div class="form-group"><label for="resumenFecha">Fecha de Pago</label><input type="date" id="resumenFecha"></div>
-        </div>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
-            <button class="btn-secundario" onclick="cerrarModalPagarResumen()">Cancelar</button>
-            <button class="btn-verde" onclick="confirmarPagoResumen()">Confirmar Pago</button>
-        </div>
-    </div>
+<div class="modal-box" style="max-width:440px; text-align:left;">
+<h2 style="margin-top:0; text-align:center;">💳 Pagar Resumen</h2>
+<p style="font-size:0.85em; color:#64748b; margin-top:-10px;">Esto es lo que efectivamente sale de tu bolsillo — se resta del Disponible, y esa/s cuota/s dejan de sumar en Obligaciones este mes (para no contar la misma plata dos veces).</p>
+<div class="form-grid">
+<div class="form-group"><label for="resumenTipo">¿Qué estás pagando?</label>
+<select id="resumenTipo" onchange="toggleResumenTipo()">
+<option value="TARJETA">Tarjeta de Crédito</option>
+<option value="SERVICIO">Servicio / Suscripción</option>
+</select>
+</div>
+<div class="form-group" id="boxResumenTarjeta"><label for="resumenTarjeta">Tarjeta</label>
+<select id="resumenTarjeta" onchange="sugerirMontoResumen()"></select>
+</div>
+<div class="form-group" id="boxResumenServicio" style="display:none;"><label for="resumenServicio">Servicio</label>
+<select id="resumenServicio" onchange="sugerirMontoResumen()"></select>
+</div>
+<div class="form-group"><label for="resumenMonto">Monto a Pagar</label><input type="number" step="any" id="resumenMonto"><span class="porcentaje">Sugerido según este mes — corregilo si vino distinto</span></div>
+<div class="form-group"><label for="resumenFecha">Fecha de Pago</label><input type="date" id="resumenFecha"></div>
+</div>
+<div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+<button class="btn-secundario" onclick="cerrarModalPagarResumen()">Cancelar</button>
+<button class="btn-verde" onclick="confirmarPagoResumen()">Confirmar Pago</button>
+</div>
+</div>
 </div>
 
 <!-- MODAL EXPORTAR EXCEL -->
 <div id="modal-exportar-excel" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:440px; text-align:left;">
-        <h2 style="margin-top:0; text-align:center;">⬇️ Descargar Excel</h2>
-        <div class="form-grid">
-            <div class="form-group"><label for="exportPersona">Persona</label>
-                <select id="exportPersona"><option value="TODAS">Todas</option></select>
-            </div>
-            <div class="form-group" style="grid-column: 1 / -1;">
-                <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:8px; cursor:pointer;">
-                    <input type="checkbox" id="chkExportDiarias" checked> Incluir Deudas Diarias (En el Acto)
-                </label>
-                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
-                    <input type="checkbox" id="chkExportFijas" checked onchange="toggleExportFijasTodosMeses()"> Incluir Deudas Fijas (Tarjeta/Servicio)
-                </label>
-                <div id="boxExportFijasTodosMeses" style="margin-top:10px; margin-left:26px;">
-                    <label style="display:flex; align-items:center; gap:8px; font-weight:500; cursor:pointer; font-size:0.9em; color:#64748b;">
-                        <input type="checkbox" id="chkExportFijasTodosMeses"> Incluir todos los meses pendientes de Fijas (no solo el que estoy mirando)
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
-            <button class="btn-secundario" onclick="cerrarModalExportarExcel()">Cancelar</button>
-            <button class="btn-verde" onclick="confirmarDescargaExcel()">Descargar</button>
-        </div>
-    </div>
+<div class="modal-box" style="max-width:440px; text-align:left;">
+<h2 style="margin-top:0; text-align:center;">⬇️ Descargar Excel</h2>
+<div class="form-grid">
+<div class="form-group"><label for="exportPersona">Persona</label>
+<select id="exportPersona"><option value="TODAS">Todas</option></select>
+</div>
+<div class="form-group" style="grid-column: 1 / -1;">
+<label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:8px; cursor:pointer;">
+<input type="checkbox" id="chkExportDiarias" checked> Incluir Deudas Diarias (En el Acto)
+</label>
+<label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+<input type="checkbox" id="chkExportFijas" checked onchange="toggleExportFijasTodosMeses()"> Incluir Deudas Fijas (Tarjeta/Servicio)
+</label>
+<div id="boxExportFijasTodosMeses" style="margin-top:10px; margin-left:26px;">
+<label style="display:flex; align-items:center; gap:8px; font-weight:500; cursor:pointer; font-size:0.9em; color:#64748b;">
+<input type="checkbox" id="chkExportFijasTodosMeses"> Incluir todos los meses pendientes de Fijas (no solo el que estoy mirando)
+</label>
+</div>
+</div>
+</div>
+<div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+<button class="btn-secundario" onclick="cerrarModalExportarExcel()">Cancelar</button>
+<button class="btn-verde" onclick="confirmarDescargaExcel()">Descargar</button>
+</div>
+</div>
 </div>
 
 <!-- MODAL EDITAR MOVIMIENTO -->
 <div id="modal-editar-movimiento" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:440px; text-align:left;">
-        <h2 style="margin-top:0; text-align:center;">✏️ Editar Movimiento</h2>
-        <div class="form-grid">
-            <div class="form-group"><label for="editMovTexto">Texto</label><input type="text" id="editMovTexto"></div>
-            <div class="form-group"><label for="editMovFecha">Fecha</label><input type="date" id="editMovFecha"></div>
-            <div class="form-group"><label for="editMovMonto">Monto</label><input type="number" step="any" id="editMovMonto"></div>
-        </div>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
-            <button class="btn-secundario" onclick="cerrarModalEditarMovimiento()">Cancelar</button>
-            <button class="btn-verde" onclick="guardarEdicionMovimiento()">Guardar Cambios</button>
-        </div>
-    </div>
+<div class="modal-box" style="max-width:440px; text-align:left;">
+<h2 style="margin-top:0; text-align:center;">✏️ Editar Movimiento</h2>
+<div class="form-grid">
+<div class="form-group"><label for="editMovTexto">Texto</label><input type="text" id="editMovTexto"></div>
+<div class="form-group"><label for="editMovFecha">Fecha</label><input type="date" id="editMovFecha"></div>
+<div class="form-group"><label for="editMovMonto">Monto</label><input type="number" step="any" id="editMovMonto"></div>
+</div>
+<div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+<button class="btn-secundario" onclick="cerrarModalEditarMovimiento()">Cancelar</button>
+<button class="btn-verde" onclick="guardarEdicionMovimiento()">Guardar Cambios</button>
+</div>
+</div>
 </div>
 
 <!-- MODAL EDITAR SERVICIO -->
 <div id="modal-editar-servicio" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:480px; text-align:left;">
-        <h2 style="margin-top:0; text-align:center;">🔌 Editar Servicio</h2>
-        <div class="form-grid">
-            <div class="form-group"><label for="editServNombre">Nombre</label><input type="text" id="editServNombre"></div>
-            <div class="form-group"><label for="editServTipo">Tipo</label>
-                <select id="editServTipo">
-                    <option value="Gasto Fijo">Gasto Fijo</option>
-                    <option value="Gasto Variable">Gasto Variable</option>
-                </select>
-            </div>
-            <div class="form-group"><label for="editServMonto">Monto (desde este mes)</label><input type="number" step="any" id="editServMonto"></div>
-            <div class="form-group"><label for="editServDebito">Débito Automático</label>
-                <select id="editServDebito">
-                    <option value="NO">No</option>
-                    <option value="SI">Sí, adherido</option>
-                </select>
-            </div>
-            <div class="form-group"><label for="editServDividir">División del pago</label>
-                <select id="editServDividir" onchange="toggleCamposModalEditarServicio()">
-                    <option value="NO">Normal</option>
-                    <option value="PAGUE_100_DEUDA">Pagué 100%</option>
-                    <option value="PAGUE_50_INTEGRO">Pagué 50%</option>
-                    <option value="PAGO_OTRO_50">Debo 50%</option>
-                    <option value="PAGO_OTRO_100_DEUDA">Debo 100%</option>
-                </select>
-            </div>
-            <div class="form-group" id="boxEditServAmigo" style="display:none;"><label for="editServAmigo">¿Con quién?</label><select id="editServAmigo"></select></div>
-        </div>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
-            <button class="btn-secundario" onclick="cerrarModalEditarServicio()">Cancelar</button>
-            <button class="btn-verde" onclick="guardarEdicionServicio()">Guardar Cambios</button>
-        </div>
-    </div>
+<div class="modal-box" style="max-width:480px; text-align:left;">
+<h2 style="margin-top:0; text-align:center;">🔌 Editar Servicio</h2>
+<div class="form-grid">
+<div class="form-group"><label for="editServNombre">Nombre</label><input type="text" id="editServNombre"></div>
+<div class="form-group"><label for="editServTipo">Tipo</label>
+<select id="editServTipo">
+<option value="Gasto Fijo">Gasto Fijo</option>
+<option value="Gasto Variable">Gasto Variable</option>
+</select>
 </div>
-
+<div class="form-group"><label for="editServMonto">Monto (desde este mes)</label><input type="number" step="any" id="editServMonto"></div>
+<div class="form-group"><label for="editServDebito">Débito Automático</label>
+<select id="editServDebito">
+<option value="NO">No</option>
+<option value="SI">Sí, adherido</option>
+</select>
+</div>
+<div class="form-group"><label for="editServDividir">División del pago</label>
+<select id="editServDividir" onchange="toggleCamposModalEditarServicio()">
+<option value="NO">Normal</option>
+<option value="PAGUE_100_DEUDA">Pagué 100%</option>
+<option value="PAGUE_50_INTEGRO">Pagué 50%</option>
+<option value="PAGO_OTRO_50">Debo 50%</option>
+<option value="PAGO_OTRO_100_DEUDA">Debo 100%</option>
+</select>
+</div>
+<div class="form-group" id="boxEditServAmigo" style="display:none;"><label for="editServAmigo">¿Con quién?</label><select id="editServAmigo"></select></div>
+</div>
+<div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+<button class="btn-secundario" onclick="cerrarModalEditarServicio()">Cancelar</button>
+<button class="btn-verde" onclick="guardarEdicionServicio()">Guardar Cambios</button>
+</div>
+</div>
+</div>
 <!-- MODAL MI PERFIL -->
 <div id="modal-perfil" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:520px; text-align:left;">
-        <h2 style="margin-top:0; text-align:center;">👤 Mi Perfil</h2>
+<div class="modal-box" style="max-width:520px; text-align:left;">
+<h2 style="margin-top:0; text-align:center;">👤 Mi Perfil</h2>
 
-        <div class="form-section">
-            <h3 style="margin-top:0; color:#334155;">Datos Personales</h3>
-            <div class="form-grid">
-                <div class="form-group"><label for="profileNameInput">Mi Nombre</label><input type="text" id="profileNameInput"></div>
-                <div class="form-group">
-                    <label for="profileModoInput">Modo de Plataforma</label>
-                    <select id="profileModoInput">
-                        <option value="BASICO">🌱 Básico (Simple)</option>
-                        <option value="AVANZADO">🚀 Avanzado (Profesional)</option>
-                    </select>
-                </div>
-            </div>
-        </div>
+<div class="form-section">
+<h3 style="margin-top:0; color:#334155;">Datos Personales</h3>
+<div class="form-grid">
+<div class="form-group"><label for="profileNameInput">Mi Nombre</label><input type="text" id="profileNameInput"></div>
+<div class="form-group">
+<label for="profileModoInput">Modo de Plataforma</label>
+<select id="profileModoInput">
+<option value="BASICO">🌱 Básico (Simple)</option>
+<option value="AVANZADO">🚀 Experimental</option>
+</select>
+</div>
+</div>
+</div>
 
-        <div class="form-section" style="background:#fefce8; border:none;">
-            <h3 style="margin-top:0; color:#a16207;">📅 Ciclo de Cobro</h3>
-            <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:12px; cursor:pointer;">
-                <input type="checkbox" id="chkCicloPersonalizado" onchange="toggleCampoDiaCobro()"> Mi mes no empieza el día 1 (cobro en otra fecha)
-            </label>
-            <div class="form-grid" id="boxDiaCobro" style="display:none;">
-                <div class="form-group"><label for="inputDiaCobro">Día de cobro</label><input type="number" id="inputDiaCobro" min="1" max="28" placeholder="Ej: 23"><span class="porcentaje">Tu "mes" va a ir de ese día al día anterior del mes siguiente</span></div>
-            </div>
-            <button class="btn-verde" style="margin-top:12px;" onclick="guardarCambiosDesdePerfil()">Guardar Cambios</button>
-        </div>
+<div class="form-section" style="background:#fefce8; border:none;">
+<h3 style="margin-top:0; color:#a16207;">📅 Ciclo de Cobro</h3>
+<label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:12px; cursor:pointer;">
+<input type="checkbox" id="chkCicloPersonalizado" onchange="toggleCampoDiaCobro()"> Mi mes no empieza el día 1 (cobro en otra fecha)
+</label>
+<div class="form-grid" id="boxDiaCobro" style="display:none;">
+<div class="form-group"><label for="inputDiaCobro">Día de cobro</label><input type="number" id="inputDiaCobro" min="1" max="28" placeholder="Ej: 23"><span class="porcentaje">Tu "mes" va a ir de ese día al día anterior del mes siguiente</span></div>
+</div>
+<button class="btn-verde" style="margin-top:12px;" onclick="guardarCambiosDesdePerfil()">Guardar Cambios</button>
+</div>
 
-        <div class="form-section" style="background:#f0fdf4; border:none;">
-            <h3 style="margin-top:0; color:#15803d;">📥 Exportar Datos</h3>
-            <p style="font-size:0.85em; color:#64748b; margin-top:-8px;">Descarga un archivo con todos tus datos (movimientos, servicios, inversiones) — útil para compartir y diagnosticar algo puntual, o como respaldo propio.</p>
-            <button style="background-color:#16a34a;" onclick="exportarDatosDiagnostico()">Descargar mis datos (.json)</button>
-        </div>
+<div class="form-section" style="background:#eff6ff; border:none;">
+<h3 style="margin-top:0; color:#1e3a8a;">🔒 Seguridad</h3>
+<div class="form-grid">
+<div class="form-group"><label for="profilePasswordInput">Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
+<button style="background-color: #0ea5e9;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
+</div>
+</div>
 
-        <div class="form-section" style="background:#eff6ff; border:none;">
-            <h3 style="margin-top:0; color:#1e3a8a;">🔒 Seguridad</h3>
-            <div class="form-grid">
-                <div class="form-group"><label for="profilePasswordInput">Nueva Contraseña</label><input type="password" id="profilePasswordInput" placeholder="Dejar en blanco si no cambia"></div>
-                <button style="background-color: #0ea5e9;" onclick="cambiarPasswordPerfil()">Modificar Clave</button>
-            </div>
-        </div>
+<div style="margin-top:30px; padding-top:16px; border-top:1px solid #e2e8f0;">
+<p style="font-size:0.78em; color:#94a3b8; margin:0 0 10px 0;">Estas acciones son irreversibles.</p>
+<div style="display:flex; gap:8px; flex-wrap:wrap;">
+<button style="background-color:#f1f5f9; color:#94a3b8; font-size:0.8em; padding:8px 14px; box-shadow:none;" onclick="resetearApp()">Blanquear todos mis datos</button>
+<button style="background-color:#f1f5f9; color:#94a3b8; font-size:0.8em; padding:8px 14px; box-shadow:none;" onclick="eliminarCuenta()">Eliminar mi cuenta</button>
+</div>
+</div>
 
-        <div style="margin-top:30px; padding-top:16px; border-top:1px solid #e2e8f0;">
-            <p style="font-size:0.78em; color:#94a3b8; margin:0 0 10px 0;">Estas acciones son irreversibles.</p>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button style="background-color:#f1f5f9; color:#94a3b8; font-size:0.8em; padding:8px 14px; box-shadow:none;" onclick="resetearApp()">Blanquear todos mis datos</button>
-                <button style="background-color:#f1f5f9; color:#94a3b8; font-size:0.8em; padding:8px 14px; box-shadow:none;" onclick="eliminarCuenta()">Eliminar mi cuenta</button>
-            </div>
-        </div>
-
-        <div style="text-align:center; margin-top:20px;">
-            <button class="btn-secundario" onclick="cerrarModalPerfil()">Cerrar</button>
-        </div>
-    </div>
+<div style="text-align:center; margin-top:20px;">
+<button class="btn-secundario" onclick="cerrarModalPerfil()">Cerrar</button>
+</div>
+</div>
 </div>
 
 <!-- MODAL GENÉRICO (reemplaza alert/confirm/prompt nativos) -->
 <div id="modal-generico" class="modal-overlay" style="display:none;">
-    <div class="modal-box">
-        <p id="modal-mensaje" class="modal-mensaje"></p>
-        <div id="modal-input-container" class="modal-input-container" style="display:none;">
-            <input type="text" id="modal-input">
-        </div>
-        <div class="modal-botones">
-            <button id="modal-btn-cancelar" class="btn-secundario">Cancelar</button>
-            <button id="modal-btn-confirmar">Aceptar</button>
-        </div>
-    </div>
+<div class="modal-box">
+<p id="modal-mensaje" class="modal-mensaje"></p>
+<div id="modal-input-container" class="modal-input-container" style="display:none;">
+<input type="text" id="modal-input">
+</div>
+<div class="modal-botones">
+<button id="modal-btn-cancelar" class="btn-secundario">Cancelar</button>
+<button id="modal-btn-confirmar">Aceptar</button>
+</div>
+</div>
 </div>
 
 <!-- LOADER INICIAL (mientras se conecta con Firebase y se traen los datos) -->
 <div id="loader-inicial" class="loader-overlay">
-    <div class="loader-caja">
-        <div class="loader-spinner"></div>
-        <p>Cargando tu información...</p>
-    </div>
+<div class="loader-caja">
+<div class="loader-spinner"></div>
+<p>Cargando tu información...</p>
+</div>
 </div>
 
 <!-- LOGIN -->
-<div id="auth-section" style="display:none;">
-    <div id="auth-login-view">
-        <div class="auth-logo">💰</div>
-        <h2 style="margin-bottom:2px;">Bienvenido de nuevo</h2>
-        <p class="auth-subtitle">Ingresá para ver tus finanzas</p>
+<div id="auth-section">
+<div id="auth-login-view">
+<div class="auth-logo">💰</div>
+<h2 style="margin-bottom:2px;">Bienvenido de nuevo</h2>
+<p class="auth-subtitle">Ingresá para ver tus finanzas</p>
 
-        <div class="auth-group">
-            <label for="authEmail">Correo Electrónico</label>
-            <input type="email" id="authEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') loginUsuario()">
-        </div>
-        <div class="auth-group">
-            <label for="authPassword">Contraseña</label>
-            <div class="auth-password-wrapper">
-                <input type="password" id="authPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginUsuario()">
-                <button type="button" id="btnMostrarPassword" class="auth-toggle-password" onclick="toggleMostrarPassword()" aria-label="Mostrar contraseña"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-            </div>
-            <a href="#" class="auth-forgot-link" onclick="mostrarVistaRecuperar(); return false;">¿Olvidaste tu contraseña?</a>
-        </div>
-
-        <div class="auth-btn-container">
-            <button onclick="loginUsuario()">Iniciar Sesión</button>
-        </div>
-        <p class="auth-register-link">¿No tenés cuenta? <a href="#" onclick="abrirModalRegistro(); return false;">Registrate</a></p>
-    </div>
-
-    <div id="auth-recover-view" style="display:none;">
-        <div class="auth-logo">🔑</div>
-        <h2 style="margin-bottom:2px;">Restablecer contraseña</h2>
-        <p class="auth-subtitle">Te vamos a mandar un correo para que la cambies</p>
-
-        <div id="auth-recover-form">
-            <div class="auth-group">
-                <label for="recoverEmail">Correo Electrónico</label>
-                <input type="email" id="recoverEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') enviarRecuperacionPassword()">
-            </div>
-            <div class="auth-btn-container">
-                <button onclick="enviarRecuperacionPassword()">Enviar</button>
-            </div>
-        </div>
-
-        <div id="auth-recover-exito" style="display:none; text-align:center;">
-            <p style="color:#10b981; font-weight:600; font-size:1.05em;">✅ En breve te llegará un correo para restablecer tu contraseña.</p>
-        </div>
-
-        <p class="auth-register-link"><a href="#" onclick="volverALogin(); return false;">← Volver a Iniciar Sesión</a></p>
-    </div>
+<div class="auth-group">
+<label for="authEmail">Correo Electrónico</label>
+<input type="email" id="authEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') loginUsuario()">
 </div>
+<div class="auth-group">
+<label for="authPassword">Contraseña</label>
+<div class="auth-password-wrapper">
+<input type="password" id="authPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginUsuario()">
+<button type="button" id="btnMostrarPassword" class="auth-toggle-password" onclick="toggleMostrarPassword()" aria-label="Mostrar contraseña"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+</div>
+<a href="#" class="auth-forgot-link" onclick="mostrarVistaRecuperar(); return false;">¿Olvidaste tu contraseña?</a>
+</div>
+
+<div class="auth-btn-container">
+<button onclick="loginUsuario()">Iniciar Sesión</button>
+</div>
+<p class="auth-register-link">¿No tenés cuenta? <a href="#" onclick="abrirModalRegistro(); return false;">Registrate</a></p>
+</div>
+
+<div id="auth-recover-view" style="display:none;">
+<div class="auth-logo">🔑</div>
+<h2 style="margin-bottom:2px;">Restablecer contraseña</h2>
+<p class="auth-subtitle">Te vamos a mandar un correo para que la cambies</p>
+
+<div id="auth-recover-form">
+<div class="auth-group">
+<label for="recoverEmail">Correo Electrónico</label>
+<input type="email" id="recoverEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') enviarRecuperacionPassword()">
+</div>
+<div class="auth-btn-container">
+<button onclick="enviarRecuperacionPassword()">Enviar</button>
+</div>
+</div>
+
+<div id="auth-recover-exito" style="display:none; text-align:center;">
+<p style="color:#10b981; font-weight:600; font-size:1.05em;">✅ En breve te llegará un correo para restablecer tu contraseña.</p>
+</div>
+
+<p class="auth-register-link"><a href="#" onclick="volverALogin(); return false;">← Volver a Iniciar Sesión</a></p>
+</div>
+</div>
+
+<!-- OVERLAY Y BOTÓN DE APERTURA DEL PANEL LATERAL (CELULAR) -->
+<div id="sb-overlay" onclick="toggleSidebarMobile()"></div>
+<button id="sb-mobile-toggle" onclick="toggleSidebarMobile()" aria-label="Abrir menú">☰</button>
+
+<!-- PANEL LATERAL -->
+<nav id="sidebar">
+<button class="sb-perfil" onclick="abrirModalPerfil()" title="Mi Perfil">
+<span class="sb-avatar" id="sbAvatarInicial">👤</span>
+<span class="sb-nombre" id="sbNombreUsuario">Usuario</span>
+</button>
+
+<div class="sb-nav">
+<button class="sb-link active" onclick="cambiarPestaña('tab-flujo', this)"><span class="sb-icon">📊</span><span class="sb-label">Flujo Mensual</span></button>
+<button class="sb-link avanzado-only" id="tab-btn-detalle" onclick="cambiarPestaña('tab-detalle-gastos', this)"><span class="sb-icon">🧾</span><span class="sb-label">Detalle Gastos</span></button>
+<button class="sb-link" onclick="cambiarPestaña('tab-inversiones', this)"><span class="sb-icon">💹</span><span class="sb-label">Inversiones</span></button>
+<button class="sb-link avanzado-only" onclick="cambiarPestaña('tab-cuentas', this)"><span class="sb-icon">🤝</span><span class="sb-label">Cuentas por Cobrar</span></button>
+</div>
+
+<div class="sb-footer">
+<button class="sb-toggle-pin" onclick="toggleSidebar()" title="Fijar u ocultar el panel"><span class="sb-icon">📌</span><span class="sb-label">Fijar / ocultar</span></button>
+<button class="sb-salir" onclick="logoutUsuario()"><span class="sb-icon">🚪</span><span class="sb-label">Salir</span></button>
+</div>
+</nav>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div id="main-content">
 
 <!-- APP PRINCIPAL -->
 <div class="container" id="main-app" style="display:none;">
-    <div class="top-actions-panel">
-        <div class="user-menu">
-            <button class="btn-panel btn-user-menu" onclick="toggleMenuUsuario()">👤 <span id="userNameDisplay">Usuario</span> <span class="user-menu-caret">▾</span></button>
-            <div id="userMenuDropdown" class="user-menu-dropdown" style="display:none;">
-                <button onclick="abrirModalPerfil()">👤 Mi Perfil</button>
-                <button onclick="logoutUsuario()">🚪 Cerrar Sesión</button>
-            </div>
-        </div>
-    </div>
 
-    <h1>💰 Plataforma de Inteligencia Financiera</h1>
+<h1>💰 Plataforma de Inteligencia Financiera</h1>
 
-    <div class="nav-tabs">
-        <button class="tab-button active" onclick="cambiarPestaña('tab-flujo', this)">📊 Flujo Mensual</button>
-        <button class="tab-button avanzado-only" id="tab-btn-detalle" onclick="cambiarPestaña('tab-detalle-gastos', this)">🧾 Detalle Gastos</button>
-        <button class="tab-button" onclick="cambiarPestaña('tab-inversiones', this)">💹 Inversiones</button>
-        <button class="tab-button avanzado-only" onclick="cambiarPestaña('tab-cuentas', this)">🤝 Cuentas por Cobrar</button>
-    </div>
-
-    <div class="historico-selector" id="panel-selector-mes">
-        <label style="margin: 0;">Período a visualizar:</label>
-        <select id="filtroMesAnio" onchange="actualizarApp()"></select>
-    </div>
-
-    <!-- FLUJO MENSUAL -->
-    <div id="tab-flujo" class="tab-content active">
-
-        <!-- DASHBOARD DINÁMICO (BÁSICO VS AVANZADO) -->
-        <div class="dashboard-grid" id="dashboard-dinamico">
-            <!-- Se llena vía JavaScript según el Modo -->
-        </div>
-
-        <div class="form-section">
-            <h3 style="margin-top:0;">Cargar Nuevo Movimiento</h3>
-            <div class="form-grid">
-                <div class="form-group"><label for="inputMonto">Monto Total ($)</label><input type="number" step="any" id="inputMonto" placeholder="0.00"></div>
-                <div class="form-group"><label for="inputTipo">Tipo</label>
-                    <select id="inputTipo" onchange="evaluarCamposDinamicosGasto()">
-                        <option value="Ingreso">Ingreso</option>
-                        <option value="Gasto Fijo">Gasto Fijo</option>
-                        <option value="Gasto Variable" selected>Gasto Variable</option>
-                    </select>
-                </div>
-                <!-- ETIQUETA DINÁMICA CONCEPTO/TEXTO -->
-                <div class="form-group"><label id="lblConceptoTexto" for="inputConcepto">Concepto</label><input type="text" id="inputConcepto" placeholder="Ej: Sueldo, Supermercado..."></div>
-                <div class="form-group"><label for="inputFecha">Fecha</label><input type="date" id="inputFecha"></div>
-
-                <div class="form-group avanzado-only" id="boxMetodoPago"><label for="inputMetodoPago">Método de Pago</label>
-                    <select id="inputMetodoPago" onchange="evaluarCamposDinamicosGasto()">
-                        <option value="EN_EL_ACTO">En el acto (Débito/Efectivo)</option>
-                        <option value="CREDITO">Tarjeta de Crédito</option>
-                        <option value="SERVICIO">Servicio Mensual Recurrente</option>
-                    </select>
-                </div>
-
-                <div class="form-group avanzado-only" id="boxPlanCuotas" style="display:none;"><label for="inputCuotas">Cuotas</label>
-                    <select id="inputCuotas">
-                        <option value="1">1 pago (Sin cuotas)</option>
-                        <option value="2">2 Cuotas fijas</option><option value="3">3 Cuotas fijas</option><option value="4">4 Cuotas fijas</option><option value="5">5 Cuotas fijas</option><option value="6">6 Cuotas fijas</option><option value="7">7 Cuotas fijas</option><option value="8">8 Cuotas fijas</option><option value="9">9 Cuotas fijas</option><option value="10">10 Cuotas fijas</option><option value="11">11 Cuotas fijas</option><option value="12">12 Cuotas fijas</option>
-                        <option value="13">13 Cuotas fijas</option><option value="14">14 Cuotas fijas</option><option value="15">15 Cuotas fijas</option><option value="16">16 Cuotas fijas</option><option value="17">17 Cuotas fijas</option><option value="18">18 Cuotas fijas</option><option value="19">19 Cuotas fijas</option><option value="20">20 Cuotas fijas</option><option value="21">21 Cuotas fijas</option><option value="22">22 Cuotas fijas</option><option value="23">23 Cuotas fijas</option><option value="24">24 Cuotas fijas</option>
-                    </select>
-                </div>
-
-                <div class="form-group avanzado-only" id="boxTarjeta" style="display:none;"><label for="inputTarjetaSeleccionada">Tarjeta</label>
-                    <select id="inputTarjetaSeleccionada" onchange="toggleNuevaTarjeta()">
-                        <option value="">Elegir tarjeta...</option>
-                        <option value="__NUEVA__">+ Agregar una nueva</option>
-                    </select>
-                </div>
-                <div class="form-group avanzado-only" id="boxNuevaTarjeta" style="display:none;"><label for="inputNuevaTarjeta">Nombre de la tarjeta nueva</label><input type="text" id="inputNuevaTarjeta" placeholder="Ej: Visa Santander"></div>
-
-                <div class="form-group avanzado-only" id="boxDebitoAuto" style="display:none;"><label for="inputDebitoAuto">¿Débito Automático?</label>
-                    <select id="inputDebitoAuto">
-                        <option value="NO">No</option>
-                        <option value="SI">Sí, adherido</option>
-                    </select>
-                </div>
-
-                <div class="form-group avanzado-only" id="boxGastoCompartido" style="display:none;"><label for="inputDividir">División del pago</label>
-                    <select id="inputDividir" onchange="toggleSelectAmigo()">
-                        <option value="NO">Normal</option>
-                        <option value="PAGUE_100_DEUDA">Pagué 100%</option>
-                        <option value="PAGUE_50_INTEGRO">Pagué 50%</option>
-                        <option value="PAGO_OTRO_50">Debo 50%</option>
-                        <option value="PAGO_OTRO_100_DEUDA">Debo 100%</option>
-                    </select>
-                </div>
-
-                <div class="form-group avanzado-only" id="boxSeleccionAmigo" style="display:none;"><label for="inputAmigoAsignado">¿Con quién?</label>
-                    <select id="inputAmigoAsignado"></select>
-                </div>
-
-                <button onclick="agregarMovimiento()" style="height:46px;">Agregar al Flujo</button>
-            </div>
-        </div>
-
-        <h2>Detalle de Movimientos del Mes</h2>
-        <div class="form-section" style="padding:16px;">
-            <div class="form-grid" style="align-items:end;">
-                <div class="form-group"><label for="buscarMovimientos">Buscar</label><input type="text" id="buscarMovimientos" placeholder="Buscar por texto..." oninput="aplicarFiltrosMovimientos()"></div>
-                <div class="form-group avanzado-only"><label for="filtroMetodoMovimientos">Método</label>
-                    <select id="filtroMetodoMovimientos" onchange="aplicarFiltrosMovimientos()">
-                        <option value="TODOS">Todos</option>
-                        <option value="EN_EL_ACTO">En el Acto</option>
-                        <option value="CREDITO">Tarjeta</option>
-                        <option value="SERVICIO">Servicio</option>
-                        <option value="LIQUIDACION">Liquidación de Deuda</option>
-                    </select>
-                </div>
-                <div class="form-group"><label for="filtroFechaDesde">Desde</label><input type="date" id="filtroFechaDesde" onchange="aplicarFiltrosMovimientos()"></div>
-                <div class="form-group"><label for="filtroFechaHasta">Hasta</label><input type="date" id="filtroFechaHasta" onchange="aplicarFiltrosMovimientos()"></div>
-                <button class="btn-secundario" style="height:46px;" onclick="limpiarFiltrosMovimientos()">Limpiar Filtros</button>
-            </div>
-        </div>
-        <table>
-            <thead id="headTablaMovimientos">
-                <!-- Se llena dinámicamente -->
-            </thead>
-            <tbody id="tablaMovimientos"></tbody>
-        </table>
-    </div>
-
-    <!-- PESTAÑA DETALLE GASTOS (SOLO AVANZADO) -->
-    <div id="tab-detalle-gastos" class="tab-content avanzado-only">
-        <h2>🧾 Análisis de Obligaciones del Mes</h2>
-
-        <h3 style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">💳 Tarjetas de Crédito (Cuotas a pagar este mes)</h3>
-        <div class="form-section" style="padding:16px;">
-            <div class="form-grid" style="align-items:end;">
-                <div class="form-group"><label for="buscarCreditos">Buscar</label><input type="text" id="buscarCreditos" placeholder="Buscar por texto..." oninput="aplicarFiltrosCreditos()"></div>
-                <div class="form-group"><label for="filtroTarjeta">Tarjeta</label><select id="filtroTarjeta" onchange="aplicarFiltrosCreditos()"><option value="TODAS">Todas</option></select></div>
-                <button class="btn-secundario" style="height:46px;" onclick="limpiarFiltrosCreditos()">Limpiar Filtros</button>
-            </div>
-        </div>
-        <table>
-            <thead><tr>
-                <th id="thTextoCreditos" style="cursor:pointer;" onclick="ordenarTabla('detalleCreditos','texto','texto')">Texto</th>
-                <th>Cuota Mes</th>
-                <th id="thMontoCreditos" style="cursor:pointer;" onclick="ordenarTabla('detalleCreditos','monto','numero')">Valor Cuota</th>
-                <th>Saldo Restante Deuda</th>
-                <th id="thTarjetaCreditos" style="cursor:pointer;" onclick="ordenarTabla('detalleCreditos','tarjeta','texto')">Tarjeta</th>
-                <th>Compartido</th><th>Deuda Asoc.</th><th>Acción</th>
-            </tr></thead>
-            <tbody id="tablaCreditos"></tbody>
-        </table>
-        <div class="totales-footer" id="lblTotalCreditos">Total Tarjetas: $0.00</div>
-        <button style="background-color:#1e3a8a; margin-top:10px;" onclick="abrirModalPagarResumen()">💳 Pagar Resumen</button>
-
-        <h3 style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 30px;">🔌 Servicios y Suscripciones Mensuales</h3>
-        <div class="form-section" style="padding:16px;">
-            <div class="form-grid" style="align-items:end;">
-                <div class="form-group"><label for="buscarServicios">Buscar</label><input type="text" id="buscarServicios" placeholder="Buscar por texto..." oninput="aplicarFiltrosCreditos()"></div>
-            </div>
-        </div>
-        <table>
-            <thead><tr>
-                <th id="thTextoServicios" style="cursor:pointer;" onclick="ordenarTabla('detalleServicios','texto','texto')">Servicio</th>
-                <th>Débito Auto.</th>
-                <th id="thMontoServicios" style="cursor:pointer;" onclick="ordenarTabla('detalleServicios','monto','numero')">Valor a Pagar</th>
-                <th>Variación vs Mes Anterior</th><th>Compartido</th><th>Deuda Asoc.</th><th>Acción</th>
-            </tr></thead>
-            <tbody id="tablaServicios"></tbody>
-        </table>
-        <div class="totales-footer" id="lblTotalServicios">Total Servicios: $0.00</div>
-        <button style="background-color:#1e3a8a; margin-top:10px;" onclick="pagarTodosLosServicios()">💵 Pagar Todos los Servicios Pendientes</button>
-    </div>
-
-    <!-- PESTAÑA INVERSIONES (unifica Billetera + Gráficos) -->
-    <div id="tab-inversiones" class="tab-content">
-        <h2>💹 Inversiones</h2>
-
-        <!-- CARDS RESUMEN: Pesos siempre, el resto solo si hay saldo -->
-        <div class="dashboard-grid" id="dashboard-inversiones"></div>
-
-        <!-- GRÁFICO: 6 o 12 meses, con checks de qué series ver -->
-        <div class="form-section" style="background:#f8fafc;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:10px;">
-                <h3 style="margin:0;">📈 Evolución</h3>
-                <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
-                    <div id="chkSeriesGrafico" style="display:flex; gap:20px; flex-wrap:wrap;"></div>
-                    <div style="display:flex; gap:8px;">
-                        <button type="button" class="btn-panel btn-periodo-grafico activo" onclick="setMesesAMostrar(6, this)">6 meses</button>
-                        <button type="button" class="btn-panel btn-periodo-grafico" onclick="setMesesAMostrar(12, this)">12 meses</button>
-                    </div>
-                </div>
-            </div>
-            <div class="chart-container" style="height:320px;">
-                <canvas id="patrimonioChart"></canvas>
-                <p id="graficoSinDatos" style="display:none; text-align:center; color:#94a3b8; padding-top:60px;">Todavía no hay movimientos de Dólares o S&P 500 para graficar.</p>
-            </div>
-        </div>
-
-        <!-- MOVIMIENTO: Inversión, Retiro o Extracción -->
-        <div class="form-section">
-            <div class="form-group" style="max-width:280px; margin-bottom:20px;">
-                <label for="invMovimiento">Movimiento</label>
-                <select id="invMovimiento" onchange="toggleMovimientoInversion()">
-                    <option value="INVERSION">Inversión</option>
-                    <option value="RETIRO">Retiro</option>
-                    <option value="EXTRACCION">Extracción</option>
-                </select>
-            </div>
-
-            <!-- SECCIÓN INVERSIÓN -->
-            <div id="seccionInversion">
-                <h3 style="margin-top:0; color:#334155;">Inversión</h3>
-                <div class="form-grid">
-                    <div class="form-group" id="boxInvOrigen"><label for="invOrigen">Origen de los Fondos</label>
-                        <select id="invOrigen" onchange="evaluarCamposInversion()">
-                            <option value="PESOS">Pesos</option>
-                            <option value="DOLARES">Dólares</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label for="invInstrumentoNuevo">Instrumento</label>
-                        <select id="invInstrumentoNuevo" onchange="evaluarCamposInversion()">
-                            <option value="Dólares">Dólares</option>
-                            <option value="S&P 500">S&P 500</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label id="lblInvMontoNuevo" for="invMontoNuevo">Monto a Invertir (Pesos)</label><input type="number" step="any" id="invMontoNuevo"></div>
-
-                    <!-- Compra de Dólares: elegir si cargás la cotización o directamente la cantidad de USD comprados -->
-                    <div class="form-group" id="boxModoDolar" style="display:none;"><label for="invModoDolar">¿Cómo querés cargarlo?</label>
-                        <select id="invModoDolar" onchange="toggleModoDolar()">
-                            <option value="COTIZACION">Cotización de compra</option>
-                            <option value="CANTIDAD">Cantidad de USD comprados</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="boxInvCotizacionDolar" style="display:none;"><label for="invCotizacionDolar">Cotización de Compra ($ por USD)</label><input type="number" step="any" id="invCotizacionDolar" placeholder="$ por USD"></div>
-                    <div class="form-group" id="boxInvCantidadDolares" style="display:none;"><label for="invCantidadDolares">Cantidad de USD Comprados</label><input type="number" step="any" id="invCantidadDolares"></div>
-
-                    <div class="form-group" id="boxInvNominales" style="display:none;"><label for="invNominalesNuevo">Nominales Comprados</label><input type="number" step="any" id="invNominalesNuevo"><span class="porcentaje">Cuántas unidades de S&P comprás</span></div>
-
-                    <div class="form-group"><label for="invFechaNueva">Fecha</label><input type="date" id="invFechaNueva"></div>
-                    <button style="background-color: #f59e0b; color: white; height:46px;" onclick="ejecutarInversionNueva()">Invertir</button>
-                </div>
-            </div>
-
-            <!-- SECCIÓN RETIRO (solo S&P 500 — los dólares no se retiran directo, son capital para invertir) -->
-            <div id="seccionRetiro" style="display:none;">
-                <h3 style="margin-top:0; color:#334155;">Retiro de S&P 500</h3>
-                <div class="form-grid">
-                    <div class="form-group"><label for="retDestino">¿A dónde va la plata?</label>
-                        <select id="retDestino" onchange="evaluarCamposRetiro()">
-                            <option value="PESOS">Pesos</option>
-                            <option value="DOLARES">Dólares</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label for="retCotizacion">Cotización a Usar</label><input type="number" step="any" id="retCotizacion"><span class="porcentaje">Editable si preferís otra</span></div>
-
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:8px;">
-                            <input type="checkbox" id="retCargarNominales" onchange="evaluarCamposRetiro()"> Prefiero indicar la cantidad de acciones en vez del valor
-                        </label>
-                    </div>
-                    <div class="form-group" id="boxRetMontoDeseado"><label id="lblRetMontoDeseado" for="retMontoDeseado">Valor a Retirar</label><input type="number" step="any" id="retMontoDeseado"></div>
-                    <div class="form-group" id="boxRetNominalesExactos" style="display:none;"><label for="retNominalesExactos">Nominales Exactos</label><input type="number" step="any" id="retNominalesExactos"></div>
-
-                    <button style="background-color: #3b82f6; color: white; height:46px;" onclick="ejecutarRetiroNuevo()">Retirar</button>
-                </div>
-            </div>
-
-            <!-- SECCIÓN EXTRACCIÓN (solo Dólares — sacan plata de la app definitivamente) -->
-            <div id="seccionExtraccion" style="display:none;">
-                <h3 style="margin-top:0; color:#334155;">Extracción de Dólares</h3>
-                <p style="font-size:0.85em; color:#64748b; margin-top:-10px;">Para cuando esa plata sale de la app definitivamente (la gastaste, la vendiste fuera del sistema, etc.).</p>
-                <div class="form-grid">
-                    <div class="form-group"><label for="extMontoDolares">Monto (US$)</label><input type="number" step="any" id="extMontoDolares"></div>
-                    <div class="form-group"><label for="extMotivo">Motivo</label><input type="text" id="extMotivo" placeholder="Ej: Retiro para viaje"></div>
-                    <button style="background-color: #ef4444; color: white; height:46px;" onclick="ejecutarExtraccion()">Extraer</button>
-                </div>
-            </div>
-        </div>
-
-        <h2>Historial de Movimientos</h2>
-        <div class="historico-selector" style="background:#f1f5f9; color:#1e3a8a;">
-            <label style="margin:0;">Instrumento:</label>
-            <select id="filtroDetalleInstrumento" onchange="actualizarFiltrosDetalle()">
-                <option value="TODOS">Todos</option>
-                <option value="Dólares">Dólares</option>
-                <option value="S&P 500">S&P 500</option>
-            </select>
-            <label style="margin:0;">Año:</label>
-            <select id="filtroDetalleAnio" onchange="actualizarFiltrosDetalle()"></select>
-        </div>
-        <table>
-            <thead><tr><th>Mov</th><th>Detalle</th><th>Instrumento</th><th>Monto</th><th id="thFechaDetalleInversiones" style="cursor:pointer;" onclick="ordenarTabla('detalleInversiones','fecha','fecha')">Fecha</th><th>Acción</th></tr></thead>
-            <tbody id="tablaDetalleInversiones"></tbody>
-        </table>
-    </div>
-
-
-    <!-- PESTAÑA CUENTAS POR COBRAR -->
-    <div id="tab-cuentas" class="tab-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h2 style="margin:0;">🤝 Gestión de Gastos Compartidos y Deudas</h2>
-            <button class="btn-verde" onclick="abrirModalExportarExcel()">⬇️ Descargar Excel</button>
-        </div>
-
-        <div class="form-section avanzado-only" style="background: #faf5ff; border: none;">
-            <h3 style="margin-top:0; color:#7e22ce;">👤 Crear Nueva Persona</h3>
-            <div class="form-grid">
-                <div class="form-group"><label for="nuevoAmigoNombre">Nombre de la Persona</label><input type="text" id="nuevoAmigoNombre" placeholder="Ej: Juan"></div>
-                <button style="background-color: #9333ea; height:46px;" onclick="crearPersonaDeuda()">Registrar Persona</button>
-            </div>
-        </div>
-
-        <h2>Resumen de Saldos Netos del Mes</h2>
-        <div class="dashboard-grid" id="gridResumenDeudas"></div>
-
-        <h3 class="avanzado-only" style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">🛒 Deudas Diarias (Pagadas en el Acto)</h3>
-        <table class="avanzado-only">
-            <thead><tr><th id="thFechaDeudasDiarias" style="cursor:pointer;" onclick="ordenarTabla('deudasDiarias','fecha','fecha')">Fecha</th><th>Persona</th><th>Texto Original</th><th>Monto</th><th>Acción</th></tr></thead>
-            <tbody id="tablaDeudasDiarias"></tbody>
-        </table>
-
-        <h3 class="avanzado-only" style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 30px;">💳 Deudas de Tarjetas y Servicios Mensuales</h3>
-        <table class="avanzado-only">
-            <thead><tr><th id="thFechaDeudasFijas" style="cursor:pointer;" onclick="ordenarTabla('deudasFijas','fecha','fecha')">Fecha</th><th>Persona</th><th>Texto Original</th><th>Monto</th><th>Acción</th></tr></thead>
-            <tbody id="tablaDeudasFijas"></tbody>
-        </table>
-
-        <!-- TABLA ÚNICA BÁSICA -->
-        <h3 id="tituloDeudaUnica" style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; display:none;">📋 Listado de Deudas Pendientes</h3>
-        <table id="tablaDeudaUnica" style="display:none;">
-            <thead><tr><th id="thFechaDeudasBasicas" style="cursor:pointer;" onclick="ordenarTabla('deudasBasicas','fecha','fecha')">Fecha</th><th>Persona</th><th>Concepto Original</th><th>Monto</th><th>Acción</th></tr></thead>
-            <tbody id="tablaDeudasBasicas"></tbody>
-        </table>
-
-    </div>
+<div class="historico-selector" id="panel-selector-mes">
+<label style="margin: 0;">Período a visualizar:</label>
+<select id="filtroMesAnio" onchange="actualizarApp()"></select>
 </div>
+
+<!-- FLUJO MENSUAL -->
+<div id="tab-flujo" class="tab-content active">
+
+<!-- DASHBOARD DINÁMICO (BÁSICO VS AVANZADO) -->
+<div class="dashboard-grid" id="dashboard-dinamico">
+<!-- Se llena vía JavaScript según el Modo -->
+</div>
+
+<div class="form-section">
+<h3 style="margin-top:0;">Cargar Nuevo Movimiento</h3>
+<div class="form-grid">
+<div class="form-group"><label for="inputMonto">Monto Total ($)</label><input type="number" step="any" id="inputMonto" placeholder="0.00"></div>
+<div class="form-group"><label for="inputTipo">Tipo</label>
+<select id="inputTipo" onchange="evaluarCamposDinamicosGasto()">
+<option value="Ingreso">Ingreso</option>
+<option value="Gasto Fijo">Gasto Fijo</option>
+<option value="Gasto Variable">Gasto Variable</option>
+</select>
+</div>
+<!-- ETIQUETA DINÁMICA CONCEPTO/TEXTO -->
+<div class="form-group"><label id="lblConceptoTexto" for="inputConcepto">Concepto</label><input type="text" id="inputConcepto" placeholder="Ej: Sueldo, Supermercado..."></div>
+<div class="form-group"><label for="inputFecha">Fecha</label><input type="date" id="inputFecha"></div>
+
+<!-- CATEGORÍA (solo gastos, disponible en Básico y Avanzado) -->
+<div class="form-group" id="boxCategoria" style="display:none;"><label for="inputCategoria">Categoría</label>
+<select id="inputCategoria" onchange="toggleCategoriaPersonalizada()">
+<option value="Supermercado">🛒 Supermercado</option>
+<option value="Comida afuera">🍔 Comida afuera</option>
+<option value="Transporte">🚗 Transporte</option>
+<option value="Servicios">🔌 Servicios</option>
+<option value="Salud">💊 Salud</option>
+<option value="Entretenimiento">🎬 Entretenimiento</option>
+<option value="Ropa">👕 Ropa</option>
+<option value="Educación">📚 Educación</option>
+<option value="Hogar">🏠 Hogar</option>
+<option value="Otros" selected>📦 Otros</option>
+<option value="__PERSONALIZADA__">✏️ Personalizada...</option>
+</select>
+</div>
+<div class="form-group" id="boxCategoriaPersonalizada" style="display:none;"><label for="inputCategoriaPersonalizada">Nombre de la categoría</label><input type="text" id="inputCategoriaPersonalizada" placeholder="Ej: Mascotas"></div>
+
+<div class="form-group avanzado-only" id="boxMetodoPago"><label for="inputMetodoPago">Método de Pago</label>
+<select id="inputMetodoPago" onchange="evaluarCamposDinamicosGasto()">
+<option value="EN_EL_ACTO">En el acto (Débito/Efectivo)</option>
+<option value="CREDITO">Tarjeta de Crédito</option>
+<option value="SERVICIO">Servicio Mensual Recurrente</option>
+</select>
+</div>
+
+<div class="form-group avanzado-only" id="boxPlanCuotas" style="display:none;"><label for="inputCuotas">Cuotas</label>
+<select id="inputCuotas">
+<option value="1">1 pago (Sin cuotas)</option>
+<option value="2">2 Cuotas fijas</option><option value="3">3 Cuotas fijas</option><option value="4">4 Cuotas fijas</option><option value="5">5 Cuotas fijas</option><option value="6">6 Cuotas fijas</option><option value="7">7 Cuotas fijas</option><option value="8">8 Cuotas fijas</option><option value="9">9 Cuotas fijas</option><option value="10">10 Cuotas fijas</option><option value="11">11 Cuotas fijas</option><option value="12">12 Cuotas fijas</option>
+<option value="13">13 Cuotas fijas</option><option value="14">14 Cuotas fijas</option><option value="15">15 Cuotas fijas</option><option value="16">16 Cuotas fijas</option><option value="17">17 Cuotas fijas</option><option value="18">18 Cuotas fijas</option><option value="19">19 Cuotas fijas</option><option value="20">20 Cuotas fijas</option><option value="21">21 Cuotas fijas</option><option value="22">22 Cuotas fijas</option><option value="23">23 Cuotas fijas</option><option value="24">24 Cuotas fijas</option>
+</select>
+</div>
+
+<div class="form-group avanzado-only" id="boxTarjeta" style="display:none;"><label for="inputTarjetaSeleccionada">Tarjeta</label>
+<select id="inputTarjetaSeleccionada" onchange="toggleNuevaTarjeta()">
+<option value="">Elegir tarjeta...</option>
+<option value="__NUEVA__">+ Agregar una nueva</option>
+</select>
+</div>
+<div class="form-group avanzado-only" id="boxNuevaTarjeta" style="display:none;"><label for="inputNuevaTarjeta">Nombre de la tarjeta nueva</label><input type="text" id="inputNuevaTarjeta" placeholder="Ej: Visa Santander"></div>
+
+<div class="form-group avanzado-only" id="boxDebitoAuto" style="display:none;"><label for="inputDebitoAuto">¿Débito Automático?</label>
+<select id="inputDebitoAuto">
+<option value="NO">No</option>
+<option value="SI">Sí, adherido</option>
+</select>
+</div>
+
+<div class="form-group avanzado-only" id="boxGastoCompartido" style="display:none;"><label for="inputDividir">División del pago</label>
+<select id="inputDividir" onchange="toggleSelectAmigo()">
+<option value="NO">Normal</option>
+<option value="PAGUE_100_DEUDA">Pagué 100%</option>
+<option value="PAGUE_50_INTEGRO">Pagué 50%</option>
+<option value="PAGO_OTRO_50">Debo 50%</option>
+<option value="PAGO_OTRO_100_DEUDA">Debo 100%</option>
+</select>
+</div>
+
+<div class="form-group avanzado-only" id="boxSeleccionAmigo" style="display:none;"><label for="inputAmigoAsignado">¿Con quién?</label>
+<select id="inputAmigoAsignado"></select>
+</div>
+
+<button onclick="agregarMovimiento()" style="height:46px;">Agregar al Flujo</button>
+</div>
+</div>
+
+<h2>Detalle de Movimientos del Mes</h2>
+<div class="form-section" style="padding:16px;">
+<div class="form-grid" style="align-items:end;">
+<div class="form-group"><label for="buscarMovimientos">Buscar</label><input type="text" id="buscarMovimientos" placeholder="Buscar por texto..." oninput="aplicarFiltrosMovimientos()"></div>
+<div class="form-group avanzado-only"><label for="filtroMetodoMovimientos">Método</label>
+<select id="filtroMetodoMovimientos" onchange="aplicarFiltrosMovimientos()">
+<option value="TODOS">Todos</option>
+<option value="EN_EL_ACTO">En el Acto</option>
+<option value="CREDITO">Tarjeta</option>
+<option value="SERVICIO">Servicio</option>
+<option value="LIQUIDACION">Liquidación de Deuda</option>
+</select>
+</div>
+<div class="form-group"><label for="filtroFechaDesde">Desde</label><input type="date" id="filtroFechaDesde" onchange="aplicarFiltrosMovimientos()"></div>
+<div class="form-group"><label for="filtroFechaHasta">Hasta</label><input type="date" id="filtroFechaHasta" onchange="aplicarFiltrosMovimientos()"></div>
+<button class="btn-secundario" style="height:46px;" onclick="limpiarFiltrosMovimientos()">Limpiar Filtros</button>
+</div>
+</div>
+<div class="card-list" id="tablaMovimientos"></div>
+</div>
+
+<!-- PESTAÑA DETALLE GASTOS (SOLO AVANZADO) -->
+<div id="tab-detalle-gastos" class="tab-content avanzado-only">
+<h2>🧾 Análisis de Obligaciones del Mes</h2>
+
+<h3 style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">💳 Tarjetas de Crédito (Cuotas a pagar este mes)</h3>
+<div class="form-section" style="padding:16px;">
+<div class="form-grid" style="align-items:end;">
+<div class="form-group"><label for="buscarCreditos">Buscar</label><input type="text" id="buscarCreditos" placeholder="Buscar por texto..." oninput="aplicarFiltrosCreditos()"></div>
+<div class="form-group"><label for="filtroTarjeta">Tarjeta</label><select id="filtroTarjeta" onchange="aplicarFiltrosCreditos()"><option value="TODAS">Todas</option></select></div>
+<button class="btn-secundario" style="height:46px;" onclick="limpiarFiltrosCreditos()">Limpiar Filtros</button>
+</div>
+</div>
+<div class="card-list" id="tablaCreditos"></div>
+<div class="totales-footer" id="lblTotalCreditos">Total Tarjetas: $0.00</div>
+<button style="background-color:#1e3a8a; margin-top:10px;" onclick="abrirModalPagarResumen()">💳 Pagar Resumen</button>
+
+<h3 style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 30px;">🔌 Servicios y Suscripciones Mensuales</h3>
+<div class="form-section" style="padding:16px;">
+<div class="form-grid" style="align-items:end;">
+<div class="form-group"><label for="buscarServicios">Buscar</label><input type="text" id="buscarServicios" placeholder="Buscar por texto..." oninput="aplicarFiltrosCreditos()"></div>
+</div>
+</div>
+<div class="card-list" id="tablaServicios"></div>
+<div class="totales-footer" id="lblTotalServicios">Total Servicios: $0.00</div>
+</div>
+
+<!-- PESTAÑA INVERSIONES (unifica Billetera + Gráficos) -->
+<div id="tab-inversiones" class="tab-content">
+<h2>💹 Inversiones</h2>
+
+<!-- CARDS RESUMEN: Pesos siempre, el resto solo si hay saldo -->
+<div class="dashboard-grid" id="dashboard-inversiones"></div>
+
+<!-- GRÁFICO: 6 o 12 meses, con checks de qué series ver -->
+<div class="form-section" style="background:#f8fafc;">
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:10px;">
+<h3 style="margin:0;">📈 Evolución</h3>
+<div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
+<div id="chkSeriesGrafico" style="display:flex; gap:20px; flex-wrap:wrap;"></div>
+<div style="display:flex; gap:8px;">
+<button type="button" class="btn-panel btn-periodo-grafico activo" onclick="setMesesAMostrar(6, this)">6 meses</button>
+<button type="button" class="btn-panel btn-periodo-grafico" onclick="setMesesAMostrar(12, this)">12 meses</button>
+</div>
+</div>
+</div>
+<div class="chart-container" style="height:320px;">
+<canvas id="patrimonioChart"></canvas>
+<p id="graficoSinDatos" style="display:none; text-align:center; color:#94a3b8; padding-top:60px;">Todavía no hay movimientos de Dólares o S&P 500 para graficar.</p>
+</div>
+</div>
+
+<!-- MOVIMIENTO: Inversión, Retiro o Extracción -->
+<div class="form-section">
+<div class="form-group" style="max-width:280px; margin-bottom:20px;">
+<label for="invMovimiento">Movimiento</label>
+<select id="invMovimiento" onchange="toggleMovimientoInversion()">
+<option value="INVERSION">Inversión</option>
+<option value="RETIRO">Retiro</option>
+</select>
+</div>
+
+<!-- SECCIÓN INVERSIÓN -->
+<div id="seccionInversion">
+<h3 style="margin-top:0; color:#334155;">Inversión</h3>
+<div class="form-grid">
+<div class="form-group" id="boxInvOrigen"><label for="invOrigen">Origen de los Fondos</label>
+<select id="invOrigen" onchange="evaluarCamposInversion()">
+<option value="PESOS">Pesos</option>
+<option value="DOLARES">Dólares</option>
+</select>
+</div>
+<div class="form-group"><label for="invInstrumentoNuevo">Instrumento</label>
+<select id="invInstrumentoNuevo" onchange="evaluarCamposInversion()">
+<option value="Dólares">Dólares</option>
+<option value="S&P 500">S&P 500</option>
+</select>
+</div>
+<div class="form-group"><label id="lblInvMontoNuevo" for="invMontoNuevo">Monto a Invertir (Pesos)</label><input type="number" step="any" id="invMontoNuevo"></div>
+
+<!-- Compra de Dólares: elegir si cargás la cotización o directamente la cantidad de USD comprados -->
+<div class="form-group" id="boxModoDolar" style="display:none;"><label for="invModoDolar">¿Cómo querés cargarlo?</label>
+<select id="invModoDolar" onchange="toggleModoDolar()">
+<option value="COTIZACION">Cotización de compra</option>
+<option value="CANTIDAD">Cantidad de USD comprados</option>
+</select>
+</div>
+<div class="form-group" id="boxInvCotizacionDolar" style="display:none;"><label for="invCotizacionDolar">Cotización de Compra ($ por USD)</label><input type="number" step="any" id="invCotizacionDolar" placeholder="$ por USD"></div>
+<div class="form-group" id="boxInvCantidadDolares" style="display:none;"><label for="invCantidadDolares">Cantidad de USD Comprados</label><input type="number" step="any" id="invCantidadDolares"></div>
+
+<div class="form-group" id="boxInvNominales" style="display:none;"><label for="invNominalesNuevo">Nominales Comprados</label><input type="number" step="any" id="invNominalesNuevo"><span class="porcentaje">Cuántas unidades de S&P comprás</span></div>
+
+<div class="form-group"><label for="invFechaNueva">Fecha</label><input type="date" id="invFechaNueva"></div>
+<button style="background-color: #f59e0b; color: white; height:46px;" onclick="ejecutarInversionNueva()">Invertir</button>
+</div>
+</div>
+
+<!-- SECCIÓN RETIRO (unificada: podés retirar del S&P 500 -que vuelve a Pesos o Dólares- o de tus Dólares -que salen de la plataforma o se convierten a Pesos-) -->
+<div id="seccionRetiro" style="display:none;">
+<div class="form-grid">
+<div class="form-group"><label for="retInstrumento">¿Qué querés retirar?</label>
+<select id="retInstrumento" onchange="toggleInstrumentoRetiro()">
+<option value="SP500">S&P 500</option>
+<option value="DOLARES">Dólares</option>
+</select>
+</div>
+</div>
+
+<div id="boxRetiroSp500">
+<h3 style="margin-top:0; color:#334155;">Retiro de S&P 500</h3>
+<div class="form-grid">
+<div class="form-group"><label for="retDestino">¿A dónde va la plata?</label>
+<select id="retDestino" onchange="evaluarCamposRetiro()">
+<option value="PESOS">Pesos</option>
+<option value="DOLARES">Dólares</option>
+</select>
+</div>
+<div class="form-group"><label for="retCotizacion">Cotización a Usar</label><input type="number" step="any" id="retCotizacion"><span class="porcentaje">Editable si preferís otra</span></div>
+
+<div class="form-group" style="grid-column: 1 / -1;">
+<label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:8px;">
+<input type="checkbox" id="retCargarNominales" onchange="evaluarCamposRetiro()"> Prefiero indicar la cantidad de acciones en vez del valor
+</label>
+</div>
+<div class="form-group" id="boxRetMontoDeseado"><label id="lblRetMontoDeseado" for="retMontoDeseado">Valor a Retirar</label><input type="number" step="any" id="retMontoDeseado"></div>
+<div class="form-group" id="boxRetNominalesExactos" style="display:none;"><label for="retNominalesExactos">Nominales Exactos</label><input type="number" step="any" id="retNominalesExactos"></div>
+
+<button style="background-color: #3b82f6; color: white; height:46px;" onclick="ejecutarRetiroNuevo()">Retirar</button>
+</div>
+</div>
+
+<div id="boxRetiroDolares" style="display:none;">
+<h3 style="margin-top:0; color:#334155;">Retiro de Dólares</h3>
+<div class="form-grid">
+<div class="form-group"><label for="extMontoDolares">Monto (US$)</label><input type="number" step="any" id="extMontoDolares"></div>
+<div class="form-group"><label for="extMotivo">Motivo</label><input type="text" id="extMotivo" placeholder="Ej: Retiro para viaje"></div>
+<div class="form-group" style="grid-column: 1 / -1;">
+<label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:8px;">
+<input type="checkbox" id="extSacoDePlataforma" checked onchange="toggleExplicacionExtraccion()"> Los saco de la plataforma
+</label>
+<span class="porcentaje" id="lblExplicacionExtraccion">Salen de la app definitivamente (los gastaste, los vendiste fuera del sistema, etc.).</span>
+</div>
+
+<button style="background-color: #ef4444; color: white; height:46px;" onclick="ejecutarExtraccion()">Confirmar</button>
+</div>
+</div>
+</div>
+
+<h2>Historial de Movimientos</h2>
+<div class="historico-selector" style="background:#f1f5f9; color:#1e3a8a;">
+<label style="margin:0;">Instrumento:</label>
+<select id="filtroDetalleInstrumento" onchange="actualizarFiltrosDetalle()">
+<option value="TODOS">Todos</option>
+<option value="Dólares">Dólares</option>
+<option value="S&P 500">S&P 500</option>
+</select>
+<label style="margin:0;">Año:</label>
+<select id="filtroDetalleAnio" onchange="actualizarFiltrosDetalle()"></select>
+</div>
+<div class="card-list" id="tablaDetalleInversiones"></div>
+</div>
+</div>
+
+<!-- PESTAÑA CUENTAS POR COBRAR -->
+<div id="tab-cuentas" class="tab-content">
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+<h2 style="margin:0;">🤝 Gestión de Gastos Compartidos y Deudas</h2>
+<button class="btn-verde" onclick="abrirModalExportarExcel()">⬇️ Descargar Excel</button>
+</div>
+
+<div class="form-section avanzado-only" style="background: #faf5ff; border: none;">
+<h3 style="margin-top:0; color:#7e22ce;">👤 Crear Nueva Persona</h3>
+<div class="form-grid">
+<div class="form-group"><label for="nuevoAmigoNombre">Nombre de la Persona</label><input type="text" id="nuevoAmigoNombre" placeholder="Ej: Juan"></div>
+<button style="background-color: #9333ea; height:46px;" onclick="crearPersonaDeuda()">Registrar Persona</button>
+</div>
+</div>
+
+<h2>Resumen de Saldos Netos del Mes</h2>
+<div class="dashboard-grid" id="gridResumenDeudas"></div>
+
+<h3 class="avanzado-only" style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">🛒 Deudas Diarias (Pagadas en el Acto)</h3>
+<div class="card-list avanzado-only" id="tablaDeudasDiarias"></div>
+
+<h3 class="avanzado-only" style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 30px;">💳 Deudas de Tarjetas y Servicios Mensuales</h3>
+<div class="card-list avanzado-only" id="tablaDeudasFijas"></div>
+
+<!-- LISTA ÚNICA BÁSICA -->
+<h3 id="tituloDeudaUnica" style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; display:none;">📋 Listado de Deudas Pendientes</h3>
+<div id="tablaDeudaUnica" style="display:none;">
+<div class="card-list" id="tablaDeudasBasicas"></div>
+</div>
+
+</div>
+</div>
+<!-- /#main-app -->
+
+</div>
+<!-- /#main-content -->
 
 <script type="module" src="main.js"></script>
 
