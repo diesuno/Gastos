@@ -28,14 +28,16 @@ import {
 import {
     evaluarCamposDinamicosGasto, toggleSelectAmigo, crearPersonaDeuda,
     agregarMovimiento, toggleNuevaTarjeta, actualizarSelectTarjetasDisplay,
-    abrirModalEditarMovimiento, cerrarModalEditarMovimiento, guardarEdicionMovimiento
+    abrirModalEditarMovimiento, cerrarModalEditarMovimiento, guardarEdicionMovimiento,
+    toggleCategoriaPersonalizada
 } from './movimientos.js';
 
 import {
     inicializarMercado, toggleMovimientoInversion, evaluarCamposInversion,
     evaluarCamposRetiro, ejecutarInversionNueva, ejecutarRetiroNuevo,
     revertirMovimientoInversion, toggleModoDolar,
-    ejecutarExtraccion
+    ejecutarExtraccion,
+    toggleInstrumentoRetiro, toggleExplicacionExtraccion
 } from './billetera.js';
 
 import {
@@ -53,11 +55,12 @@ import {
 
 import { toggleSerieGrafico, setMesesAMostrar } from './grafico.js';
 
-import { inicializarSelectorHistorico, cambiarPestaña, actualizarApp, actualizarFiltrosDetalle, ordenarTabla, aplicarFiltrosMovimientos, limpiarFiltrosMovimientos, aplicarFiltrosCreditos, limpiarFiltrosCreditos } from './render.js';
+import { inicializarSelectorHistorico, cambiarPestaña, actualizarApp, actualizarFiltrosDetalle, ordenarTabla, aplicarFiltrosMovimientos, limpiarFiltrosMovimientos, aplicarFiltrosCreditos, limpiarFiltrosCreditos, inicializarSidebar, toggleSidebar, toggleSidebarMobile } from './render.js';
 
 // --- INICIALIZACIÓN DE CAMPOS DE FECHA ---
 document.getElementById('inputFecha').valueAsDate = fechaActual;
 document.getElementById('invFechaNueva').valueAsDate = fechaActual;
+inicializarSidebar();
 
 // --- ESTADO DE SESIÓN ---
 auth.onAuthStateChanged(user => {
@@ -174,3 +177,8 @@ window.aplicarFiltrosMovimientos = aplicarFiltrosMovimientos;
 window.limpiarFiltrosMovimientos = limpiarFiltrosMovimientos;
 window.aplicarFiltrosCreditos = aplicarFiltrosCreditos;
 window.limpiarFiltrosCreditos = limpiarFiltrosCreditos;
+window.toggleCategoriaPersonalizada = toggleCategoriaPersonalizada;
+window.toggleInstrumentoRetiro = toggleInstrumentoRetiro;
+window.toggleExplicacionExtraccion = toggleExplicacionExtraccion;
+window.toggleSidebar = toggleSidebar;
+window.toggleSidebarMobile = toggleSidebarMobile;
