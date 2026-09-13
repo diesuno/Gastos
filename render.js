@@ -103,6 +103,14 @@ export function ordenarTabla(tabla, campo, tipo) {
     actualizarApp();
 }
 
+// --- Ordenar desde un <select> (a diferencia de ordenarTabla, fija el campo y direccion directo, sin togglear) ---
+export function ordenarDesdeSelect(tabla, valorSelect) {
+let [campo, dir] = valorSelect.split(':');
+ordenTablas[tabla].campo = campo;
+ordenTablas[tabla].ascendente = (dir === 'asc');
+actualizarApp();
+}
+
 export function aplicarFiltrosMovimientos() {
     filtrosMovimientos.metodo = document.getElementById('filtroMetodoMovimientos').value;
     filtrosMovimientos.desde = document.getElementById('filtroFechaDesde').value;
