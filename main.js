@@ -77,7 +77,7 @@ auth.onAuthStateChanged(user => {
         // solo, se eliminó la cuenta, etc.).
         desconectarOyente();
         ocultarLoaderInicial();
-        document.getElementById('auth-section').style.display = 'block';
+        document.body.classList.remove('logueado'); document.getElementById('auth-section').style.display = 'flex';
         document.getElementById('main-app').style.display = 'none';
     }
 });
