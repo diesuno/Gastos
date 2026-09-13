@@ -55,7 +55,7 @@ import {
 
 import { toggleSerieGrafico, setMesesAMostrar } from './grafico.js';
 
-import { inicializarSelectorHistorico, cambiarPestaña, actualizarApp, actualizarFiltrosDetalle, ordenarTabla, aplicarFiltrosMovimientos, limpiarFiltrosMovimientos, aplicarFiltrosCreditos, limpiarFiltrosCreditos, inicializarSidebar, toggleSidebar, toggleSidebarMobile } from './render.js';
+import { inicializarSelectorHistorico, cambiarPestaña, actualizarApp, actualizarFiltrosDetalle, ordenarTabla, aplicarFiltrosMovimientos, limpiarFiltrosMovimientos, aplicarFiltrosCreditos, limpiarFiltrosCreditos, inicializarSidebar, toggleSidebar, toggleSidebarMobile, ordenarDesdeSelect } from './render.js';
 
 // --- INICIALIZACIÓN DE CAMPOS DE FECHA ---
 document.getElementById('inputFecha').valueAsDate = fechaActual;
@@ -182,3 +182,4 @@ window.toggleInstrumentoRetiro = toggleInstrumentoRetiro;
 window.toggleExplicacionExtraccion = toggleExplicacionExtraccion;
 window.toggleSidebar = toggleSidebar;
 window.toggleSidebarMobile = toggleSidebarMobile;
+window.ordenarDesdeSelect = ordenarDesdeSelect;
