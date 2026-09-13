@@ -643,6 +643,11 @@ window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.j
 </select>
 <label style="margin:0;">Año:</label>
 <select id="filtroDetalleAnio" onchange="actualizarFiltrosDetalle()"></select>
+<label style="margin:0;">Ordenar:</label>
+<select id="ordenarDetalleInversiones" onchange="ordenarDesdeSelect('detalleInversiones', this.value)">
+<option value="fecha:desc">Fecha (más reciente)</option>
+<option value="fecha:asc">Fecha (más antigua)</option>
+</select>
 </div>
 <div class="card-list" id="tablaDetalleInversiones"></div>
 </div>
@@ -675,6 +680,12 @@ window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.j
 <!-- LISTA ÚNICA BÁSICA -->
 <h3 id="tituloDeudaUnica" style="color:#1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; display:none;">📋 Listado de Deudas Pendientes</h3>
 <div id="tablaDeudaUnica" style="display:none;">
+<div class="form-group" style="max-width:280px; margin-bottom:15px;"><label for="ordenarDeudasBasicas">Ordenar por</label>
+<select id="ordenarDeudasBasicas" onchange="ordenarDesdeSelect('deudasBasicas', this.value)">
+<option value="fecha:desc">Fecha (más reciente)</option>
+<option value="fecha:asc">Fecha (más antigua)</option>
+</select>
+</div>
 <div class="card-list" id="tablaDeudasBasicas"></div>
 </div>
 
