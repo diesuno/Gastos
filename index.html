@@ -478,6 +478,15 @@ window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.j
 <div class="form-grid" style="align-items:end;">
 <div class="form-group"><label for="buscarCreditos">Buscar</label><input type="text" id="buscarCreditos" placeholder="Buscar por texto..." oninput="aplicarFiltrosCreditos()"></div>
 <div class="form-group"><label for="filtroTarjeta">Tarjeta</label><select id="filtroTarjeta" onchange="aplicarFiltrosCreditos()"><option value="TODAS">Todas</option></select></div>
+<div class="form-group"><label for="ordenarCreditos">Ordenar por</label>
+<select id="ordenarCreditos" onchange="ordenarDesdeSelect('detalleCreditos', this.value)">
+<option value="texto:asc">Nombre (A-Z)</option>
+<option value="texto:desc">Nombre (Z-A)</option>
+<option value="monto:desc">Monto (mayor a menor)</option>
+<option value="monto:asc">Monto (menor a mayor)</option>
+<option value="tarjeta:asc">Tarjeta (A-Z)</option>
+</select>
+</div>
 <button class="btn-secundario" style="height:46px;" onclick="limpiarFiltrosCreditos()">Limpiar Filtros</button>
 </div>
 </div>
@@ -489,6 +498,14 @@ window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.j
 <div class="form-section" style="padding:16px;">
 <div class="form-grid" style="align-items:end;">
 <div class="form-group"><label for="buscarServicios">Buscar</label><input type="text" id="buscarServicios" placeholder="Buscar por texto..." oninput="aplicarFiltrosCreditos()"></div>
+<div class="form-group"><label for="ordenarServicios">Ordenar por</label>
+<select id="ordenarServicios" onchange="ordenarDesdeSelect('detalleServicios', this.value)">
+<option value="texto:asc">Nombre (A-Z)</option>
+<option value="texto:desc">Nombre (Z-A)</option>
+<option value="monto:desc">Monto (mayor a menor)</option>
+<option value="monto:asc">Monto (menor a mayor)</option>
+</select>
+</div>
 </div>
 </div>
 <div class="card-list" id="tablaServicios"></div>
