@@ -486,7 +486,12 @@ let filas = [...estadoApp.historialInversiones].filter(h => {
     if (filtroAnio !== 'TODOS' && new Date(h.fecha + 'T00:00:00').getFullYear().toString() !== filtroAnio) return false;
     return true;
 });
-    filas.sort((a, b) => (ordenDetInv.ascendente ? 1 : -1) * compararValores(a.fecha, b.fecha));
+    let valorDeInversion = (h) => {
+if (ordenDetInv.campo === 'instrumento') return h.instrumento;
+if (ordenDetInv.campo === 'monto') return obtenerMontoYSimboloParaMostrar(h).monto;
+return h.fecha;
+};
+filas.sort((a, b) => (ordenDetInv.ascendente ? 1 : -1) * compararValores(valorDeInversion(a), valorDeInversion(b)));
 
 filas.forEach(h => {
     let f = new Date(h.fecha + 'T00:00:00'); let ff = `${f.getDate().toString().padStart(2,'0')}/${(f.getMonth()+1).toString().padStart(2,'0')}/${f.getFullYear()}`;
