@@ -453,6 +453,16 @@ window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.j
 </div>
 <div class="form-group"><label for="filtroFechaDesde">Desde</label><input type="date" id="filtroFechaDesde" onchange="aplicarFiltrosMovimientos()"></div>
 <div class="form-group"><label for="filtroFechaHasta">Hasta</label><input type="date" id="filtroFechaHasta" onchange="aplicarFiltrosMovimientos()"></div>
+<div class="form-group"><label for="ordenarMovimientos">Ordenar por</label>
+<select id="ordenarMovimientos" onchange="ordenarDesdeSelect('movimientos', this.value)">
+<option value="fecha:desc">Fecha (más reciente)</option>
+<option value="fecha:asc">Fecha (más antigua)</option>
+<option value="texto:asc">Nombre (A-Z)</option>
+<option value="texto:desc">Nombre (Z-A)</option>
+<option value="monto:desc">Monto (mayor a menor)</option>
+<option value="monto:asc">Monto (menor a mayor)</option>
+</select>
+</div>
 <button class="btn-secundario" style="height:46px;" onclick="limpiarFiltrosMovimientos()">Limpiar Filtros</button>
 </div>
 </div>
