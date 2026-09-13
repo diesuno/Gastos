@@ -647,6 +647,9 @@ window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.j
 <select id="ordenarDetalleInversiones" onchange="ordenarDesdeSelect('detalleInversiones', this.value)">
 <option value="fecha:desc">Fecha (más reciente)</option>
 <option value="fecha:asc">Fecha (más antigua)</option>
+<option value="instrumento:asc">Instrumento (A-Z)</option>
+<option value="monto:desc">Monto (mayor a menor)</option>
+<option value="monto:asc">Monto (menor a mayor)</option>
 </select>
 </div>
 <div class="card-list" id="tablaDetalleInversiones"></div>
