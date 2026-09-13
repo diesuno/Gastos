@@ -182,4 +182,9 @@ body.modo-basico .avanzado-only { display: none !important; }
     #onboarding-modal > div > div { flex-direction: column; }
     .card-row-top { flex-wrap: wrap; }
     .cr-monto { order: 3; margin-left: 50px; }
+.cr-info { flex-basis: 100%; order: 1; }
+.cr-titulo { white-space: normal; overflow: visible; text-overflow: clip; }
+.cr-badge { order: 2; }
+.btn-info { order: 2; margin-left: auto; }
+.cr-monto { flex-basis: 100%; margin-left: 0; text-align: right; }
 }
